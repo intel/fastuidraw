@@ -41,7 +41,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   float scale_factor, radius, arc_angle;
 
   float distance_from_edge_start, distance_from_contour_start;
-  float total_edge_length, total_open_contour_length, total_closed_contour_length;
+  float total_edge_length, contour_length;
   float stroke_radius_for_outer_boundary, arc_radius_for_outer_boundary;
 
   float stroke_radius;
@@ -74,8 +74,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   distance_from_edge_start = secondary_attrib.x;
   distance_from_contour_start = secondary_attrib.y;
   total_edge_length = uintBitsToFloat(in_attrib2.y);
-  total_open_contour_length = uintBitsToFloat(in_attrib2.z);
-  total_closed_contour_length = uintBitsToFloat(in_attrib2.w);
+  contour_length = uintBitsToFloat(in_attrib2.z);
   point_packed_data = in_attrib2.x;
 
   offset_type = FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_offset_type_bit0,
@@ -94,108 +93,130 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   stroke_radius_for_outer_boundary = stroke_radius;
   arc_radius_for_outer_boundary = radius;
 
+  fastuidraw_stroking_distance = distance_from_contour_start;
+
+  float edge_start, edge_end, stroke_distance;
+  bool is_constant_distance, is_edge_end;
+  FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) base, base_start, base_end;
+
+  fastuidraw_arc_shader_stroking_distance_real = distance_from_contour_start;
+
+  /* TODO:
+   *  Add options to fastuidraw_dashed_stroking_params_header to specify
+   *  otherways of doing the stroking distance than just the distance
+   *  from the start of the contour. Options such as distance from
+   *  start of the edge with or without a margin added around the join,
+   *  and options to adjust the stroking distance so that the total
+   *  distance is a multiple-ish of the contour length or current
+   *  end length.
+   */
+  stroke_distance = distance_from_contour_start + dashed_stroke_params.dash_offset;
+
   if (dash_style != fastuidraw_stroke_not_dashed)
     {
-      float edge_start, edge_end, stroke_distance;
-      bool is_constant_distance, is_edge_end;
-      FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) base, base_start, base_end;
-
-      stroke_distance = distance_from_contour_start + dashed_stroke_params.dash_offset;
       FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(stroke_distance, shader_data_block, dashed_stroke_params, base);
-      fastuidraw_arc_stroking_distance = base.d;
+      fastuidraw_arc_shader_stroking_distance = base.d;
+    }
+
+  if (dash_style != fastuidraw_stroke_dashed_flat_caps && dash_style != fastuidraw_stroke_not_dashed)
+    {
+      edge_start = stroke_distance - distance_from_edge_start;
+      FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_start, shader_data_block, dashed_stroke_params, base_start);
+      fastuidraw_arc_shader_stroking_distance_sub_edge_start = (base_start.s < 0.0) ? base_start.interval_end : base_start.interval_begin - stroke_radius;
+
+      edge_end = edge_start + total_edge_length;
+      FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_end, shader_data_block, dashed_stroke_params, base_end);
+      fastuidraw_arc_shader_stroking_distance_sub_edge_end = (base_end.s < 0.0) ? base_end.interval_begin : base_end.interval_end + stroke_radius;
+    }
+
+  is_edge_end = (point_packed_data & fastuidraw_arc_stroke_end_segment_mask) != 0u;
+  is_constant_distance = (point_packed_data & fastuidraw_arc_stroke_distance_constant_on_primitive_mask) != 0u;
+  if (offset_type == fastuidraw_arc_stroke_dashed_capper && dash_style != fastuidraw_stroke_not_dashed)
+    {
+      fastuidraw_arc_stroking_dash_bits = fastuidraw_stroke_skip_dash_interval_lookup_mask;
 
       if (dash_style != fastuidraw_stroke_dashed_flat_caps)
         {
-          edge_start = distance_from_contour_start - distance_from_edge_start + dashed_stroke_params.dash_offset;
-          FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_start, shader_data_block, dashed_stroke_params, base_start);
-          fastuidraw_arc_stroking_distance_sub_edge_start = (base_start.s < 0.0) ? base_start.interval_end : base_start.interval_begin - stroke_radius;
-
-          edge_end = edge_start + total_edge_length;
-          FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(edge_end, shader_data_block, dashed_stroke_params, base_end);
-          fastuidraw_arc_stroking_distance_sub_edge_end = (base_end.s < 0.0) ? base_end.interval_begin : base_end.interval_end + stroke_radius;
-        }
-
-      is_edge_end = (point_packed_data & fastuidraw_arc_stroke_end_segment_mask) != 0u;
-      is_constant_distance = (point_packed_data & fastuidraw_arc_stroke_distance_constant_on_primitive_mask) != 0u;
-      if (offset_type == fastuidraw_arc_stroke_dashed_capper)
-        {
-          fastuidraw_arc_stroking_dash_bits = fastuidraw_stroke_skip_dash_interval_lookup_mask;
-
-          if (dash_style != fastuidraw_stroke_dashed_flat_caps)
-            {
-              fastuidraw_arc_stroking_distance = (is_edge_end) ?
-                base.interval_begin - base.d :
-                base.d - base.interval_end;
-            }
-          else
-            {
-              fastuidraw_arc_stroking_distance = 1.0;
-            }
-
-          if ((point_packed_data & fastuidraw_arc_stroke_extend_mask) != 0u)
-            {
-              float d = 0.0;
-
-              if (base.s < 0.0
-                  && dash_style != fastuidraw_stroke_dashed_flat_caps)
-                {
-                  if (is_edge_end)
-                    {
-                      if (stroke_radius + base.interval_begin > base.d
-                          && base.interval_begin > edge_start)
-                        {
-                          d = stroke_radius + base.interval_begin - base.d;
-                          fastuidraw_arc_stroking_distance = -stroke_radius;
-                        }
-                    }
-                  else
-                    {
-                      if (base.interval_end - stroke_radius < base.d
-                          && base.interval_end < edge_end)
-                        {
-                          d = base.d - base.interval_end + stroke_radius;
-                          fastuidraw_arc_stroking_distance = -stroke_radius;
-                        }
-                    }
-                }
-              else if (base.s >= 0.0
-                       && dash_style == fastuidraw_stroke_dashed_flat_caps)
-                {
-                  vec3 clip_p, clip_dir;
-                  clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-                  clip_dir = fastuidraw_item_matrix * vec3(secondary_attrib.zw, 0.0);
-                  /* when not drawing caps, and an ending of a path-edge is visible,
-                   * we want to anti-alias the edge, we do this by adding a 1-pixel
-                   * smudge to the end of the path.
-                   */
-                  d = fastuidraw_local_distance_from_pixel_distance(1.5, clip_p, clip_dir);
-                  fastuidraw_arc_stroking_distance = 0.0;
-                }
-
-              position += d * secondary_attrib.zw;
-            }
-        }
-      else if (is_constant_distance)
-        {
-          fastuidraw_arc_stroking_dash_bits = fastuidraw_stroke_distance_constant;
-          if ((point_packed_data & fastuidraw_arc_stroke_join_mask) != 0u)
-            {
-              fastuidraw_arc_stroking_dash_bits |= fastuidraw_stroke_gauranteed_to_be_covered_mask;
-              if (base.s < 0.0)
-                {
-                  offset_type = fastuidraw_arc_stroke_line_segment;
-                  position = center;
-                  scale_factor = 0.0;
-                }
-            }
+          fastuidraw_arc_shader_stroking_distance = (is_edge_end) ?
+            base.interval_begin - base.d :
+            base.d - base.interval_end;
         }
       else
+        {
+          fastuidraw_arc_shader_stroking_distance = 1.0;
+        }
+
+      if ((point_packed_data & fastuidraw_arc_stroke_extend_mask) != 0u)
+        {
+          float d = 0.0;
+
+          if (base.s < 0.0
+              && dash_style != fastuidraw_stroke_dashed_flat_caps)
+            {
+              if (is_edge_end)
+                {
+                  if (stroke_radius + base.interval_begin > base.d
+                      && base.interval_begin > edge_start)
+                    {
+                      d = stroke_radius + base.interval_begin - base.d;
+                      fastuidraw_arc_shader_stroking_distance = -stroke_radius;
+                    }
+                }
+              else
+                {
+                  if (base.interval_end - stroke_radius < base.d
+                      && base.interval_end < edge_end)
+                    {
+                      d = base.d - base.interval_end + stroke_radius;
+                      fastuidraw_arc_shader_stroking_distance = -stroke_radius;
+                    }
+                }
+            }
+          else if (base.s >= 0.0
+                   && dash_style == fastuidraw_stroke_dashed_flat_caps)
+            {
+              vec3 clip_p, clip_dir;
+              clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+              clip_dir = fastuidraw_item_matrix * vec3(secondary_attrib.zw, 0.0);
+              /* when not drawing caps, and an ending of a path-edge is visible,
+               * we want to anti-alias the edge, we do this by adding a 1-pixel
+               * smudge to the end of the path.
+               */
+              d = fastuidraw_local_distance_from_pixel_distance(1.5, clip_p, clip_dir);
+              fastuidraw_arc_shader_stroking_distance = 0.0;
+            }
+
+          position += d * secondary_attrib.zw;
+        }
+    }
+  else if (is_constant_distance)
+    {
+      fastuidraw_arc_stroking_dash_bits = fastuidraw_stroke_distance_constant;
+      if ((point_packed_data & fastuidraw_arc_stroke_join_mask) != 0u)
+        {
+          fastuidraw_arc_stroking_dash_bits |= fastuidraw_stroke_gauranteed_to_be_covered_mask;
+          if (base.s < 0.0 && dash_style != fastuidraw_stroke_not_dashed)
+            {
+              offset_type = fastuidraw_arc_stroke_line_segment;
+              position = center;
+              scale_factor = 0.0;
+            }
+        }
+    }
+  else
+    {
+      fastuidraw_arc_stroking_dash_bits = 0u;
+
+      if (dash_style != fastuidraw_stroke_not_dashed)
         {
           float delta_mag;
           bool collapse;
 
-          fastuidraw_arc_stroking_dash_bits = 0u;
-          fastuidraw_arc_stroking_distance = stroke_distance;
+          /* If the entire segment is inside a skip interval,
+           * we can emit vertices so nothing for this segment
+           * gets rasterized.
+           */
+          fastuidraw_arc_shader_stroking_distance = stroke_distance;
           if (offset_type != fastuidraw_arc_stroke_line_segment)
             {
               delta_mag = abs(arc_angle) * radius;
@@ -227,51 +248,53 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                   scale_factor = 0.0;
                 }
             }
-          else if (offset_type != fastuidraw_arc_stroke_line_segment)
+        }
+
+      if (offset_type != fastuidraw_arc_stroke_line_segment)
+        {
+          if (arc_angle < 0.0)
             {
-              if (arc_angle < 0.0)
-                {
-                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_negative_arc_angle_mask;
-                }
+              fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_negative_arc_angle_mask;
+            }
 
-              if (is_edge_end)
-                {
-                  fastuidraw_arc_stroking_distance = stroke_distance - abs(arc_angle) * radius;
-                }
+          if (is_edge_end)
+            {
+              fastuidraw_arc_shader_stroking_distance_real = distance_from_contour_start - abs(arc_angle) * radius;
+              fastuidraw_arc_shader_stroking_distance = stroke_distance - abs(arc_angle) * radius;
+            }
 
-              /* the fragment shader just does radius * atan() to compute the
-               * distance from the start of the arc-edge. As such, we need to
-               * rotate back by the start angle.
+          /* the fragment shader just does radius * atan() to compute the
+           * distance from the start of the arc-edge. As such, we need to
+           * rotate back by the start angle.
+           */
+          rotate_by =
+            mat2(offset_direction.x, -offset_direction.y,
+                 offset_direction.y, offset_direction.x);
+
+          if ((point_packed_data & fastuidraw_arc_stroke_end_segment_mask) != 0u)
+            {
+              /* we rotated by the offset_direction, which means we rotated
+               * back by the end-angle, rotate forward by arc-angle to get
+               * a net rotation of backwards by start angle
                */
-              rotate_by =
-                mat2(offset_direction.x, -offset_direction.y,
-                     offset_direction.y, offset_direction.x);
+              mat2 tmp;
+              float c, s, v;
 
-              if ((point_packed_data & fastuidraw_arc_stroke_end_segment_mask) != 0u)
-                {
-                  /* we rotated by the offset_direction, which means we rotated
-                   * back by the end-angle, rotate forward by arc-angle to get
-                   * a net rotation of backwards by start angle
-                   */
-                  mat2 tmp;
-                  float c, s, v;
+              c = cos(arc_angle);
+              s = sin(arc_angle);
 
-                  c = cos(arc_angle);
-                  s = sin(arc_angle);
+              /* A number of GPU's have not-so-accurate cos/sin implementations.
+               * These innacuracies are significant enough to make the rotation
+               * matrix made from a cos/sin significantly far from being orthonormal.
+               * To combat this, we normalize c and s by the norm of the vector
+               * (c, s).
+               */
+              v = sqrt(c * c + s * s);
+              c /= v;
+              s /= v;
 
-                  /* A number of GPU's have not-so-accurate cos/sin implementations.
-                   * These innacuracies are significant enough to make the rotation
-                   * matrix made from a cos/sin significantly far from being orthonormal.
-                   * To combat this, we normalize c and s by the norm of the vector
-                   * (c, s).
-                   */
-                  v = sqrt(c * c + s * s);
-                  c /= v;
-                  s /= v;
-
-                  tmp = mat2(c, s, -s, c);
-                  rotate_by = tmp * rotate_by;
-                }
+              tmp = mat2(c, s, -s, c);
+              rotate_by = tmp * rotate_by;
             }
         }
     }
@@ -289,16 +312,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                * stroking region; do the same to it as we would inner stroking
                * boundary points.
                */
-              if (dash_style != fastuidraw_stroke_not_dashed)
-                {
-                  rotate_by *= -1.0;
-                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
-                }
-              else
-                {
-                  fastuidraw_arc_stroking_arc_radius = 0.0;
-                  fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
-                }
+              rotate_by *= -1.0;
+              fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
             }
         }
     }
@@ -338,25 +353,17 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               arc_radius_for_outer_boundary = 0.0;
               stroke_radius_for_outer_boundary = stroke_radius - radius;
 
-              if (dash_style != fastuidraw_stroke_not_dashed)
-                {
-                  /* because the inner stroking is inverted, we need to
-                   * rotate by 180 degrees to make the atan in frag-shader
-                   * give the correct results.
-                   */
-                  rotate_by *= -1.0;
+              /* because the inner stroking is inverted, we need to
+               * rotate by 180 degrees to make the atan in frag-shader
+               * give the correct results.
+               */
+              rotate_by *= -1.0;
 
-                  /* we need to all tell the fragment-shader to reinterpret
-                   * the values of fastuidraw_arc_stroking_arc_radius and
-                   * fastuidraw_arc_stroking_stroke_radius for radial inclusion
-                   */
-                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
-                }
-              else
-                {
-                  fastuidraw_arc_stroking_arc_radius = arc_radius_for_outer_boundary;
-                  fastuidraw_arc_stroking_stroke_radius = stroke_radius_for_outer_boundary;
-                }
+              /* we need to all tell the fragment-shader to reinterpret
+               * the values of fastuidraw_arc_stroking_arc_radius and
+               * fastuidraw_arc_stroking_stroke_radius for radial inclusion
+               */
+              fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
             }
         }
     }
@@ -398,10 +405,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
 
   vector_from_center = p - center;
-  if (dash_style != fastuidraw_stroke_not_dashed)
-    {
-      vector_from_center = rotate_by * vector_from_center;
-    }
+  vector_from_center = rotate_by * vector_from_center;
 
   fastuidraw_arc_stroking_relative_to_center_x = vector_from_center.x;
   fastuidraw_arc_stroking_relative_to_center_y = vector_from_center.y;

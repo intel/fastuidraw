@@ -37,12 +37,13 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       dash_style = sub_shader;
 
       float r, d, q, qw, ql, qlw;
-      float S, R;
+      float S, R, raw_theta, raw_thetaw, recip_S;
 
       r = length(vec2(fastuidraw_arc_stroking_relative_to_center_x,
                       fastuidraw_arc_stroking_relative_to_center_y));
 
       S = fastuidraw_arc_stroking_stroke_radius;
+      recip_S = 1.0 / S;
       R = fastuidraw_arc_stroking_arc_radius;
       if (dash_style != fastuidraw_stroke_not_dashed)
         {
@@ -60,34 +61,49 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       ql = 1.0 - fastuidraw_arc_stroking_relative_to_center_x;
       qlw = fwidth(ql);
 
+      raw_theta = atan(fastuidraw_arc_stroking_relative_to_center_y,
+                       fastuidraw_arc_stroking_relative_to_center_x);
+      raw_thetaw = fwidth(raw_theta);
+      if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_negative_arc_angle_mask) != 0u)
+        {
+          raw_theta = -raw_theta;
+        }
+
+      fastuidraw_stroking_distance = fastuidraw_arc_shader_stroking_distance_real;
+      fastuidraw_stroking_distance_fwidth = fwidth(fastuidraw_arc_shader_stroking_distance_real);
+      if (fastuidraw_arc_stroking_arc_radius > -0.5)
+        {
+          if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) == 0)
+            {
+              fastuidraw_stroking_distance += raw_theta * fastuidraw_arc_stroking_arc_radius;
+              fastuidraw_stroking_distance_fwidth += raw_thetaw * fastuidraw_arc_stroking_arc_radius;
+            }
+          fastuidraw_stroking_relative_distance_from_center = abs(r - R) * recip_S;
+          fastuidraw_stroking_relative_distance_from_center_fwidth = qw * recip_S;
+        }
+      else
+        {
+          fastuidraw_stroking_relative_distance_from_center = fastuidraw_arc_stroking_relative_to_center_x;
+          fastuidraw_stroking_relative_distance_from_center_fwidth = qlw;
+        }
+
       if (dash_style != fastuidraw_stroke_not_dashed)
         {
           float theta, thetaw, dist, distw, bd, bdw;
 
-          theta = atan(fastuidraw_arc_stroking_relative_to_center_y,
-                       fastuidraw_arc_stroking_relative_to_center_x);
-          thetaw = fwidth(theta);
-          dist = fastuidraw_arc_stroking_distance;
-          distw = fwidth(fastuidraw_arc_stroking_distance);
+          dist = fastuidraw_arc_shader_stroking_distance;
+          distw = fwidth(fastuidraw_arc_shader_stroking_distance);
+          theta = raw_theta;
+          thetaw = raw_thetaw;
 
           if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) == 0u)
             {
               if (fastuidraw_arc_stroking_arc_radius > -0.5)
                 {
-                  if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_negative_arc_angle_mask) != 0u)
-                    {
-                      theta = -theta;
-                    }
-                  if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_gauranteed_to_be_covered_mask) != 0u)
-                    {
-                      theta = -theta;
-                    }
-                  float recip = 1.0 / fastuidraw_arc_stroking_stroke_radius;
-
                   dist += theta * fastuidraw_arc_stroking_arc_radius;
                   distw = thetaw * fastuidraw_arc_stroking_arc_radius;
-                  bd = 1.0 - q * recip;
-                  bdw = qw * recip;
+                  bd = 1.0 - q * recip_S;
+                  bdw = qw * recip_S;
                 }
               else
                 {
@@ -122,8 +138,8 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                                   dash_style == fastuidraw_stroke_dashed_square_caps,
                                                                   shader_data_block,
                                                                   dist, distw, bd, bdw,
-                                                                  fastuidraw_arc_stroking_distance_sub_edge_start,
-                                                                  fastuidraw_arc_stroking_distance_sub_edge_end,
+                                                                  fastuidraw_arc_shader_stroking_distance_sub_edge_start,
+                                                                  fastuidraw_arc_shader_stroking_distance_sub_edge_end,
                                                                   skip_lookup, dont_anti_alias_dash_boundary);
                 }
 

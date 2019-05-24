@@ -78,11 +78,22 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                         1,
                                         point_packed_data);
 
+  fastuidraw_shader_stroking_distance_real = distance_from_contour_start;
+  fastuidraw_stroking_distance = distance_from_contour_start;
   if (dash_style != fastuidraw_stroke_not_dashed)
     {
       FASTUIDRAW_LOCAL(fastuidraw_dashed_struct_base) base;
       float stroke_distance;
 
+      /* TODO:
+       *  Add options to fastuidraw_dashed_stroking_params_header to specify
+       *  otherways of doing the stroking distance than just the distance
+       *  from the start of the contour. Options such as distance from
+       *  start of the edge with or without a margin added around the join,
+       *  and options to adjust the stroking distance so that the total
+       *  distance is a multiple-ish of the contour length or current
+       *  end length.
+       */
       stroke_distance = distance_from_contour_start + dashed_stroke_params.dash_offset;
       FASTUIDRAW_LOCAL(fastuidraw_dashed_helper_vert_base)(stroke_distance, shader_data_block, dashed_stroke_params, base);
 
@@ -94,7 +105,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                  skipped OR are collapsed to a point to avoid drawing.
                */
               fastuidraw_stroking_dash_bits = fastuidraw_stroke_gauranteed_to_be_covered_mask;
-              fastuidraw_stroking_distance = 0.0;
+              fastuidraw_stroking_shader_distance = 0.0;
               if (base.s < 0.0)
                 {
                   on_boundary = 0u;
@@ -113,10 +124,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                                         dash_style != fastuidraw_stroke_dashed_flat_caps,
                                                         base, extend_edge);
 
-              fastuidraw_stroking_distance_sub_edge_start = extend_edge.edge_distance_start;
-              fastuidraw_stroking_distance_sub_edge_end = extend_edge.edge_distance_end;
+              fastuidraw_stroking_shader_distance_sub_edge_start = extend_edge.edge_distance_start;
+              fastuidraw_stroking_shader_distance_sub_edge_end = extend_edge.edge_distance_end;
               fastuidraw_stroking_dash_bits = extend_edge.stroking_bits;
-              fastuidraw_stroking_distance = extend_edge.stroking_distance;
+              fastuidraw_stroking_shader_distance = extend_edge.stroking_distance;
 
               if (extend_edge.collapse)
                 {
@@ -140,11 +151,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               if ((point_packed_data & fastuidraw_stroke_adjustable_cap_ending_mask) != 0u)
                 {
                   position += stroke_radius * auxiliary_offset;
-                  fastuidraw_stroking_distance = -stroke_radius;
+                  fastuidraw_stroking_shader_distance = -stroke_radius;
                 }
               else
                 {
-                  fastuidraw_stroking_distance = 0.0;
+                  fastuidraw_stroking_shader_distance = 0.0;
                 }
             }
           else
@@ -153,7 +164,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                  sub-edge will extend itself to draw the cap.
                */
               on_boundary = 0u;
-              fastuidraw_stroking_distance = 0.0;
+              fastuidraw_stroking_shader_distance = 0.0;
             }
 
           auxiliary_offset = vec2(0.0, 0.0);
@@ -172,7 +183,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
            * a point to prevent any rasterization.
            */
           fastuidraw_stroking_dash_bits = fastuidraw_stroke_gauranteed_to_be_covered_mask;
-          fastuidraw_stroking_distance = 0.0;
+          fastuidraw_stroking_shader_distance = 0.0;
           if (base.s < 0.0)
             {
               on_boundary = 0u;
