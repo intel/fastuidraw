@@ -242,16 +242,14 @@ namespace
   bool
   has_start_dashed_capper(const fastuidraw::TessellatedPath::segment &S)
   {
-    return S.m_type == fastuidraw::TessellatedPath::arc_segment
-      && S.m_first_segment_of_edge;
+    return S.m_first_segment_of_edge && S.m_contour_length > 0.0f;
   }
 
   inline
   bool
   has_end_dashed_capper(const fastuidraw::TessellatedPath::segment &S)
   {
-    return S.m_type == fastuidraw::TessellatedPath::arc_segment
-      && S.m_last_segment_of_edge;
+    return S.m_last_segment_of_edge && S.m_contour_length > 0.0f;
   }
 
   inline
@@ -396,15 +394,15 @@ namespace
     packed_data_mid = arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_dashed_capper, current_depth);
     if (for_start_dashed_capper)
       {
+        init_start_pt(S, &pt);
         normal = S.enter_segment_normal();
         pt.m_data = -S.m_enter_segment_unit_vector;
-        init_start_pt(S, &pt);
       }
     else
       {
+        init_end_pt(S, &pt);
         normal = S.leaving_segment_normal();
         pt.m_data = S.m_leaving_segment_unit_vector;
-        init_end_pt(S, &pt);
         packed_data |= ArcStrokedPoint::end_segment_mask;
         packed_data_mid |= ArcStrokedPoint::end_segment_mask;
       }
