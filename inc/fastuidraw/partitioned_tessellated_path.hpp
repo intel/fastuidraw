@@ -55,64 +55,14 @@ namespace fastuidraw  {
     typedef TessellatedPath::segment segment;
 
     /*!
-     * A \ref join contains in addition to that of \ref
-     * TessellatedPath::join, an ID as well to identify
-     * it within the global set of joins.
+     * A \ref join is the same as found in \ref TessellatedPath
      */
-    class join:public TessellatedPath::join
-    {
-    public:
-      /*!
-       * Ctor to initialize join
-       */
-      join(const TessellatedPath::join &J, unsigned int ID):
-        TessellatedPath::join(J),
-        m_ID(ID)
-      {}
-
-      /*!
-       * Empty ctor.
-       */
-      join(void):
-        m_ID(~0u)
-      {}
-
-      /*!
-       * The index into \ref PartitionedTessellatedPath::joins()
-       * of the join.
-       */
-      unsigned int m_ID;
-    };
+    typedef TessellatedPath::join join;
 
     /*!
-     * A \ref join contains in addition to that of \ref
-     * TessellatedPath::cap, an ID as well to identify
-     * it within the global set of joins.
+     * A \ref cap is the same as found in \ref TessellatedPath
      */
-    class cap:public TessellatedPath::cap
-    {
-    public:
-      /*!
-       * Ctor to initialize cap
-       */
-      cap(const TessellatedPath::cap &C, unsigned int ID):
-        TessellatedPath::cap(C),
-        m_ID(ID)
-      {}
-
-      /*!
-       * Empty ctor.
-       */
-      cap(void):
-        m_ID(~0u)
-      {}
-
-      /*!
-       * The index into \ref PartitionedTessellatedPath::caps()
-       * of the join.
-       */
-      unsigned int m_ID;
-    };
+    typedef TessellatedPath::cap cap;
 
     /*!
      * A \ref segment_chain is a sequence of \ref
