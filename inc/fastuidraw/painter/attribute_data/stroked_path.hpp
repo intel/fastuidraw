@@ -96,19 +96,19 @@ public:
      * Returns the segments that are within this
      * \ref Subset
      */
-    c_array<const PartitionedTessellatedPath::segment_chain>
+    c_array<const TessellatedPath::segment_chain>
     segment_chains(void) const;
 
     /*!
      * Returns the joins within this \ref Subset
      */
-    c_array<const PartitionedTessellatedPath::join>
+    c_array<const TessellatedPath::join>
     joins(void) const;
 
     /*!
      * Returns the caps within this \ref Subset
      */
-    c_array<const PartitionedTessellatedPath::cap>
+    c_array<const TessellatedPath::cap>
     caps(void) const;
 
     /*!

@@ -23,7 +23,6 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/tessellated_path.hpp>
-#include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 
@@ -829,10 +828,10 @@ namespace StrokedPointPacking
 
   /*!
    * Computes the number of indices and attributes necessary to pack
-   * an array of \ref PartitionedTessellatedPath::segment_chain values.
-   * Each \ref PartitionedTessellatedPath::segment of each \ref
-   * PartitionedTessellatedPath::segment_chain must have that \ref
-   * PartitionedTessellatedPath::segment::m_type is the value \ref
+   * an array of \ref TessellatedPath::segment_chain values.
+   * Each \ref TessellatedPath::segment of each \ref
+   * TessellatedPath::segment_chain must have that \ref
+   * TessellatedPath::segment::m_type is the value \ref
    * TessellatedPath::line_segment.
    * \param chains segment chain to query amount room needed to pack
    *               realized by \ref StrokedPoint
@@ -844,17 +843,17 @@ namespace StrokedPointPacking
    *                       number of indices
    */
   void
-  pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+  pack_segment_chain_size(c_array<const TessellatedPath::segment_chain> chains,
                           unsigned int *depth_range_size,
                           unsigned int *num_attributes,
                           unsigned int *num_indices);
 
   /*!
    * Computes the number of indices and attributes necessary to pack
-   * a single \ref PartitionedTessellatedPath::segment_chain value.
-   * The \ref PartitionedTessellatedPath::segment of the \ref
-   * PartitionedTessellatedPath::segment_chain must have that \ref
-   * PartitionedTessellatedPath::segment::m_type is the value \ref
+   * a single \ref TessellatedPath::segment_chain value.
+   * The \ref TessellatedPath::segment of the \ref
+   * TessellatedPath::segment_chain must have that \ref
+   * TessellatedPath::segment::m_type is the value \ref
    * TessellatedPath::line_segment.
    * \param chain segment chain to query amount room needed to pack
    *              realized by \ref StrokedPoint
@@ -866,7 +865,7 @@ namespace StrokedPointPacking
    *                       number of indices
    */
   void
-  pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain &chain,
+  pack_segment_chain_size(const TessellatedPath::segment_chain &chain,
                           unsigned int *depth_range_size,
                           unsigned int *num_attributes,
                           unsigned int *num_indices);
@@ -890,7 +889,7 @@ namespace StrokedPointPacking
    *                     index values
    */
   void
-  pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+  pack_segment_chain(c_array<const TessellatedPath::segment_chain> chains,
                      unsigned int depth_start,
                      c_array<PainterAttribute> dst_attribs,
                      c_array<PainterIndex> dst_indices,
@@ -915,7 +914,7 @@ namespace StrokedPointPacking
    *                     index values
    */
   void
-  pack_segment_chain(const PartitionedTessellatedPath::segment_chain &chain,
+  pack_segment_chain(const TessellatedPath::segment_chain &chain,
                      unsigned int depth_start,
                      c_array<PainterAttribute> dst_attribs,
                      c_array<PainterIndex> dst_indices,

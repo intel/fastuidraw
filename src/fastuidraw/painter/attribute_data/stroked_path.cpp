@@ -91,8 +91,8 @@ namespace
     std::vector<OrderingEntry<T> > m_elements;
   };
 
-  typedef fastuidraw::PartitionedTessellatedPath::cap PerCapData;
-  typedef fastuidraw::PartitionedTessellatedPath::join PerJoinData;
+  typedef fastuidraw::TessellatedPath::cap PerCapData;
+  typedef fastuidraw::TessellatedPath::join PerJoinData;
 
   typedef GenericOrdering<PerCapData> CapOrdering;
   typedef GenericOrdering<PerJoinData> JoinOrdering;
@@ -133,8 +133,8 @@ namespace
   class SingleSubEdge
   {
   public:
-    SingleSubEdge(const fastuidraw::PartitionedTessellatedPath::segment &seg,
-                  const fastuidraw::PartitionedTessellatedPath::segment *prev);
+    SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
+                  const fastuidraw::TessellatedPath::segment *prev);
 
     fastuidraw::vec2
     unit_vector_into_segment(void) const
@@ -256,19 +256,19 @@ namespace
       return m_subset.ID();
     }
 
-    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain>
+    fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain>
     segment_chains(void) const
     {
       return m_subset.segment_chains();
     }
 
-    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+    fastuidraw::c_array<const fastuidraw::TessellatedPath::join>
     join_values(void) const
     {
       return m_subset.joins();
     }
 
-    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+    fastuidraw::c_array<const fastuidraw::TessellatedPath::cap>
     cap_values(void) const
     {
       return m_subset.caps();
@@ -926,7 +926,7 @@ namespace
     }
 
   private:
-    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain> m_chains;
+    fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain> m_chains;
     unsigned int m_depth_size;
     unsigned int m_num_attributes;
     unsigned int m_num_indices;
@@ -983,7 +983,7 @@ namespace
     }
 
   private:
-    fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain> m_chains;
+    fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain> m_chains;
     unsigned int m_depth_size;
     unsigned int m_num_attributes;
     unsigned int m_num_indices;
@@ -1048,8 +1048,8 @@ post_process(fastuidraw::range_type<unsigned int> range,
 ////////////////////////////////////////
 // SingleSubEdge methods
 SingleSubEdge::
-SingleSubEdge(const fastuidraw::PartitionedTessellatedPath::segment &seg,
-              const fastuidraw::PartitionedTessellatedPath::segment *prev):
+SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
+              const fastuidraw::TessellatedPath::segment *prev):
   m_from_line_segment(seg.m_type == fastuidraw::TessellatedPath::line_segment),
   m_pt0(seg.m_start_pt),
   m_pt1(seg.m_end_pt),
@@ -1878,7 +1878,7 @@ bounding_box(void) const
   return d->bounding_box();
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain>
 fastuidraw::StrokedPath::Subset::
 segment_chains(void) const
 {
@@ -1888,7 +1888,7 @@ segment_chains(void) const
   return d->segment_chains();
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::join>
 fastuidraw::StrokedPath::Subset::
 joins(void) const
 {
@@ -1898,7 +1898,7 @@ joins(void) const
   return d->join_values();
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::cap>
 fastuidraw::StrokedPath::Subset::
 caps(void) const
 {

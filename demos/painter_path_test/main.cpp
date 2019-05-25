@@ -1943,12 +1943,12 @@ per_path_processing(void)
   m_miter_limit = 0.0f;
   for(const auto &P : m_paths)
     {
-      c_array<const PartitionedTessellatedPath::join> joins;
+      c_array<const TessellatedPath::join> joins;
       const TessellatedPath *tess;
 
       tess = &P->path().tessellation(-1.0f);
       joins = tess->partitioned().joins();
-      for(const PartitionedTessellatedPath::join &J : joins)
+      for(const TessellatedPath::join &J : joins)
         {
           /* TODO: if the join is so that the miter-distance
            * is infinity (because the join happens at anti-parallel

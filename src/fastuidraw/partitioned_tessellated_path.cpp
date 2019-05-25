@@ -41,7 +41,7 @@ namespace
   class SubsetBuilder:fastuidraw::noncopyable
   {
   public:
-    typedef fastuidraw::PartitionedTessellatedPath::segment segment;
+    typedef fastuidraw::TessellatedPath::segment segment;
 
     class PerChain
     {
@@ -93,8 +93,8 @@ namespace
     fastuidraw::BoundingBox<float> m_join_bbox;
     std::vector<segment> m_segments;
     std::vector<PerChain> m_chains;
-    std::vector<fastuidraw::PartitionedTessellatedPath::join> m_joins;
-    std::vector<fastuidraw::PartitionedTessellatedPath::cap> m_caps;
+    std::vector<fastuidraw::TessellatedPath::join> m_joins;
+    std::vector<fastuidraw::TessellatedPath::cap> m_caps;
   };
 
   class ScratchSpace
@@ -121,10 +121,10 @@ namespace
   class SubsetPrivate:fastuidraw::noncopyable
   {
   public:
-    typedef fastuidraw::PartitionedTessellatedPath::segment segment;
-    typedef fastuidraw::PartitionedTessellatedPath::join join;
-    typedef fastuidraw::PartitionedTessellatedPath::cap cap;
-    typedef fastuidraw::PartitionedTessellatedPath::segment_chain segment_chain;
+    typedef fastuidraw::TessellatedPath::segment segment;
+    typedef fastuidraw::TessellatedPath::join join;
+    typedef fastuidraw::TessellatedPath::cap cap;
+    typedef fastuidraw::TessellatedPath::segment_chain segment_chain;
 
     ~SubsetPrivate();
 
@@ -756,7 +756,7 @@ bounding_box(void) const
   return d->bounding_box();
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::segment_chain>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain>
 fastuidraw::PartitionedTessellatedPath::Subset::
 segment_chains(void) const
 {
@@ -803,7 +803,7 @@ children(void) const
   return vecN<Subset, 2>(s0, s1);
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::join>
 fastuidraw::PartitionedTessellatedPath::Subset::
 joins(void) const
 {
@@ -813,7 +813,7 @@ joins(void) const
   return d->joins();
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::cap>
 fastuidraw::PartitionedTessellatedPath::Subset::
 caps(void) const
 {
@@ -886,7 +886,7 @@ root_subset(void) const
   return Subset(d->m_root_subset);
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::join>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::join>
 fastuidraw::PartitionedTessellatedPath::
 joins(void) const
 {
@@ -895,7 +895,7 @@ joins(void) const
   return d->m_root_subset->joins();
 }
 
-fastuidraw::c_array<const fastuidraw::PartitionedTessellatedPath::cap>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::cap>
 fastuidraw::PartitionedTessellatedPath::
 caps(void) const
 {

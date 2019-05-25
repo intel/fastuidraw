@@ -200,7 +200,7 @@ process_selection(const PartitionedTessellatedPath::SubsetSelection &selection,
     {
       PartitionedTessellatedPath::Subset S(path.subset(id));
       c_array<const segment_chain> segment_chains(S.segment_chains());
-      c_array<const PartitionedTessellatedPath::cap> caps(S.caps());
+      c_array<const TessellatedPath::cap> caps(S.caps());
 
       process_chains(segment_chains.begin(), segment_chains.end(), dst);
       process_caps(caps.begin(), caps.end(), dst);
@@ -209,7 +209,7 @@ process_selection(const PartitionedTessellatedPath::SubsetSelection &selection,
   for (unsigned int id : selection.join_subset_ids())
     {
       PartitionedTessellatedPath::Subset S(path.subset(id));
-      c_array<const PartitionedTessellatedPath::join> joins(S.joins());
+      c_array<const TessellatedPath::join> joins(S.joins());
       process_joins(joins.begin(), joins.end(), dst);
     }
 }

@@ -23,7 +23,6 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/tessellated_path.hpp>
-#include <fastuidraw/partitioned_tessellated_path.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute.hpp>
 
 namespace fastuidraw  {
@@ -499,7 +498,7 @@ namespace ArcStrokedPointPacking
 
   /*!
    * Computes the number of indices and attributes necessary to pack
-   * an array of \ref PartitionedTessellatedPath::segment_chain values.
+   * an array of \ref TessellatedPath::segment_chain values.
    * \param chains segment chain to query amount room needed to pack
    *               realized by \ref ArcStrokedPoint
    * \param depth_range_size location to which to write the depth range needed
@@ -510,14 +509,14 @@ namespace ArcStrokedPointPacking
    *                       number of indices
    */
   void
-  pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+  pack_segment_chain_size(c_array<const TessellatedPath::segment_chain> chains,
                           unsigned int *depth_range_size,
                           unsigned int *num_attributes,
                           unsigned int *num_indices);
 
   /*!
    * Computes the number of indices and attributes necessary to pack
-   * a single \ref PartitionedTessellatedPath::segment_chain value.
+   * a single \ref TessellatedPath::segment_chain value.
    * \param chain segment chain to query amount room needed to pack
    *              realized by \ref StrokedPoint
    * \param depth_range_size location to which to write the depth range needed
@@ -528,7 +527,7 @@ namespace ArcStrokedPointPacking
    *                       number of indices
    */
   void
-  pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain &chain,
+  pack_segment_chain_size(const TessellatedPath::segment_chain &chain,
                           unsigned int *depth_range_size,
                           unsigned int *num_attributes,
                           unsigned int *num_indices);
@@ -552,7 +551,7 @@ namespace ArcStrokedPointPacking
    *                     index values
    */
   void
-  pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+  pack_segment_chain(c_array<const TessellatedPath::segment_chain> chains,
                      unsigned int depth_start,
                      c_array<PainterAttribute> dst_attribs,
                      c_array<PainterIndex> dst_indices,
@@ -577,7 +576,7 @@ namespace ArcStrokedPointPacking
    *                     index values
    */
   void
-  pack_segment_chain(const PartitionedTessellatedPath::segment_chain &chain,
+  pack_segment_chain(const TessellatedPath::segment_chain &chain,
                      unsigned int depth_start,
                      c_array<PainterAttribute> dst_attribs,
                      c_array<PainterIndex> dst_indices,

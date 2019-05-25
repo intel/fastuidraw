@@ -648,7 +648,7 @@ namespace
   }
 
   void
-  pack_single_segment_chain(const fastuidraw::PartitionedTessellatedPath::segment_chain &chain,
+  pack_single_segment_chain(const fastuidraw::TessellatedPath::segment_chain &chain,
                             unsigned int &current_depth,
                             fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attribs,
                             unsigned int &current_vertex,
@@ -816,7 +816,7 @@ pack_cap(const TessellatedPath::cap &C,
 
 void
 fastuidraw::ArcStrokedPointPacking::
-pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain& chain,
+pack_segment_chain_size(const TessellatedPath::segment_chain& chain,
                         unsigned int *pdepth_range_size,
                         unsigned int *pnum_attributes,
                         unsigned int *pnum_indices)
@@ -888,7 +888,7 @@ pack_segment_chain_size(const PartitionedTessellatedPath::segment_chain& chain,
 
 void
 fastuidraw::ArcStrokedPointPacking::
-pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+pack_segment_chain_size(c_array<const TessellatedPath::segment_chain> chains,
                         unsigned int *pdepth_range_size,
                         unsigned int *pnum_attributes,
                         unsigned int *pnum_indices)
@@ -901,7 +901,7 @@ pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain>
   num_attributes = 0;
   num_indices = 0;
 
-  for (const PartitionedTessellatedPath::segment_chain &chain : chains)
+  for (const TessellatedPath::segment_chain &chain : chains)
     {
       unsigned int d, a, i;
 
@@ -914,7 +914,7 @@ pack_segment_chain_size(c_array<const PartitionedTessellatedPath::segment_chain>
 
 void
 fastuidraw::ArcStrokedPointPacking::
-pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chains,
+pack_segment_chain(c_array<const TessellatedPath::segment_chain> chains,
                    unsigned int depth_start,
                    c_array<PainterAttribute> dst_attribs,
                    c_array<PainterIndex> dst_indices,
@@ -925,7 +925,7 @@ pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chai
    * the indices to make it do in depth decreasing order.
    */
   unsigned int current_vertex(0), current_index(0), current_depth(depth_start);
-  for (const PartitionedTessellatedPath::segment_chain &chain : chains)
+  for (const TessellatedPath::segment_chain &chain : chains)
     {
       pack_single_segment_chain(chain, current_depth,
                                 dst_attribs, current_vertex,
@@ -940,7 +940,7 @@ pack_segment_chain(c_array<const PartitionedTessellatedPath::segment_chain> chai
 
 void
 fastuidraw::ArcStrokedPointPacking::
-pack_segment_chain(const PartitionedTessellatedPath::segment_chain &chain,
+pack_segment_chain(const TessellatedPath::segment_chain &chain,
                    unsigned int depth_start,
                    c_array<PainterAttribute> dst_attribs,
                    c_array<PainterIndex> dst_indices,

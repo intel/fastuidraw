@@ -29,7 +29,7 @@ namespace fastuidraw
   /*!
    * \brief
    * A \ref PathEffect allows one to process a sequence of
-   * \ref PartitionedTessellatedPath::segment_chain, \ref
+   * \ref TessellatedPath::segment_chain, \ref
    * TessellatedPath::join and \ref
    * TessellatedPath::cap values to produce a
    * new sequence of such values for the purpose of effecting
@@ -41,7 +41,7 @@ namespace fastuidraw
     /*!
      * Conveniance typedef
      */
-    typedef PartitionedTessellatedPath::segment_chain segment_chain;
+    typedef TessellatedPath::segment_chain segment_chain;
 
     /*!
      * Conveniance typedef
