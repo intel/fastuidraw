@@ -64,11 +64,16 @@ namespace
       bool m_has_before_first;
     };
 
+    SubsetBuilder(void):
+      m_has_arcs(false)
+    {}
+
     const segment*
     add_segment(const segment &S)
     {
       FASTUIDRAWassert(!m_chains.empty());
       m_segments.push_back(S);
+      m_has_arcs = m_has_arcs || (S.m_type == fastuidraw::TessellatedPath::arc_segment);
       m_bbox.union_point(S.m_start_pt);
       m_bbox.union_point(S.m_end_pt);
       ++m_chains.back().m_range.m_end;
@@ -89,12 +94,53 @@ namespace
         }
     }
 
+    void
+    process_chain(const fastuidraw::TessellatedPath::segment_chain &chain)
+    {
+      start_chain(chain.m_prev_to_start);
+      for (const auto &S : chain.m_segments)
+        {
+          add_segment(S);
+        }
+    }
+
+    void
+    process_chains(fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain> chains)
+    {
+      for (const auto &a : chains)
+        {
+          process_chain(a);
+        }
+    }
+
+    void
+    process_caps(fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps)
+    {
+      m_caps.reserve(m_caps.size() + caps.size());
+      for (const auto &C : caps)
+        {
+          m_caps.push_back(C);
+        }
+    }
+
+    void
+    process_joins(fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins)
+    {
+      m_joins.reserve(m_joins.size() + joins.size());
+      for (const auto &J : joins)
+        {
+          m_joins.push_back(J);
+          m_join_bbox.union_point(J.m_position);
+        }
+    }
+
     fastuidraw::BoundingBox<float> m_bbox;
     fastuidraw::BoundingBox<float> m_join_bbox;
     std::vector<segment> m_segments;
     std::vector<PerChain> m_chains;
     std::vector<fastuidraw::TessellatedPath::join> m_joins;
     std::vector<fastuidraw::TessellatedPath::cap> m_caps;
+    bool m_has_arcs;
   };
 
   class ScratchSpace
@@ -130,7 +176,7 @@ namespace
 
     static
     SubsetPrivate*
-    create(const fastuidraw::TessellatedPath &P,
+    create(SubsetBuilder &builder,
            std::vector<SubsetPrivate*> &out_values);
 
     const fastuidraw::Rect&
@@ -226,10 +272,13 @@ namespace
     explicit
     PartitionedTessellatedPathPrivate(const fastuidraw::TessellatedPath &path);
 
+    PartitionedTessellatedPathPrivate(fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain> chains,
+                                      fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
+                                      fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps);
+
     ~PartitionedTessellatedPathPrivate();
 
     bool m_has_arcs;
-    float m_max_distance;
     SubsetPrivate *m_root_subset;
     std::vector<SubsetPrivate*> m_subsets;
   };
@@ -239,41 +288,10 @@ namespace
 // SubsetPrivate methods
 SubsetPrivate*
 SubsetPrivate::
-create(const fastuidraw::TessellatedPath &P,
+create(SubsetBuilder &builder,
        std::vector<SubsetPrivate*> &out_values)
 {
-  SubsetBuilder builder;
   SubsetPrivate *root;
-
-  for (unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
-    {
-      for (unsigned int E = 0, endE = P.number_edges(C); E < endE; ++E)
-        {
-          fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> segs;
-
-          builder.start_chain(nullptr);
-          segs = P.edge_segment_data(C, E);
-          for (const fastuidraw::TessellatedPath::segment &S : segs)
-            {
-              builder.add_segment(S);
-            }
-        }
-    }
-
-  fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins(P.join_data());
-  builder.m_joins.reserve(joins.size());
-  for (const auto &J : joins)
-    {
-      builder.m_joins.push_back(J);
-      builder.m_join_bbox.union_point(J.m_position);
-    }
-
-  fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps(P.cap_data());
-  builder.m_caps.reserve(caps.size());
-  for (const auto &C : caps)
-    {
-      builder.m_caps.push_back(C);
-    }
 
   root = FASTUIDRAWnew SubsetPrivate(0, builder, out_values);
   return root;
@@ -669,11 +687,51 @@ select_subsets_implement(bool miter_hunting,
 ////////////////////////////////////////////
 // PartitionedTessellatedPathPrivate methods
 PartitionedTessellatedPathPrivate::
-PartitionedTessellatedPathPrivate(const fastuidraw::TessellatedPath &path):
-  m_has_arcs(path.has_arcs()),
-  m_max_distance(path.max_distance())
+PartitionedTessellatedPathPrivate(const fastuidraw::TessellatedPath &P)
 {
-  m_root_subset = SubsetPrivate::create(path, m_subsets);
+  SubsetBuilder builder;
+
+  for (unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
+    {
+      const fastuidraw::TessellatedPath::segment *prev_segment;
+
+      prev_segment = &P.contour_segment_data(C).back();
+      for (unsigned int E = 0, endE = P.number_edges(C); E < endE; ++E)
+        {
+          fastuidraw::TessellatedPath::segment_chain chain;
+
+          if (P.edge_type(C, E) != fastuidraw::PathEnums::starts_new_edge)
+            {
+              chain.m_prev_to_start = prev_segment;
+            }
+          else
+            {
+              chain.m_prev_to_start = nullptr;
+            }
+          chain.m_segments = P.edge_segment_data(C, E);
+          prev_segment = &chain.m_segments.back();
+          builder.process_chain(chain);
+        }
+    }
+
+  builder.process_joins(P.join_data());
+  builder.process_caps(P.cap_data());
+  m_has_arcs = builder.m_has_arcs;
+  m_root_subset = SubsetPrivate::create(builder, m_subsets);
+}
+
+PartitionedTessellatedPathPrivate::
+PartitionedTessellatedPathPrivate(fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain> chains,
+                                  fastuidraw::c_array<const fastuidraw::TessellatedPath::join> joins,
+                                  fastuidraw::c_array<const fastuidraw::TessellatedPath::cap> caps)
+{
+  SubsetBuilder builder;
+
+  builder.process_chains(chains);
+  builder.process_caps(caps);
+  builder.process_joins(joins);
+  m_has_arcs = builder.m_has_arcs;
+  m_root_subset = SubsetPrivate::create(builder, m_subsets);
 }
 
 PartitionedTessellatedPathPrivate::
@@ -861,6 +919,14 @@ PartitionedTessellatedPath(const TessellatedPath &path)
 }
 
 fastuidraw::PartitionedTessellatedPath::
+PartitionedTessellatedPath(c_array<const segment_chain> chains,
+                           c_array<const join> joins,
+                           c_array<const cap> caps)
+{
+  m_d = FASTUIDRAWnew PartitionedTessellatedPathPrivate(chains, joins, caps);
+}
+
+fastuidraw::PartitionedTessellatedPath::
 ~PartitionedTessellatedPath()
 {
   PartitionedTessellatedPathPrivate *d;
@@ -875,15 +941,6 @@ has_arcs(void) const
   PartitionedTessellatedPathPrivate *d;
   d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
   return d->m_has_arcs;
-}
-
-float
-fastuidraw::PartitionedTessellatedPath::
-max_distance(void) const
-{
-  PartitionedTessellatedPathPrivate *d;
-  d = static_cast<PartitionedTessellatedPathPrivate*>(m_d);
-  return d->m_max_distance;
 }
 
 unsigned int

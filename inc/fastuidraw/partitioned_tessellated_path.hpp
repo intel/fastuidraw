@@ -227,6 +227,18 @@ namespace fastuidraw  {
       void *m_d;
     };
 
+    /*!
+     * Constuct a PartitionedTessellatedPath from arrays of
+     * \ref segment_chain, \ref join and \ref caps values.
+     * Values are -COPIED- from the passed arrays.
+     * \param chains segment chain values to copy and partition
+     * \param joins join values to copy and partition
+     * \param caps cap values to copy and partition
+     */
+    PartitionedTessellatedPath(c_array<const segment_chain> chains,
+                               c_array<const join> joins,
+                               c_array<const cap> caps);
+
     ~PartitionedTessellatedPath();
 
     /*!
@@ -237,14 +249,6 @@ namespace fastuidraw  {
      */
     bool
     has_arcs(void) const;
-
-    /*!
-     * Returns the maximum across all edges of all contours
-     * of the distance between the tessellation and the actual
-     * path.
-     */
-    float
-    max_distance(void) const;
 
     /*!
      * Returns the number of Subset objects of the StrokedPath.
