@@ -4160,8 +4160,8 @@ stroke_path(const fastuidraw::PainterStrokeShader &shader,
                  &coverage_buffer_bb);
 
   m_work_room.m_effect_stroker.m_storage.clear();
-  effect.process_selection(m_work_room.m_effect_stroker.m_selection,
-                           m_work_room.m_effect_stroker.m_storage);
+  m_work_room.m_effect_stroker.m_selection.apply_path_effect(effect,
+                                                             m_work_room.m_effect_stroker.m_storage);
 
   m_work_room.m_effect_stroker.set_source(m_work_room.m_effect_stroker.m_storage,
                                           shader, method, tp, aa);

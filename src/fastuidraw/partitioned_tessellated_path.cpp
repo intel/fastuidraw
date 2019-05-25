@@ -738,6 +738,35 @@ clear(const reference_counted_ptr<const PartitionedTessellatedPath> &src)
   d->m_join_subset_ids = c_array<const unsigned int>();
 }
 
+void
+fastuidraw::PartitionedTessellatedPath::SubsetSelection::
+apply_path_effect(const PathEffect &effect, PathEffect::Storage &dst) const
+{
+  if (!source())
+    {
+      return;
+    }
+
+  const PartitionedTessellatedPath &path(*source());
+  for (unsigned int id : subset_ids())
+    {
+      PartitionedTessellatedPath::Subset S(path.subset(id));
+      c_array<const segment_chain> segment_chains(S.segment_chains());
+      c_array<const TessellatedPath::cap> caps(S.caps());
+
+      effect.process_chains(segment_chains.begin(), segment_chains.end(), dst);
+      effect.process_caps(caps.begin(), caps.end(), dst);
+    }
+
+  for (unsigned int id : join_subset_ids())
+    {
+      PartitionedTessellatedPath::Subset S(path.subset(id));
+      c_array<const TessellatedPath::join> joins(S.joins());
+
+      effect.process_joins(joins.begin(), joins.end(), dst);
+    }
+}
+
 /////////////////////////////////
 // fastuidraw::PartitionedTessellatedPath::Subset methods
 fastuidraw::PartitionedTessellatedPath::Subset::

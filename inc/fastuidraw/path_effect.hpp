@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <fastuidraw/partitioned_tessellated_path.hpp>
+#include <fastuidraw/tessellated_path.hpp>
 
 namespace fastuidraw
 {
@@ -145,16 +145,6 @@ namespace fastuidraw
     virtual
     ~PathEffect()
     {}
-
-    /*!
-     * Calls \ref process_chains(), \ref process_joins() and \ref process_caps()
-     * on the elements of a \ref PartitionedTessellatedPath::SubsetSelection.
-     * \param selection \ref PartitionedTessellatedPath::SubsetSelection to process
-     * \param dst \ref Storage on which to place values
-     */
-    void
-    process_selection(const PartitionedTessellatedPath::SubsetSelection &selection,
-                      Storage &dst) const;
 
     /*!
      * Provided as a template conveniance, equivalent to

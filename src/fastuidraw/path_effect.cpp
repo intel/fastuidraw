@@ -182,34 +182,3 @@ caps(void) const
   d = static_cast<StoragePrivate*>(m_d);
   return make_c_array(d->m_cap_storage);
 }
-
-///////////////////////////////////////////////////////
-// fastuidraw::PathEffect methods
-void
-fastuidraw::PathEffect::
-process_selection(const PartitionedTessellatedPath::SubsetSelection &selection,
-                  Storage &dst) const
-{
-  if (!selection.source())
-    {
-      return;
-    }
-
-  const PartitionedTessellatedPath &path(*selection.source());
-  for (unsigned int id : selection.subset_ids())
-    {
-      PartitionedTessellatedPath::Subset S(path.subset(id));
-      c_array<const segment_chain> segment_chains(S.segment_chains());
-      c_array<const TessellatedPath::cap> caps(S.caps());
-
-      process_chains(segment_chains.begin(), segment_chains.end(), dst);
-      process_caps(caps.begin(), caps.end(), dst);
-    }
-
-  for (unsigned int id : selection.join_subset_ids())
-    {
-      PartitionedTessellatedPath::Subset S(path.subset(id));
-      c_array<const TessellatedPath::join> joins(S.joins());
-      process_joins(joins.begin(), joins.end(), dst);
-    }
-}

@@ -26,6 +26,7 @@
 #include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path_enums.hpp>
+#include <fastuidraw/path_effect.hpp>
 
 namespace fastuidraw  {
 
@@ -210,6 +211,15 @@ namespace fastuidraw  {
       void
       clear(const reference_counted_ptr<const PartitionedTessellatedPath> &src =
             reference_counted_ptr<const PartitionedTessellatedPath>());
+
+      /*!
+       * Apply a \ref PathEffect to the segments, joins and caps of the
+       * \ref Subset values within this \ref SubsetSelection.
+       * \param effect \ref PathEffect to apply
+       * \param dst \ref PathEffect::Storage to which to add results
+       */
+      void
+      apply_path_effect(const PathEffect &effect, PathEffect::Storage &dst) const;
 
     private:
       friend class PartitionedTessellatedPath;
