@@ -693,24 +693,9 @@ PartitionedTessellatedPathPrivate(const fastuidraw::TessellatedPath &P)
 
   for (unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
     {
-      const fastuidraw::TessellatedPath::segment *prev_segment;
-
-      prev_segment = &P.contour_segment_data(C).back();
       for (unsigned int E = 0, endE = P.number_edges(C); E < endE; ++E)
         {
-          fastuidraw::TessellatedPath::segment_chain chain;
-
-          if (P.edge_type(C, E) != fastuidraw::PathEnums::starts_new_edge)
-            {
-              chain.m_prev_to_start = prev_segment;
-            }
-          else
-            {
-              chain.m_prev_to_start = nullptr;
-            }
-          chain.m_segments = P.edge_segment_data(C, E);
-          prev_segment = &chain.m_segments.back();
-          builder.process_chain(chain);
+          builder.process_chain(P.edge_segment_chain(C, E));
         }
     }
 

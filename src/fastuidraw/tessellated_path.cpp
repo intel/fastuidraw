@@ -1510,6 +1510,39 @@ edge_type(unsigned int contour, unsigned int edge) const
   return d->m_contours[contour].m_edges[edge].m_edge_type;
 }
 
+fastuidraw::TessellatedPath::segment_chain
+fastuidraw::TessellatedPath::
+edge_segment_chain(unsigned int contour, unsigned int edge) const
+{
+  segment_chain return_value;
+
+  return_value.m_segments = edge_segment_data(contour, edge);
+  if (edge_type(contour, edge) == PathEnums::starts_new_edge)
+    {
+      return_value.m_prev_to_start = nullptr;
+    }
+  else
+    {
+      if (edge > 0)
+        {
+          return_value.m_prev_to_start = &edge_segment_data(contour, edge - 1).back();
+        }
+      else
+        {
+          if (contour_closed(contour))
+            {
+              int prev_edge(number_edges(contour) - 1);
+              return_value.m_prev_to_start = &edge_segment_data(contour, prev_edge).back();
+            }
+          else
+            {
+              return_value.m_prev_to_start = nullptr;
+            }
+        }
+    }
+  return return_value;
+}
+
 fastuidraw::c_array<const fastuidraw::TessellatedPath::segment>
 fastuidraw::TessellatedPath::
 edge_segment_data(unsigned int contour, unsigned int edge) const

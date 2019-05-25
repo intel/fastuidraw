@@ -833,6 +833,18 @@ public:
   edge_type(unsigned int contour, unsigned int edge) const;
 
   /*!
+   * Returns the named edge as a \ref segment_chain taking
+   * correctly into account the value of \ref edge_type()
+   * in setting \ref segment_chain::m_prev_to_start.
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
+   * \param edge which edge of the contour to query, must
+   *             have that 0 <= edge < number_edges(contour)
+   */
+  segment_chain
+  edge_segment_chain(unsigned int contour, unsigned int edge) const;
+
+  /*!
    * Returns the bounding box of the tessellation.
    */
   const Rect&
