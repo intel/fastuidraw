@@ -55,6 +55,11 @@ namespace fastuidraw  {
     typedef TessellatedPath::segment segment;
 
     /*!
+     * A \ref segment_chain is the same as found in \ref TessellatedPath
+     */
+    typedef TessellatedPath::segment_chain segment_chain;
+
+    /*!
      * A \ref join is the same as found in \ref TessellatedPath
      */
     typedef TessellatedPath::join join;
@@ -63,29 +68,6 @@ namespace fastuidraw  {
      * A \ref cap is the same as found in \ref TessellatedPath
      */
     typedef TessellatedPath::cap cap;
-
-    /*!
-     * A \ref segment_chain is a sequence of \ref
-     * segment values where successive elements are
-     * neighbors of the same edge in the source \ref
-     * TessellatedPath
-     */
-    class segment_chain
-    {
-    public:
-      /*!
-       * The chain of \ref segment values
-       */
-      c_array<const segment> m_segments;
-
-      /*!
-       * if non-null, gives the segment just
-       * before the first element of \ref
-       * m_segments. If null, then there is
-       * no segment just before \ref m_segments.
-       */
-      const segment *m_prev_to_start;
-    };
 
     /*!
      * \brief

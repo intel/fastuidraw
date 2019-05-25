@@ -406,6 +406,31 @@ public:
   };
 
   /*!
+   * A \ref segment_chain is a sequence of \ref
+   * segment values where successive elements are
+   * neighbors of the same edge in the source \ref
+   * Path. It is possible to split edges and keep
+   * neighbor information via the field \ref
+   * m_prev_to_start
+   */
+  class segment_chain
+  {
+  public:
+    /*!
+     * The chain of \ref segment values
+     */
+    c_array<const segment> m_segments;
+
+    /*!
+     * if non-null, gives the segment just
+     * before the first element of \ref
+     * m_segments. If null, then there is
+     * no segment just before \ref m_segments.
+     */
+    const segment *m_prev_to_start;
+  };
+
+  /*!
    * \brief
    * Represents the geometric data for a join
    */
