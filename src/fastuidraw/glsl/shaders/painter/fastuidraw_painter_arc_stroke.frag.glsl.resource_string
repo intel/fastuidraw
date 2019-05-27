@@ -37,21 +37,24 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       dash_style = sub_shader;
 
       float r, d, q, qw, ql, qlw;
-      float S, R, raw_theta, raw_thetaw, recip_S;
+      float S, R, raw_theta, raw_thetaw, recip_S, dist_from_path;
 
       r = length(vec2(fastuidraw_arc_stroking_relative_to_center_x,
                       fastuidraw_arc_stroking_relative_to_center_y));
 
       S = fastuidraw_arc_stroking_stroke_radius;
-      recip_S = 1.0 / S;
       R = fastuidraw_arc_stroking_arc_radius;
-      if (dash_style != fastuidraw_stroke_not_dashed)
+      recip_S = 1.0 / S;
+      dist_from_path = abs(r - R);
+      if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_inverted_inner_region_mask) != 0u)
         {
-          if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_arc_stroke_inverted_inner_region_mask) != 0u)
-            {
-              S = fastuidraw_arc_stroking_stroke_radius - fastuidraw_arc_stroking_arc_radius;
-              R = 0.0;
-            }
+          /* this happens if an arc is stroked thicker than its radius.
+           * that means that the distance from the path is the arc-radius
+           * plus the distance to the arc-center
+           */
+          dist_from_path = R + r;
+          S = fastuidraw_arc_stroking_stroke_radius - fastuidraw_arc_stroking_arc_radius;
+          R = 0.0;
         }
 
       q = S - abs(r - R);
@@ -78,7 +81,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
               fastuidraw_stroking_distance += raw_theta * fastuidraw_arc_stroking_arc_radius;
               fastuidraw_stroking_distance_fwidth += raw_thetaw * fastuidraw_arc_stroking_arc_radius;
             }
-          fastuidraw_stroking_relative_distance_from_center = abs(r - R) * recip_S;
+          fastuidraw_stroking_relative_distance_from_center = dist_from_path * recip_S;
           fastuidraw_stroking_relative_distance_from_center_fwidth = qw * recip_S;
         }
       else

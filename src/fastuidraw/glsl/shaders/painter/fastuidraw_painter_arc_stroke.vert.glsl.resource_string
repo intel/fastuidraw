@@ -353,8 +353,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               position = center;
               scale_factor = stroke_radius - radius;
               offset_direction = -offset_direction;
-              arc_radius_for_outer_boundary = 0.0;
-              stroke_radius_for_outer_boundary = stroke_radius - radius;
 
               /* because the inner stroking is inverted, we need to
                * rotate by 180 degrees to make the atan in frag-shader
