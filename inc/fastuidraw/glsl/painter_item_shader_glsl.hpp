@@ -107,12 +107,17 @@ namespace fastuidraw
        * a DependencyList provides the means to do so.
        *
        * Each such used shader is given a name by which the caller will use it.
-       * In addition, the caller has access to the varyings of the callee as well.
-       * A varying V of an element in the \ref DependencyList is accessed from the
-       * parent shader with dep::V where dep is the argument value of name to \ref
-       * add_shader(). Note that it is accessed with the scope-resolution operator;
-       * the uber-shader assember will convert the scope-resolution operator into
-       * acceptable GLSL code.
+       * In addition, the caller has access to the varyings and shared symbols
+       * of the callee as well. A varying or shareable V of an element in the \ref
+       * DependencyList is accessed from the parent shader with dep::V where dep
+       * is the argument value of name to \ref add_shader(). Note that it is
+       * accessed with the scope-resolution operator; the uber-shader assember
+       * will convert the scope-resolution operator into acceptable GLSL code.
+       *
+       * By using the values of the shareables (embodied in fields \ref
+       * symbol_list::m_vert_shareable_values and \ref symbol_list::m_frag_shareable_values),
+       * reading and potentially modifying the values of the varyings, one can
+       * create effects building off of the built-in shaders of the GLSL module.
        */
       class DependencyList
       {
@@ -326,12 +331,17 @@ namespace fastuidraw
        * a DependencyList provides the means to do so.
        *
        * Each such used shader is given a name by which the caller will use it.
-       * In addition, the caller has access to the varyings of the callee as well.
-       * A varying V of an element in the \ref DependencyList is accessed from the
-       * parent shader with dep::V where dep is the argument value of name to \ref
-       * add_shader(). Note that it is accessed with the scope-resolution operator;
-       * the uber-shader assember will convert the scope-resolution operator into
-       * acceptable GLSL code.
+       * In addition, the caller has access to the varyings and shared symbols
+       * of the callee as well. A varying or shareable V of an element in the \ref
+       * DependencyList is accessed from the parent shader with dep::V where dep
+       * is the argument value of name to \ref add_shader(). Note that it is
+       * accessed with the scope-resolution operator; the uber-shader assember
+       * will convert the scope-resolution operator into acceptable GLSL code.
+       *
+       * By using the values of the shareables (embodied in fields \ref
+       * symbol_list::m_vert_shareable_values and \ref symbol_list::m_frag_shareable_values),
+       * reading and potentially modifying the values of the varyings, one can
+       * create effects building off of the built-in shaders of the GLSL module.
        */
       class DependencyList
       {
