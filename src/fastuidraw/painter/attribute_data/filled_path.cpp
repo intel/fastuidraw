@@ -1644,6 +1644,8 @@ SubPath::
 contour_is_reducable(const SubContour &C)
 {
   uint32_t prev(C.back().flags());
+  int sum(0);
+
   for(const auto &q : C)
     {
       int r;
@@ -1653,8 +1655,9 @@ contour_is_reducable(const SubContour &C)
         {
           return false;
         }
+      sum += r;
     }
-  return true;
+  return sum == 0;
 }
 
 //////////////////////////////////////
