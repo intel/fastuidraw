@@ -28,7 +28,23 @@ namespace fastuidraw
 
   /*!
    * A \ref PathDashEffect implemented \ref PathEffect to
-   * apply a dash pattern to a path.
+   * apply a dash pattern to a path. The output data of a
+   * \ref PathDashEffect -keeps- the distance values of
+   * how far along an ege or countour, i.e. the values of
+   * \ref TessellatedPath::cap::m_contour_length,
+   * \ref TessellatedPath::cap::m_edge_length,
+   * \ref TessellatedPath::cap::m_distance_from_edge_start,
+   * \ref TessellatedPath::cap::m_distance_from_contour_start,
+   * \ref TessellatedPath::join::m_distance_from_previous_join,
+   * \ref TessellatedPath::join::m_distance_from_contour_start,
+   * \ref TessellatedPath::join::m_contour_length,
+   * \ref TessellatedPath::segment::m_distance_from_edge_start,
+   * \ref TessellatedPath::segment::m_distance_from_contour_start,
+   * \ref TessellatedPath::segment::m_contour_length and
+   * \ref TessellatedPath::segment::m_edge_length are copied
+   * directly from the source data. Only the value \ref
+   * TessellatedPath::segment::m_length is adjusted (because
+   * a given segment might be split into multiple segments).
    */
   class PathDashEffect:public PathEffect
   {
