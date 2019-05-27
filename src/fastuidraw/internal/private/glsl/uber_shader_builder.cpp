@@ -43,25 +43,6 @@ namespace
     return str.str();
   }
 
-  std::string
-  replace_double_colon_with_double_D(const std::string &input)
-  {
-    std::string return_value(input);
-    char *prev_char(nullptr);
-
-    for (auto iter = return_value.begin(), end = return_value.end(); iter != end; ++iter)
-      {
-        if (prev_char && *prev_char == ':' && *iter == ':')
-          {
-            *prev_char = 'D';
-            *iter = 'D';
-          }
-        prev_char = &(*iter);
-      }
-
-    return return_value;
-  }
-
   bool
   has_double_colon(fastuidraw::c_string v)
   {
@@ -110,14 +91,13 @@ namespace
               {
                 if (add_defines)
                   {
-                    dst << "#define "
-                        << replace_double_colon_with_double_D(names[k])
+                    dst << "#define " << names[k]
                         << " " << shareable_label << "_type" << t
                         << "[" << k << "]\n";
                   }
                 else
                   {
-                    dst << "#undef " << replace_double_colon_with_double_D(names[k]) << "\n";
+                    dst << "#undef " << names[k] << "\n";
                   }
               }
             else
@@ -256,8 +236,7 @@ namespace
                 {
                   if (does_not_have_double_colon(v))
                     {
-                      std::string vv(replace_double_colon_with_double_D(v));
-                      dst << "#define " << vv << " " << dep_name << "DD" << vv << "\n";
+                      dst << "#define " << v << " " << dep_name << "::" << v << "\n";
                     }
                 }
             }
@@ -269,9 +248,7 @@ namespace
             {
               if (does_not_have_double_colon(names[i]))
                 {
-                  std::string name(replace_double_colon_with_double_D(names[i]));
-                  std::string src_name(replace_double_colon_with_double_D(src_names[i]));
-                  dst.add_macro(name.c_str(), src_name.c_str());
+                  dst.add_macro(names[i], src_names[i]);
                 }
             }
 
@@ -285,8 +262,7 @@ namespace
                 {
                   if (does_not_have_double_colon(name))
                     {
-                      std::string nameDD(replace_double_colon_with_double_D(name));
-                      dst << "#define " << nameDD << " " << dep_name << "DD" << nameDD << "\n";
+                      dst << "#define " << name << " " << dep_name << "::" << name << "\n";
                     }
                 }
             }
@@ -317,8 +293,7 @@ namespace
             {
               if (does_not_have_double_colon(names[i]))
                 {
-                  std::string name(replace_double_colon_with_double_D(names[i]));
-                  dst.remove_macro(name.c_str());
+                  dst.remove_macro(names[i]);
                 }
             }
 
@@ -331,8 +306,7 @@ namespace
                 {
                   if (does_not_have_double_colon(v))
                     {
-                      std::string vv(replace_double_colon_with_double_D(v));
-                      dst << "#undef " << vv << "\n";
+                      dst << "#undef " << v << "\n";
                     }
                 }
             }
@@ -347,8 +321,7 @@ namespace
                 {
                   if (does_not_have_double_colon(name))
                     {
-                      std::string nameDD(replace_double_colon_with_double_D(name));
-                      dst << "#undef " << nameDD << "\n";
+                      dst << "#undef " << name << "\n";
                     }
                 }
             }
@@ -370,8 +343,7 @@ namespace
             {
               if (has_double_colon(v))
                 {
-                  std::string vv(replace_double_colon_with_double_D(v));
-                  dst << "#define " << vv << " " << dep_name << "DD" << vv << "\n";
+                  dst << "#define " << v << " " << dep_name << "::" << v << "\n";
                 }
             }
         }
@@ -383,9 +355,7 @@ namespace
         {
           if (has_double_colon(names[i]))
             {
-              std::string name(replace_double_colon_with_double_D(names[i]));
-              std::string src_name(replace_double_colon_with_double_D(src_names[i]));
-              dst.add_macro(name.c_str(), src_name.c_str());
+              dst.add_macro(names[i], src_names[i]);
             }
         }
     }
@@ -401,8 +371,7 @@ namespace
         {
           if (has_double_colon(names[i]))
             {
-              std::string name(replace_double_colon_with_double_D(names[i]));
-              dst.remove_macro(name.c_str());
+              dst.remove_macro(names[i]);
             }
         }
 
@@ -415,8 +384,7 @@ namespace
             {
               if (has_double_colon(v))
                 {
-                  std::string vv(replace_double_colon_with_double_D(v));
-                  dst << "#undef " << vv << "\n";
+                  dst << "#undef " << v << "\n";
                 }
             }
         }
@@ -677,7 +645,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
       /* stream up to pos */
       if (pos > last_pos)
         {
-          dst << replace_double_colon_with_double_D(src.substr(last_pos, pos - last_pos));
+          dst << src.substr(last_pos, pos - last_pos);
         }
 
       /* find the first open and close-parentesis pair after pos. */
@@ -698,8 +666,7 @@ stream_source(ShaderSource &dst, const std::string &in_prefix,
         }
     }
 
-  dst << replace_double_colon_with_double_D(src.substr(last_pos))
-      << "\n";
+  dst << src.substr(last_pos) << "\n";
 }
 
 template<typename T>
@@ -1196,8 +1163,7 @@ stream_alias_varyings_impl(bool use_rw_copies,
 
           if (filter_varying(p[i]))
             {
-              std::string pp(replace_double_colon_with_double_D(p[i]));
-              shader.add_macro(pp.c_str(), str.str().c_str());
+              shader.add_macro(p[i], str.str().c_str());
             }
         }
     }
@@ -1207,8 +1173,7 @@ stream_alias_varyings_impl(bool use_rw_copies,
         {
           if (filter_varying(p[i]))
             {
-              std::string pp(replace_double_colon_with_double_D(p[i]));
-              shader.remove_macro(pp.c_str());
+              shader.remove_macro(p[i]);
             }
         }
     }
@@ -1253,9 +1218,7 @@ stream_alias_varyings(bool use_rw_copies,
         {
           if (filter_varying(names[i]))
             {
-              std::string name(replace_double_colon_with_double_D(names[i]));
-              std::string src_name(replace_double_colon_with_double_D(src_names[i]));
-              shader.add_macro(name.c_str(), src_name.c_str());
+              shader.add_macro(names[i], src_names[i]);
             }
         }
     }
@@ -1266,8 +1229,7 @@ stream_alias_varyings(bool use_rw_copies,
         {
           if (filter_varying(names[i]))
             {
-              std::string name(replace_double_colon_with_double_D(names[i]));
-              shader.remove_macro(name.c_str());
+              shader.remove_macro(names[i]);
             }
         }
     }

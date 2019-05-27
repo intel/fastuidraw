@@ -62,6 +62,10 @@ namespace
     strip_leading_white_spaces(const std::string &S);
 
     static
+    std::string
+    replace_double_colon(std::string S);
+
+    static
     void
     emit_source_line(std::ostream &output_stream,
                      const std::string &source,
@@ -192,6 +196,24 @@ string_from_extension_t(extension_enable_t tp)
 
 std::string
 SourcePrivate::
+replace_double_colon(std::string S)
+{
+  char *prev_char(nullptr);
+
+  for (auto iter = S.begin(), end = S.end(); iter != end; ++iter)
+    {
+      if (prev_char && *prev_char == ':' && *iter == ':')
+        {
+          *prev_char = 'D';
+          *iter= 'D';
+        }
+      prev_char= &(*iter);
+    }
+  return S;
+}
+
+std::string
+SourcePrivate::
 strip_leading_white_spaces(const std::string &S)
 {
   std::string::const_iterator iter, end;
@@ -212,6 +234,7 @@ emit_source_line(std::ostream &output_stream,
 {
   std::string S;
   S = strip_leading_white_spaces(source);
+  S = replace_double_colon(S);
   output_stream << S;
 
   #ifndef NDEBUG
