@@ -926,12 +926,16 @@ finalize(TessellatedPathBuildingState &b)
           cap.m_position = start->m_start_pt;
           cap.m_unit_vector = -start->m_enter_segment_unit_vector;
           cap.m_edge_length = start->m_edge_length;
+          cap.m_distance_from_edge_start = 0.0f;
+          cap.m_distance_from_contour_start = 0.0f;
           cap.m_is_starting_cap = true;
           m_cap_data.push_back(cap);
 
           cap.m_position = end->m_end_pt;
           cap.m_unit_vector = end->m_leaving_segment_unit_vector;
           cap.m_edge_length = end->m_edge_length;
+          cap.m_distance_from_edge_start = end->m_edge_length;
+          cap.m_distance_from_contour_start = cap.m_contour_length;
           cap.m_is_starting_cap = false;
           m_cap_data.push_back(cap);
         }

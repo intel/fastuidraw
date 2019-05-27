@@ -601,6 +601,20 @@ public:
     float m_edge_length;
 
     /*!
+     * Gives the distance of the cap from the start of the edge
+     * on which the cap resides.
+     */
+    float m_distance_from_edge_start;
+
+    /*!
+     * Gives the distance of the cap start of the -contour-.
+     * For \ref cap values of a \ref TessellatedPath, this is
+     * 0 for a starting cap and \ref m_contour_length for
+     * an ending cap.
+     */
+    float m_distance_from_contour_start;
+
+    /*!
      * True if the cap is from the start of a contour
      */
     bool m_is_starting_cap;
