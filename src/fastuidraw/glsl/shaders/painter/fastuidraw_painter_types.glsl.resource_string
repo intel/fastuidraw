@@ -28,8 +28,10 @@ struct fastuidraw_header
   uint item_shader;
   uint blend_shader;
   int z;
-  uint deferred_buffer_offset_packed;
   uint brush_adjust_location;
+  ivec2 offset_to_deferred_coverage;
+  ivec2 deferred_coverage_min;
+  ivec2 deferred_coverage_max;
 };
 
 struct fastuidraw_clipping_data

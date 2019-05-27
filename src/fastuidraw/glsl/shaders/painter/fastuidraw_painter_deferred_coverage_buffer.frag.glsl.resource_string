@@ -16,8 +16,29 @@
  *
  */
 
-ivec2 fastuidraw_deferred_buffer_offset;
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING) uniform sampler2D fastuidraw_deferred_coverage_buffer;
 
+float
+fastuidraw_read_deferred_coverage_buffer_value_at(ivec2 p)
+{
+  /* We need to clamp the the value p into the range that the
+   * drawn item is allowed to use from the coverage buffer.
+   * If p is outside of the range, then we return 0.
+   */
+  p.x += fastuidraw_deferred_buffer_offset_x;
+  p.y += fastuidraw_deferred_buffer_offset_y;
+  if (p.x < fastuidraw_deferred_buffer_min_x
+      || p.y < fastuidraw_deferred_buffer_min_y
+      || p.x > fastuidraw_deferred_buffer_max_x
+      || p.y > fastuidraw_deferred_buffer_max_y)
+    {
+      return 0.0;
+    }
+  else
+    {
+      return texelFetch(fastuidraw_deferred_coverage_buffer, p, 0).r;
+    }
+}
+
 #define fastuidraw_read_deferred_coverage_buffer \
-  (texelFetch(fastuidraw_deferred_coverage_buffer, ivec2(gl_FragCoord.xy) + fastuidraw_deferred_buffer_offset, 0).r)
+  fastuidraw_read_deferred_coverage_buffer_value_at(ivec2(gl_FragCoord.xy))

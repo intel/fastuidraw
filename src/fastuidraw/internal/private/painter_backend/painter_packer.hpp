@@ -110,6 +110,25 @@ namespace fastuidraw
     };
 
     /*!
+     * Describes the offset and dimensions for reading from the
+     * differed coverage buffer from an item shader's fragment
+     * shader.
+     */
+    class DeferredCoverageReadParams
+    {
+    public:
+      DeferredCoverageReadParams(void):
+        m_offset_to_deferred_coverage(0, 0),
+        m_deferred_coverage_min(0, 0),
+        m_deferred_coverage_max(-1, -1)
+      {}
+
+      ivec2 m_offset_to_deferred_coverage;
+      ivec2 m_deferred_coverage_min;
+      ivec2 m_deferred_coverage_max;
+    };
+
+    /*!
      * Ctor.
      * \param stats location to which to update stat values
      * \param backend handle to PainterBackend for the constructed PainterPacker
@@ -219,7 +238,7 @@ namespace fastuidraw
 
     /*!
      * Draw generic attribute data
-     * \param deferred_coverage_buffer_offset offset in pixel to deffered coverage buffer
+     * \param deferred_coverage_read_params parameters for reading the deferred coverage buffer
      * \param shader shader with which to draw data
      * \param data data for how to draw
      * \param attrib_chunks attribute data to draw
@@ -230,7 +249,7 @@ namespace fastuidraw
      * \param z z-value z value placed into the header
      */
     void
-    draw_generic(ivec2 deferred_coverage_buffer_offset,
+    draw_generic(const DeferredCoverageReadParams &deferred_params,
                  PainterItemShader *shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
@@ -238,7 +257,7 @@ namespace fastuidraw
                  c_array<const int> index_adjusts,
                  int z)
     {
-      draw_generic(deferred_coverage_buffer_offset,
+      draw_generic(deferred_params,
                    shader, data, attrib_chunks, index_chunks,
                    index_adjusts, c_array<const unsigned int>(),
                    z);
@@ -246,7 +265,7 @@ namespace fastuidraw
 
     /*!
      * Draw generic attribute data
-     * \param deferred_coverage_buffer_offset offset in pixel to deffered coverage buffer
+     * \param deferred_coverage_read_params parameters for reading the deferred coverage buffer
      * \param shader shader with which to draw data
      * \param data data for how to draw
      * \param attrib_chunks attribute data to draw
@@ -260,7 +279,7 @@ namespace fastuidraw
      * \param z z-value z value placed into the header
      */
     void
-    draw_generic(ivec2 deferred_coverage_buffer_offset,
+    draw_generic(const DeferredCoverageReadParams &deferred_params,
                  PainterItemShader *shader,
                  const PainterPackerData &data,
                  c_array<const c_array<const PainterAttribute> > attrib_chunks,
@@ -270,7 +289,7 @@ namespace fastuidraw
                  int z);
     /*!
      * Draw generic attribute data
-     * \param deferred_coverage_buffer_offset offset in pixel to deffered coverage buffer
+     * \param deferred_coverage_read_params parameters for reading the deferred coverage buffer
      * \param shader shader with which to draw data
      * \param data data for how to draw
      * \param src DrawWriter to use to write attribute and index data
@@ -278,7 +297,7 @@ namespace fastuidraw
      * \returns the max-value of the attribute writer's m_z_range.m_end
      */
     int
-    draw_generic(ivec2 deferred_coverage_buffer_offset,
+    draw_generic(const DeferredCoverageReadParams &deferred_params,
                  PainterItemShader *shader,
                  const PainterPackerData &data,
                  const PainterAttributeWriter &src,
@@ -411,7 +430,7 @@ namespace fastuidraw
 
     template<typename T, typename ShaderType>
     int
-    draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
+    draw_generic_implement(const DeferredCoverageReadParams &deferred_params,
                            ShaderType *shader,
                            const PainterPackerData &data,
                            const T &src,

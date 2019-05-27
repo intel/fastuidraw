@@ -335,9 +335,9 @@ public:
 
   template<typename T>
   bool //returns true if a draw break was needed
-  pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
+  pack_header(enum PainterSurface::render_type_t render_type,
               unsigned int header_size,
-              fastuidraw::ivec2 deferred_coverage_buffer_offset,
+              const DeferredCoverageReadParams &deferred_params,
               const PainterBrushShader *brush_shader,
               PainterBlendShader *blend_shader,
               BlendMode mode,
@@ -515,9 +515,9 @@ pack_painter_state(enum fastuidraw::PainterSurface::render_type_t render_type,
 template<typename T>
 bool
 fastuidraw::PainterPacker::per_draw_command::
-pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
+pack_header(enum PainterSurface::render_type_t render_type,
             unsigned int header_size,
-            fastuidraw::ivec2 deferred_coverage_buffer_offset,
+            const DeferredCoverageReadParams &deferred_params,
             const PainterBrushShader *brush_shader,
             PainterBlendShader *blend_shader,
             BlendMode blend_mode,
@@ -580,7 +580,9 @@ pack_header(enum fastuidraw::PainterSurface::render_type_t render_type,
   header.m_brush_shader = brush.m_ID;
   header.m_blend_shader = blend.m_ID;
   header.m_z = z;
-  header.m_offset_to_deferred_coverage = deferred_coverage_buffer_offset;
+  header.m_offset_to_deferred_coverage = deferred_params.m_offset_to_deferred_coverage;
+  header.m_deferred_coverage_min = deferred_params.m_deferred_coverage_min;
+  header.m_deferred_coverage_max = deferred_params.m_deferred_coverage_max;
   header.pack_data(dst);
 
   if (current.m_item_group != m_prev_state.m_item_group
@@ -775,7 +777,7 @@ upload_draw_state(const PainterPackerData &draw_state)
 template<typename T, typename ShaderType>
 int
 fastuidraw::PainterPacker::
-draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
+draw_generic_implement(const DeferredCoverageReadParams &deferred_params,
                        ShaderType *pshader,
                        const PainterPackerData &draw,
                        const T &src,
@@ -860,7 +862,7 @@ draw_generic_implement(ivec2 deferred_coverage_buffer_offset,
               brush_shader = m_default_brush_shader;
             }
           draw_break_added = cmd.pack_header(m_render_type, m_header_size,
-                                             deferred_coverage_buffer_offset,
+                                             deferred_params,
                                              brush_shader,
                                              m_blend_shader, m_blend_mode,
                                              shader,
@@ -1061,7 +1063,7 @@ set_coverage_surface(const reference_counted_ptr<PainterSurface> &surface)
 
 void
 fastuidraw::PainterPacker::
-draw_generic(ivec2 deferred_coverage_buffer_offset,
+draw_generic(const DeferredCoverageReadParams &deferred_params,
              PainterItemShader *shader,
              const PainterPackerData &draw,
              c_array<const c_array<const PainterAttribute> > attrib_chunks,
@@ -1071,18 +1073,18 @@ draw_generic(ivec2 deferred_coverage_buffer_offset,
              int z)
 {
   AttributeIndexSrcFromArray src(attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector);
-  draw_generic_implement(deferred_coverage_buffer_offset, shader, draw, src, z);
+  draw_generic_implement(deferred_params, shader, draw, src, z);
 }
 
 int
 fastuidraw::PainterPacker::
-draw_generic(ivec2 deferred_coverage_buffer_offset,
+draw_generic(const DeferredCoverageReadParams &deferred_params,
              PainterItemShader *shader,
              const PainterPackerData &data,
              const PainterAttributeWriter &src,
              int z)
 {
-  return draw_generic_implement(deferred_coverage_buffer_offset, shader, data, src, z);
+  return draw_generic_implement(deferred_params, shader, data, src, z);
 }
 
 void
@@ -1095,7 +1097,7 @@ draw_generic(PainterItemCoverageShader *shader,
              c_array<const unsigned int> attrib_chunk_selector)
 {
   AttributeIndexSrcFromArray src(attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector);
-  draw_generic_implement(ivec2(0, 0), shader, draw, src, 0);
+  draw_generic_implement(DeferredCoverageReadParams(), shader, draw, src, 0);
 }
 
 void
@@ -1104,7 +1106,7 @@ draw_generic(PainterItemCoverageShader *shader,
              const PainterPackerData &data,
              const PainterAttributeWriter &src)
 {
-  draw_generic_implement(ivec2(0, 0), shader, data, src, 0);
+  draw_generic_implement(DeferredCoverageReadParams(), shader, data, src, 0);
 }
 
 unsigned int

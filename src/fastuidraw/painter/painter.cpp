@@ -802,7 +802,8 @@ namespace
       m_normalized_translate(buffer_rect.compute_normalized_translate(p_min_corner_in_surface, vwp)),
       m_root_surface_min_corner(buffer_rect.m_bl),
       m_clip_eq_state(p_clip_eq_state),
-      m_min_corner_in_surface(p_min_corner_in_surface)
+      m_min_corner_in_surface(p_min_corner_in_surface),
+      m_size_in_surface(buffer_rect.m_dims)
     {
       FASTUIDRAWassert(m_packer);
       FASTUIDRAWassert(m_min_corner_in_surface.x() >= 0);
@@ -831,10 +832,12 @@ namespace
       return m_min_corner_in_surface;
     }
 
-    fastuidraw::ivec2
-    coverage_buffer_offset(void) const
+    void
+    coverage_buffer_params(fastuidraw::PainterPacker::DeferredCoverageReadParams& dst) const
     {
-      return m_coverage_buffer_offset;
+      dst.m_offset_to_deferred_coverage = m_coverage_buffer_offset;
+      dst.m_deferred_coverage_min = m_min_corner_in_surface;
+      dst.m_deferred_coverage_max = m_min_corner_in_surface + m_size_in_surface - fastuidraw::ivec2(1, 1);
     }
 
     fastuidraw::vec2
@@ -886,6 +889,11 @@ namespace
      * DeferredCoverageBuffer::m_surface
      */
     fastuidraw::ivec2 m_min_corner_in_surface;
+
+    /* The size of the rect within
+     * DeferredCoverageBuffer::m_surface
+     */
+    fastuidraw::ivec2 m_size_in_surface;
 
     /* computed from the current state of PainterPacker, updated
      * whenever the effects stack changes
@@ -3793,14 +3801,14 @@ draw_generic(fastuidraw::PainterItemShader *shader,
 {
   fastuidraw::PainterPackerData p(draw);
   fastuidraw::PainterPacker *cvg_packer(deferred_coverage_packer());
-  fastuidraw::ivec2 coverage_buffer_offset(0, 0);
+  fastuidraw::PainterPacker::DeferredCoverageReadParams coverage_buffer;
 
   if (shader->coverage_shader() && cvg_packer)
     {
       FASTUIDRAWassert(!m_deferred_coverage_stack.empty());
       p.m_clip = m_deferred_coverage_stack.back().clip_eq_state();
       p.m_matrix = m_clip_rect_state.current_item_matrix_coverage_buffer_state(m_pool);
-      coverage_buffer_offset = m_deferred_coverage_stack.back().coverage_buffer_offset();
+      m_deferred_coverage_stack.back().coverage_buffer_params(coverage_buffer);
 
       FASTUIDRAWassert(p.m_clip);
       FASTUIDRAWassert(p.m_matrix);
@@ -3823,7 +3831,7 @@ draw_generic(fastuidraw::PainterItemShader *shader,
       FASTUIDRAWassert(p.m_brush_adjust);
     }
 
-  packer()->draw_generic(coverage_buffer_offset, shader, p,
+  packer()->draw_generic(coverage_buffer, shader, p,
                          attrib_chunks, index_chunks, index_adjusts,
                          attrib_chunk_selector, z);
   ++m_draw_data_added_count;
@@ -3838,7 +3846,7 @@ draw_generic(fastuidraw::PainterItemShader *shader,
 {
   fastuidraw::PainterPackerData p(draw);
   fastuidraw::PainterPacker *cvg_packer(deferred_coverage_packer());
-  fastuidraw::ivec2 coverage_buffer_offset(0, 0);
+  fastuidraw::PainterPacker::DeferredCoverageReadParams coverage_buffer;
   int return_value;
   bool requires_coverage_buffer;
 
@@ -3850,7 +3858,7 @@ draw_generic(fastuidraw::PainterItemShader *shader,
       FASTUIDRAWassert(!m_deferred_coverage_stack.empty());
       p.m_clip = m_deferred_coverage_stack.back().clip_eq_state();
       p.m_matrix = m_clip_rect_state.current_item_matrix_coverage_buffer_state(m_pool);
-      coverage_buffer_offset = m_deferred_coverage_stack.back().coverage_buffer_offset();
+      m_deferred_coverage_stack.back().coverage_buffer_params(coverage_buffer);
 
       FASTUIDRAWassert(p.m_clip);
       FASTUIDRAWassert(p.m_matrix);
@@ -3877,7 +3885,7 @@ draw_generic(fastuidraw::PainterItemShader *shader,
       p.m_brush_adjust = *m_current_brush_adjust;
       FASTUIDRAWassert(p.m_brush_adjust);
     }
-  return_value = packer()->draw_generic(coverage_buffer_offset, shader, p, src, z);
+  return_value = packer()->draw_generic(coverage_buffer, shader, p, src, z);
   ++m_draw_data_added_count;
   return return_value;
 }

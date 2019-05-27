@@ -45,22 +45,6 @@ main(void)
   if (FASTUIDRAW_RUN_ITEM_FRAG_SHADER)
   #endif
     {
-      /* unpack fastuidraw_deferred_buffer_offset_packed to
-       * fastuidraw_deferred_buffer_offset
-       */
-      uvec2 tmp;
-
-      tmp.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_deferred_offset_x_bit0,
-                                      fastuidraw_deferred_offset_coord_num_bits,
-                                      fastuidraw_deferred_buffer_offset_packed);
-
-      tmp.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_deferred_offset_y_bit0,
-                                      fastuidraw_deferred_offset_coord_num_bits,
-                                      fastuidraw_deferred_buffer_offset_packed);
-
-      fastuidraw_deferred_buffer_offset = ivec2(tmp) - ivec2(fastuidraw_deferred_offset_bias,
-                                                             fastuidraw_deferred_offset_bias);
-
       if (fastuidraw_blend_shader_data_location != FASTUIDRAW_HEADER_DRAWING_OCCLUDER)
         {
           /* The standard canvas pipeline emits pre-multiplied alpha surfaces;

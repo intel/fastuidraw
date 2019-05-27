@@ -51,41 +51,6 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Gives how the offset to coverage value stored in
-     * \ref m_offset_to_deferred_coverage is packed
-     * at \ref offset_to_deferred_coverage_offset
-     */
-    enum offset_to_deferred_coverage_packing
-      {
-        /*!
-         * The values are encoded as unsigned integers
-         * biased by this amount. To get the actual
-         * value, requires to subtract this value from
-         * the unpacked value.
-         */
-        offset_to_deferred_coverage_bias = 32768u,
-
-        /*!
-         * The number of bits used to encode a single
-         * coordinate of the offset.
-         */
-        offset_to_deferred_coverage_coord_num_bits = 16,
-
-        /*!
-         * The first bit used to encode the biased x-coordinate
-         * of \ref m_offset_to_deferred_coverage
-         */
-        offset_to_deferred_coverage_x_coord_bit0 = 0,
-
-        /*!
-         * The first bit used to encode the biased x-coordinate
-         * of \ref m_offset_to_deferred_coverage
-         */
-        offset_to_deferred_coverage_y_coord_bit0 = offset_to_deferred_coverage_coord_num_bits,
-      };
-
-    /*!
-     * \brief
      * Enumerations specifying how the contents of a PainterHeader
      * are packed into a data store buffer (PainterDraw::m_store),
      * offsets are in units of uint32_t (not \ref uvec4).
@@ -101,12 +66,12 @@ namespace fastuidraw
         brush_shader_offset, /*!< offset to \ref m_brush_shader */
         blend_shader_offset, /*!< offset to \ref m_blend_shader */
         z_offset, /*!< offset to \ref m_z */
-
-        /*!
-         * offset to \ref m_offset_to_deferred_coverage, packed as
-         * according to \ref offset_to_deferred_coverage_packing
-         */
-        offset_to_deferred_coverage_offset,
+        offset_to_deferred_coverage_x_offset, /*!< offset to \ref m_offset_to_deferred_coverage.x() */
+        offset_to_deferred_coverage_y_offset, /*!< offset to \ref m_offset_to_deferred_coverage.y() */
+        deferred_coverage_min_x_offset, /*!< offset to \ref m_deferred_coverage_min.x() */
+        deferred_coverage_min_y_offset, /*!< offset to \ref m_deferred_coverage_min.y() */
+        deferred_coverage_max_x_offset, /*!< offset to \ref m_deferred_coverage_max.x() */
+        deferred_coverage_max_y_offset, /*!< offset to \ref m_deferred_coverage_max.y() */
 
         /*!
          * Offset to \ref m_brush_adjust_location
@@ -202,6 +167,18 @@ namespace fastuidraw
      * values.
      */
     ivec2 m_offset_to_deferred_coverage;
+
+    /*!
+     * Minimum value (in coverage buffer pixel coordinates)
+     * from which allowed to read the coverage buffer.
+     */
+    ivec2 m_deferred_coverage_min;
+
+    /*!
+     * Maximum value (in coverage buffer pixel coordinates) from
+     * which allowed to read the coverage buffer.
+     */
+    ivec2 m_deferred_coverage_max;
 
     /*!
      * If non-zero, indicates that the brush position is to be

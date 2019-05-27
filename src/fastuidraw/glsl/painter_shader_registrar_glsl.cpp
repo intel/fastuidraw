@@ -376,7 +376,12 @@ ready_main_varyings(void)
     .add_uint("fastuidraw_blend_shader_data_location")
     .add_uint("fastuidraw_brush_shader")
     .add_uint("fastuidraw_brush_shader_data_location")
-    .add_uint("fastuidraw_deferred_buffer_offset_packed");
+    .add_int("fastuidraw_deferred_buffer_offset_x")
+    .add_int("fastuidraw_deferred_buffer_offset_y")
+    .add_int("fastuidraw_deferred_buffer_min_x")
+    .add_int("fastuidraw_deferred_buffer_min_y")
+    .add_int("fastuidraw_deferred_buffer_max_x")
+    .add_int("fastuidraw_deferred_buffer_max_y");
 
   m_item_coverage_shaders.m_main_varyings_shaders_and_shader_datas
     .add_uint("fastuidraw_frag_shader")
@@ -457,11 +462,7 @@ ready_constants(void)
 
     ////////////////////////////////////
     // constants for PainterHeader
-    .add_macro_u32("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", PainterHeader::drawing_occluder)
-    .add_macro_i32("fastuidraw_deferred_offset_bias", PainterHeader::offset_to_deferred_coverage_bias)
-    .add_macro_u32("fastuidraw_deferred_offset_coord_num_bits", PainterHeader::offset_to_deferred_coverage_coord_num_bits)
-    .add_macro_u32("fastuidraw_deferred_offset_x_bit0", PainterHeader::offset_to_deferred_coverage_x_coord_bit0)
-    .add_macro_u32("fastuidraw_deferred_offset_y_bit0", PainterHeader::offset_to_deferred_coverage_y_coord_bit0);
+    .add_macro_u32("FASTUIDRAW_HEADER_DRAWING_OCCLUDER", PainterHeader::drawing_occluder);
 
     ////////////////////////////////////////
     // constants for GlyphRenderDataRestrictedRays
@@ -522,8 +523,13 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     .set_int(PainterHeader::z_offset, ".z")
     .set_uint(PainterHeader::item_shader_offset, ".item_shader")
     .set_uint(PainterHeader::blend_shader_offset, ".blend_shader")
-    .set_uint(PainterHeader::offset_to_deferred_coverage_offset, ".deferred_buffer_offset_packed")
     .set_uint(PainterHeader::brush_adjust_location_offset, ".brush_adjust_location")
+    .set_int(PainterHeader::offset_to_deferred_coverage_x_offset, ".offset_to_deferred_coverage.x")
+    .set_int(PainterHeader::offset_to_deferred_coverage_y_offset, ".offset_to_deferred_coverage.y")
+    .set_int(PainterHeader::deferred_coverage_min_x_offset, ".deferred_coverage_min.x")
+    .set_int(PainterHeader::deferred_coverage_min_y_offset, ".deferred_coverage_min.y")
+    .set_int(PainterHeader::deferred_coverage_max_x_offset, ".deferred_coverage_max.x")
+    .set_int(PainterHeader::deferred_coverage_max_y_offset, ".deferred_coverage_max.y")
     .stream_unpack_function(str, "fastuidraw_read_header");
 
   UnpackSourceGenerator("fastuidraw_clipping_data")

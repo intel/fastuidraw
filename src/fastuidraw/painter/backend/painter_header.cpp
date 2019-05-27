@@ -25,16 +25,6 @@ pack_data(c_array<uvec4> pdst) const
 {
   c_array<uint32_t> dst(pdst.flatten_array());
 
-  uint32_t packed_deferred_coverage_offset;
-
-  packed_deferred_coverage_offset =
-    pack_bits(offset_to_deferred_coverage_x_coord_bit0,
-              offset_to_deferred_coverage_coord_num_bits,
-              m_offset_to_deferred_coverage.x() + offset_to_deferred_coverage_bias)
-    | pack_bits(offset_to_deferred_coverage_y_coord_bit0,
-                offset_to_deferred_coverage_coord_num_bits,
-                m_offset_to_deferred_coverage.y() + offset_to_deferred_coverage_bias);
-
   dst[clip_equations_location_offset]        = m_clip_equations_location;
   dst[item_matrix_location_offset]           = m_item_matrix_location;
   dst[brush_shader_data_location_offset]     = m_brush_shader_data_location;
@@ -45,5 +35,10 @@ pack_data(c_array<uvec4> pdst) const
   dst[blend_shader_offset]                   = m_blend_shader;
   dst[z_offset]                              = static_cast<uint32_t>(m_z);
   dst[brush_adjust_location_offset]          = m_brush_adjust_location;
-  dst[offset_to_deferred_coverage_offset]    = packed_deferred_coverage_offset;
+  dst[offset_to_deferred_coverage_x_offset]  = static_cast<uint32_t>(m_offset_to_deferred_coverage.x());
+  dst[offset_to_deferred_coverage_y_offset]  = static_cast<uint32_t>(m_offset_to_deferred_coverage.y());
+  dst[deferred_coverage_min_x_offset]        = static_cast<uint32_t>(m_deferred_coverage_min.x());
+  dst[deferred_coverage_min_y_offset]        = static_cast<uint32_t>(m_deferred_coverage_min.y());
+  dst[deferred_coverage_max_x_offset]        = static_cast<uint32_t>(m_deferred_coverage_max.x());
+  dst[deferred_coverage_max_y_offset]        = static_cast<uint32_t>(m_deferred_coverage_max.y());
 }

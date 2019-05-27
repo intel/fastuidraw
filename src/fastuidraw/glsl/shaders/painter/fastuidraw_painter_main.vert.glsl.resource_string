@@ -45,7 +45,12 @@ main(void)
   fastuidraw_frag_shader_data_location = h.item_shader_data_location;
   fastuidraw_blend_shader = h.blend_shader;
   fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
-  fastuidraw_deferred_buffer_offset_packed = h.deferred_buffer_offset_packed;
+  fastuidraw_deferred_buffer_offset_x = h.offset_to_deferred_coverage.x;
+  fastuidraw_deferred_buffer_offset_y = h.offset_to_deferred_coverage.y;
+  fastuidraw_deferred_buffer_min_x = h.deferred_coverage_min.x;
+  fastuidraw_deferred_buffer_min_y = h.deferred_coverage_min.y;
+  fastuidraw_deferred_buffer_max_x = h.deferred_coverage_max.x;
+  fastuidraw_deferred_buffer_max_y = h.deferred_coverage_max.y;
 
   fastuidraw_run_vert_shader(h, add_z, brush_p, clip_p);
   if (h.brush_adjust_location != 0u)
