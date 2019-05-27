@@ -4,6 +4,7 @@ var searchData=
   ['offset_5fadjustable_5fcap',['offset_adjustable_cap',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a6eaca992387f5dd0df1052fdefe75299a8666de5eb48ceb2c518acc04fe4786cd',1,'fastuidraw::StrokedPoint']]],
   ['offset_5farc_5fpoint',['offset_arc_point',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a76ed00458679c6b30991f092907f773caeaac10a6fa127f630e90d5fb762483a6',1,'fastuidraw::ArcStrokedPoint']]],
   ['offset_5farc_5fpoint_5fdashed_5fcapper',['offset_arc_point_dashed_capper',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a76ed00458679c6b30991f092907f773cafc747a9649e3d7d98dd2140b07254f0f',1,'fastuidraw::ArcStrokedPoint']]],
+  ['offset_5fflat_5fcap',['offset_flat_cap',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a6eaca992387f5dd0df1052fdefe75299a9d958715a9b80c5063af49eccf30f67e',1,'fastuidraw::StrokedPoint']]],
   ['offset_5fline_5fsegment',['offset_line_segment',['../d3/daa/classfastuidraw_1_1_arc_stroked_point.html#a76ed00458679c6b30991f092907f773ca25506f420666d9e370110ed4972efe32',1,'fastuidraw::ArcStrokedPoint']]],
   ['offset_5fmiter_5fbevel_5fjoin',['offset_miter_bevel_join',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a6eaca992387f5dd0df1052fdefe75299a1e0fa02f83d7cf3a69c8981361e52437',1,'fastuidraw::StrokedPoint']]],
   ['offset_5fmiter_5fclip_5fjoin',['offset_miter_clip_join',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a6eaca992387f5dd0df1052fdefe75299aeea36389c3e54208da6b94f2f97edef9',1,'fastuidraw::StrokedPoint']]],

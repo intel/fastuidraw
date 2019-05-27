@@ -63,7 +63,6 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="../../d4/d57/classfastuidraw_1_1_stroking_data_selector_base-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -82,22 +81,10 @@ Inheritance diagram for fastuidraw::StrokingDataSelectorBase:</div>
 <map name="fastuidraw_1_1_stroking_data_selector_base_inherit__map" id="fastuidraw_1_1_stroking_data_selector_base_inherit__map">
 <area shape="rect" id="node2" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html" title="Base class to use for reference counted objects, for using reference_counted_ptr. See also reference_..." alt="" coords="5,80,185,136"/>
 <area shape="rect" id="node3" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="14,5,177,32"/>
+<area shape="rect" id="node4" href="../../d8/de5/classfastuidraw_1_1_path_enums.html" title="Class to encapsulate enumerations used by Path and PathContour. " alt="" coords="209,95,368,121"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
-Public Types</h2></td></tr>
-<tr class="memitem:a14ccee44aad351389534f892f25c7d25"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25">path_geometry_inflation_index_t</a> { <br />
-&#160;&#160;<a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc">pixel_space_distance</a> = 0, 
-<a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25ae343509dc56afa17662427e2127417b8">item_space_distance</a>, 
-<a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25a586c7ae0f733dedb2b4fd1ff902942d6">pixel_space_distance_miter_joins</a>, 
-<a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25a8a61434f8539ac35163bbfdd61743a87">item_space_distance_miter_joins</a>, 
-<br />
-&#160;&#160;<b>path_geometry_inflation_index_count</b>
-<br />
- }</td></tr>
-<tr class="separator:a14ccee44aad351389534f892f25c7d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:af21d7874bcf73278bf26cd39083d9e7c"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#af21d7874bcf73278bf26cd39083d9e7c">arc_stroking_possible</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#gad5c6801d57a25c0a5bc45150b3272124">uvec4</a> &gt; data) const =0</td></tr>
@@ -114,6 +101,21 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_types_classfastuidraw_1_1_path_enums"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classfastuidraw_1_1_path_enums')"><img src="../../closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html">fastuidraw::PathEnums</a></td></tr>
+<tr class="memitem:ad2bc4ae9ff3a03d2551de130b5c274cd inherit pub_types_classfastuidraw_1_1_path_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">edge_type_t</a> { <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">starts_new_edge</a>, 
+<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda886976145669bc97f48bce3b296952b3">continues_edge</a>
+ }</td></tr>
+<tr class="separator:ad2bc4ae9ff3a03d2551de130b5c274cd inherit pub_types_classfastuidraw_1_1_path_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71a07e90523553c563833cf40b955af0 inherit pub_types_classfastuidraw_1_1_path_enums"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0">path_geometry_inflation_index_t</a> { <br />
+&#160;&#160;<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0a7e126eb33438844f43c92c3891116554">pixel_space_distance</a> = 0, 
+<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0a050fc721ba89b99e162af0e941d795a1">item_space_distance</a>, 
+<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0adc5d9f90dd6545fb29911ca894524c7f">pixel_space_distance_miter_joins</a>, 
+<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0afffccc4b2cc81ab6479fe9f357181a3a">item_space_distance_miter_joins</a>, 
+<br />
+&#160;&#160;<b>path_geometry_inflation_index_count</b>
+<br />
+ }</td></tr>
+<tr class="separator:a71a07e90523553c563833cf40b955af0 inherit pub_types_classfastuidraw_1_1_path_enums"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_static_methods_classfastuidraw_1_1reference__counted__base"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_classfastuidraw_1_1reference__counted__base')"><img src="../../closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">fastuidraw::reference_counted_base&lt; T, Counter &gt;</a></td></tr>
 <tr class="memitem:a79626863af8be19ef21f1bbe1361d764 inherit pub_static_methods_classfastuidraw_1_1reference__counted__base"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html#a79626863af8be19ef21f1bbe1361d764">add_reference</a> (const <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">reference_counted_base</a>&lt; T, Counter &gt; *p)</td></tr>
 <tr class="separator:a79626863af8be19ef21f1bbe1361d764 inherit pub_static_methods_classfastuidraw_1_1reference__counted__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -123,36 +125,8 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A StrokingDataSelector is an interface to assist <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> to select correct LOD for rounded joins and caps when drawing rounded joins and caps. In addition it also informs <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> if stroking via arcs is possible with the stroking parameters. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00046">46</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
-</div><h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="a14ccee44aad351389534f892f25c7d25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a14ccee44aad351389534f892f25c7d25">&#9670;&nbsp;</a></span>path_geometry_inflation_index_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25">fastuidraw::StrokingDataSelectorBase::path_geometry_inflation_index_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Enumeration to specify indexes into a <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> on how much a path's geometry is inflated by stroking. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc"></a>pixel_space_distance&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the path geometry is inflated in pixels after its inflation in in item coordinates and having the current transformation matrix applied. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25ae343509dc56afa17662427e2127417b8"></a>item_space_distance&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the path geometry is inflated in path cordinates before the transformation matrix applied or the inflation by <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25af74b69c1bd9e68bd05fb3266223c81fc">pixel_space_distance</a> is applied </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25a586c7ae0f733dedb2b4fd1ff902942d6"></a>pixel_space_distance_miter_joins&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the bounding box for taking miter-joins is inflated in pixels after its inflation in in item coordinates and having the current transformation matrix applied. </p>
-</td></tr>
-<tr><td class="fieldname"><a id="a14ccee44aad351389534f892f25c7d25a8a61434f8539ac35163bbfdd61743a87"></a>item_space_distance_miter_joins&#160;</td><td class="fielddoc"><p>Index into <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> to indicate how much the bounding box for taking miter-joins is inflated in path cordinates before the transformation matrix applied or the inflation by <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25a586c7ae0f733dedb2b4fd1ff902942d6">pixel_space_distance_miter_joins</a> is applied </p>
-</td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00054">54</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
+<p class="definition">Definition at line <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html#l00047">47</a> of file <a class="el" href="../../d1/d91/painter__stroke__shader_8hpp_source.html">painter_stroke_shader.hpp</a>.</p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="af21d7874bcf73278bf26cd39083d9e7c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af21d7874bcf73278bf26cd39083d9e7c">&#9670;&nbsp;</a></span>arc_stroking_possible()</h2>
 
@@ -224,7 +198,7 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to compute the value used to select rounded join level of detail (<a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#aecdf102cd12419f45e537c33fc5441d3">StrokedCapsJoins::rounded_joins()</a>) and rounded cap level of detail (<a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#ab23281a83c3c30f0d38a8990b6691cd5">StrokedCapsJoins::rounded_caps()</a>). </p><dl class="params"><dt>Parameters</dt><dd>
+<p>To be implemented by a derived class to compute the value used to select rounded join level of detail (<a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a092a061dc987b7a39df64d0deb77348c">StrokedPath::rounded_joins()</a>) and rounded cap level of detail (<a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ae9ee3f90d6a73bee25651680a4ca20af">StrokedPath::rounded_caps()</a>). </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">data</td><td>packed data to be sent to the shader </td></tr>
     <tr><td class="paramname">path_magnification</td><td>by how much the path is magnified from its native coordiantes to pixel coordinates. </td></tr>
@@ -303,7 +277,7 @@ Additional Inherited Members</h2></td></tr>
 <p>To be implemented by a derived class to give by how much the stroking gives thickness to the stroked path. These values are geometrically added together. The intersection test performed is to first inflate the bounding boxes in local coordinates by the output out_item_space_distance, then to convert the box to clip-coordinates and then push each clip-equation by *out_pixel_space_distance </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">data</td><td>packed data to be sent to the shader </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">out_values</td><td>output with array indexed as according to <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25">path_geometry_inflation_index_t</a> </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_values</td><td>output with array indexed as according to <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0">path_geometry_inflation_index_t</a> </td></tr>
   </table>
   </dd>
 </dl>

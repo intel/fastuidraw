@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['join_5fchunk',['join_chunk',['../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a8de8c9cd53805d94783b81e055001f43',1,'fastuidraw::StrokedCapsJoins']]],
-  ['join_5fchunks',['join_chunks',['../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html#ae0a3d507fcda0cae60a17e145e46134a',1,'fastuidraw::StrokedCapsJoins::ChunkSet']]],
+  ['join',['join',['../d2/d10/classfastuidraw_1_1_tessellated_path_1_1join.html#aa0fe2bacbcfebbcebefa04134e982546',1,'fastuidraw::TessellatedPath::join::join(void)'],['../d2/d10/classfastuidraw_1_1_tessellated_path_1_1join.html#a17e7ed0db344d180903c3029b44e0e14',1,'fastuidraw::TessellatedPath::join::join(const segment &amp;into_join, const segment &amp;from_join)']]],
+  ['join_5fchunk',['join_chunk',['../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html#ae106b8b64415f48145157f1f0e6abd1e',1,'fastuidraw::StrokedPath::Subset']]],
   ['join_5fdata',['join_data',['../da/df4/classfastuidraw_1_1_tessellated_path.html#a40495a3970a4cf139e8c6b717b6aa812',1,'fastuidraw::TessellatedPath']]],
-  ['join_5fpositions',['join_positions',['../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html#af7f1bfc5ebebcdb06b615a600d22416d',1,'fastuidraw::StrokedCapsJoins::ChunkSet']]],
-  ['join_5fstyle',['join_style',['../d6/d1e/classfastuidraw_1_1_stroking_style.html#ad01e8ba8384875c4296cb18f9a2169e0',1,'fastuidraw::StrokingStyle']]]
+  ['join_5fstyle',['join_style',['../d6/d1e/classfastuidraw_1_1_stroking_style.html#ad01e8ba8384875c4296cb18f9a2169e0',1,'fastuidraw::StrokingStyle']]],
+  ['join_5fsubset_5fids',['join_subset_ids',['../d5/d1d/classfastuidraw_1_1_stroked_path_1_1_subset_selection.html#aece55faa7ce71791d7597da84c3f63a4',1,'fastuidraw::StrokedPath::SubsetSelection::join_subset_ids()'],['../d3/d94/classfastuidraw_1_1_partitioned_tessellated_path_1_1_subset_selection.html#a289505e0c733e606e9ae057fbf78564d',1,'fastuidraw::PartitionedTessellatedPath::SubsetSelection::join_subset_ids()']]],
+  ['joins',['joins',['../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html#a2c77f26430295556a0cf9364e7a8bcfe',1,'fastuidraw::StrokedPath::Subset::joins()'],['../d8/d53/classfastuidraw_1_1_partitioned_tessellated_path_1_1_subset.html#a6ed9a14eea24d5dcca5ace4301008f86',1,'fastuidraw::PartitionedTessellatedPath::Subset::joins()'],['../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html#a6f5f62444df7046b200c543997e4fc9b',1,'fastuidraw::PartitionedTessellatedPath::joins()'],['../df/df5/classfastuidraw_1_1_path_effect_1_1_storage.html#a8e48d7bfe7581de9853116162fd3c7f8',1,'fastuidraw::PathEffect::Storage::joins()']]]
 ];

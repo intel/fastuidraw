@@ -11,6 +11,6 @@ var searchData=
   ['winding_5fsample_5fpacking_5ft',['winding_sample_packing_t',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a78c626c0d4bd0bd2fa4387834235f664',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['winding_5fvalue_5fbit0',['winding_value_bit0',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a78c626c0d4bd0bd2fa4387834235f664ada936261bf981f65808a450b538bb1df',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
   ['winding_5fvalue_5fnumbits',['winding_value_numbits',['../df/dc9/classfastuidraw_1_1_glyph_render_data_restricted_rays.html#a78c626c0d4bd0bd2fa4387834235f664a34a37a12af6423af0cce9cece3fdd83d',1,'fastuidraw::GlyphRenderDataRestrictedRays']]],
-  ['write_5fdata',['write_data',['../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a',1,'fastuidraw::PainterAttributeWriter']]],
+  ['write_5fdata',['write_data',['../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a',1,'fastuidraw::PainterAttributeWriter::write_data()'],['../de/d23/classfastuidraw_1_1_stroking_attribute_writer.html#a6d54437a8e1cd0f4c6065b3b2526ba7f',1,'fastuidraw::StrokingAttributeWriter::write_data()']]],
   ['writestate',['WriteState',['../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html',1,'fastuidraw::PainterAttributeWriter']]]
 ];

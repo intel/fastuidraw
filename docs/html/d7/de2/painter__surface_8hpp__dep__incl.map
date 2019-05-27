@@ -1,16 +1,17 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_surface.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/backend/painter_surface.hpp">
-<area shape="rect" id="node2" href="$dd/d5a/painter__surface__gl_8hpp.html" title="file painter_surface_gl.hpp " alt="" coords="226,131,453,187"/>
-<area shape="rect" id="node3" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="421,955,610,1025"/>
-<area shape="rect" id="node5" href="$da/df1/painter__backend_8hpp.html" title="file painter_backend.hpp " alt="" coords="549,717,719,788"/>
-<area shape="rect" id="node8" href="$d6/d63/painter__draw_8hpp.html" title="file painter_draw.hpp " alt="" coords="477,124,647,195"/>
-<area shape="rect" id="node4" href="$d3/d61/painter__engine__gl_8hpp.html" title="file painter_engine_gl.hpp " alt="" coords="337,1073,560,1129"/>
-<area shape="rect" id="node6" href="$de/d65/painter__engine_8hpp.html" title="file painter_engine.hpp " alt="" coords="303,836,474,907"/>
-<area shape="rect" id="node7" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="155,962,326,1018"/>
-<area shape="rect" id="node9" href="$d6/d8d/painter__fill__shader_8hpp.html" title="file painter_fill_shader.hpp " alt="" coords="426,243,597,313"/>
-<area shape="rect" id="node12" href="$d1/d91/painter__stroke__shader_8hpp.html" title="file painter_stroke_shader.hpp " alt="" coords="207,243,402,313"/>
-<area shape="rect" id="node10" href="$df/d62/painter__shader__set_8hpp.html" title="file painter_shader_set.hpp " alt="" coords="349,480,546,551"/>
-<area shape="rect" id="node11" href="$da/d96/painter__shader__registrar_8hpp.html" title="file painter_shader_registrar.hpp " alt="" coords="426,599,597,669"/>
-<area shape="rect" id="node13" href="$d6/db8/painter__stroke__params_8hpp.html" title="file painter_stroke_params.hpp " alt="" coords="5,361,185,432"/>
-<area shape="rect" id="node15" href="$d2/ddb/painter__dashed__stroke__shader__set_8hpp.html" title="file painter_dashed_stroke_shader_set.hpp " alt="" coords="210,361,410,432"/>
-<area shape="rect" id="node14" href="$d7/dee/painter__dashed__stroke__params_8hpp.html" title="file painter_dashed_stroke_params.hpp " alt="" coords="133,480,319,551"/>
+<area shape="rect" id="node2" href="$dd/d5a/painter__surface__gl_8hpp.html" title="file painter_surface_gl.hpp " alt="" coords="5,131,232,187"/>
+<area shape="rect" id="node3" href="$d1/d0a/painter__shader__registrar__glsl_8hpp.html" title="file painter_shader_registrar_glsl.hpp " alt="" coords="411,955,600,1025"/>
+<area shape="rect" id="node5" href="$da/df1/painter__backend_8hpp.html" title="file painter_backend.hpp " alt="" coords="307,717,477,788"/>
+<area shape="rect" id="node8" href="$d6/d63/painter__draw_8hpp.html" title="file painter_draw.hpp " alt="" coords="393,124,564,195"/>
+<area shape="rect" id="node4" href="$d3/d61/painter__engine__gl_8hpp.html" title="file painter_engine_gl.hpp " alt="" coords="459,1073,682,1129"/>
+<area shape="rect" id="node6" href="$de/d65/painter__engine_8hpp.html" title="file painter_engine.hpp " alt="" coords="552,836,723,907"/>
+<area shape="rect" id="node7" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="700,962,871,1018"/>
+<area shape="rect" id="node9" href="$d6/d8d/painter__fill__shader_8hpp.html" title="file painter_fill_shader.hpp " alt="" coords="424,243,595,313"/>
+<area shape="rect" id="node12" href="$d1/d91/painter__stroke__shader_8hpp.html" title="file painter_stroke_shader.hpp " alt="" coords="619,243,813,313"/>
+<area shape="rect" id="node10" href="$df/d62/painter__shader__set_8hpp.html" title="file painter_shader_set.hpp " alt="" coords="461,480,659,551"/>
+<area shape="rect" id="node11" href="$da/d96/painter__shader__registrar_8hpp.html" title="file painter_shader_registrar.hpp " alt="" coords="429,599,600,669"/>
+<area shape="rect" id="node13" href="$d5/d5a/stroking__attribute__writer_8hpp.html" title="file stroking_attribute_writer.hpp " alt="" coords="1029,361,1227,432"/>
+<area shape="rect" id="node14" href="$d2/ddb/painter__dashed__stroke__shader__set_8hpp.html" title="file painter_dashed_stroke_shader_set.hpp " alt="" coords="597,361,797,432"/>
+<area shape="rect" id="node16" href="$d6/db8/painter__stroke__params_8hpp.html" title="file painter_stroke_params.hpp " alt="" coords="822,361,1005,432"/>
+<area shape="rect" id="node15" href="$d7/dee/painter__dashed__stroke__params_8hpp.html" title="file painter_dashed_stroke_params.hpp " alt="" coords="687,480,876,551"/>
 </map>

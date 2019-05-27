@@ -1,4 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$d9/da3/classfastuidraw_1_1false__type.html" title="Class for type traits to indicate true. Functionally, a simplified version of std::false_type. " alt="" coords="5,5,156,32"/>
-<area shape="rect" id="node2" href="$db/d5b/classfastuidraw_1_1is__const.html" title="fastuidraw::is_const\&lt; T \&gt;" alt="" coords="204,5,375,32"/>
+<area shape="rect" id="node1" href="$d8/d47/classfastuidraw_1_1_custom_fill_rule_base.html" title="Base class to specify a custom fill rule. " alt="" coords="5,13,216,39"/>
+<area shape="rect" id="node2" href="$d8/d6e/classfastuidraw_1_1_custom_fill_rule_function.html" title="Class to specify a custom fill rule from a function. " alt="" coords="264,5,444,47"/>
 </map>

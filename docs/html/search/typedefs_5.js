@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['non_5fconcurrent',['non_concurrent',['../dd/db6/classfastuidraw_1_1reference__counted.html#ab3a4191987cdf5bab7133f292a149d95',1,'fastuidraw::reference_counted']]]
+  ['join',['join',['../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html#aebeed3fa1e7f8e343d142bd566ef57b9',1,'fastuidraw::PartitionedTessellatedPath::join()'],['../d3/d01/classfastuidraw_1_1_path_effect.html#a357024b004118138f61bbb95d39fc2be',1,'fastuidraw::PathEffect::join()']]]
 ];

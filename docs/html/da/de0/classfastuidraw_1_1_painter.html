@@ -93,6 +93,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/ddb/classfastuidraw_1_1_painter_1_1_glyph_renderer_chooser.html">GlyphRendererChooser</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../dd/ddb/classfastuidraw_1_1_painter_1_1_glyph_renderer_chooser.html">GlyphRendererChooser</a> provides an interface for choosing how to render glyphs depending on the current transformation matrix, <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a68d3e3009107bc80c4ba11fbe2d90b43">Painter::transformation()</a>.  <a href="../../dd/ddb/classfastuidraw_1_1_painter_1_1_glyph_renderer_chooser.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html">NormalizedCoordRect</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html">NormalizedCoordRect</a> is used to specify a rectangle in -normalized- device coordinates. Recall that normalized device coordinates hae that the bottom-left is (-1, 1) and the top right is (+1, +1) ALWAYS.  <a href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -104,8 +107,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3194f1b24b16a495693e4bc730fe77c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a008b8a5d1ed07fd902c42902e72b3c8e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer</a> (void)</td></tr>
 <tr class="separator:a008b8a5d1ed07fd902c42902e72b3c8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab8e8876ae76a7deedf31a7e8fba45ed"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aab8e8876ae76a7deedf31a7e8fba45ed">begin_coverage_buffer</a> (const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> &amp;logical_rect, float additional_pixel_slack=0.0f)</td></tr>
-<tr class="separator:aab8e8876ae76a7deedf31a7e8fba45ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3781d372804bbb6ed96914068bd37f76"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3781d372804bbb6ed96914068bd37f76">begin_coverage_buffer</a> (const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> &amp;logical_rect, float additional_pixel_slack=0.0f, float additional_item_slack=0.0f)</td></tr>
+<tr class="separator:a3781d372804bbb6ed96914068bd37f76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f6d497cb900883f81795305ff1d5a74"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2f6d497cb900883f81795305ff1d5a74">begin_coverage_buffer</a> (const <a class="el" href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html">NormalizedCoordRect</a> &amp;normalized_rect, float additional_pixel_slack=0.0f)</td></tr>
+<tr class="separator:a2f6d497cb900883f81795305ff1d5a74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f95b28a790b90e7998e61418b60571f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d3/dee/classfastuidraw_1_1_painter_effect.html">PainterEffect</a> &gt; &amp;effect)</td></tr>
 <tr class="separator:a3f95b28a790b90e7998e61418b60571f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9db4a0b793d5ea035add70fba5ac3e76"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a9db4a0b793d5ea035add70fba5ac3e76">begin_layer</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d7/ddc/classfastuidraw_1_1_painter_effect_pass.html">PainterEffectPass</a> &gt; &gt; fx_passes)</td></tr>
@@ -140,12 +145,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a470c0faf049bf0ac7a6c54fc176206c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d1e5e7d917f66fd3c7c3f11b3b8e92a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a7d1e5e7d917f66fd3c7c3f11b3b8e92a">clip_out_convex_polygon</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &gt; poly)</td></tr>
 <tr class="separator:a7d1e5e7d917f66fd3c7c3f11b3b8e92a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:add58b138adb3956ddd3aa3a04674496f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#add58b138adb3956ddd3aa3a04674496f">clip_out_custom</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;shader_data, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const unsigned int &gt; attrib_chunk_selector)</td></tr>
-<tr class="separator:add58b138adb3956ddd3aa3a04674496f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a013428f5f07d854cfd13c6e0d535213b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a013428f5f07d854cfd13c6e0d535213b">clip_out_custom</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;shader_data, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts)</td></tr>
-<tr class="separator:a013428f5f07d854cfd13c6e0d535213b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae3e8ee946d2b8eb5067c2b87162cde2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aae3e8ee946d2b8eb5067c2b87162cde2">clip_out_custom</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;shader_data, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; attrib_chunk, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; index_chunk, int index_adjust=0)</td></tr>
-<tr class="separator:aae3e8ee946d2b8eb5067c2b87162cde2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7042b8ee4772ba83cccc455e2edac157"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a7042b8ee4772ba83cccc455e2edac157">clip_out_custom</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;shader_data, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const unsigned int &gt; attrib_chunk_selector)</td></tr>
+<tr class="separator:a7042b8ee4772ba83cccc455e2edac157"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69bc148cc1fd6015cb771cf9c1b23b60"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a69bc148cc1fd6015cb771cf9c1b23b60">clip_out_custom</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;shader_data, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts)</td></tr>
+<tr class="separator:a69bc148cc1fd6015cb771cf9c1b23b60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab391da9d8e624315c52e2cc91d6bb9bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ab391da9d8e624315c52e2cc91d6bb9bc">clip_out_custom</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../d1/d02/classfastuidraw_1_1_painter_data_value.html">PainterDataValue</a>&lt; <a class="el" href="../../dc/d84/classfastuidraw_1_1_painter_item_shader_data.html">PainterItemShaderData</a> &gt; &amp;shader_data, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; attrib_chunk, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; index_chunk, int index_adjust=0)</td></tr>
+<tr class="separator:ab391da9d8e624315c52e2cc91d6bb9bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acece68c57594e798589ad83427f67990"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#acece68c57594e798589ad83427f67990">clip_out_path</a> (const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69">fill_rule_t</a> fill_rule)</td></tr>
 <tr class="separator:acece68c57594e798589ad83427f67990"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5765abe0c6f28ac7cb01ba5af2fa2f89"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5765abe0c6f28ac7cb01ba5af2fa2f89">clip_out_path</a> (const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> &amp;path, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69">fill_rule_t</a> fill_rule)</td></tr>
@@ -186,20 +191,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af63cbbeb1fda1717e73e0ac31d42ec13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7cce450c8c0d8553b6d44f8773526162"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a7cce450c8c0d8553b6d44f8773526162">draw_data_added_count</a> (void) const</td></tr>
 <tr class="separator:a7cce450c8c0d8553b6d44f8773526162"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62d0a34036d9ff758ff1fda5fcd8a208"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a62d0a34036d9ff758ff1fda5fcd8a208">draw_generic</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; attrib_chunk, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; index_chunk, int index_adjust=0)</td></tr>
-<tr class="separator:a62d0a34036d9ff758ff1fda5fcd8a208"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d6fab3a8c54e67f82cd8f5611db1940"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a6d6fab3a8c54e67f82cd8f5611db1940">draw_generic</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts)</td></tr>
-<tr class="separator:a6d6fab3a8c54e67f82cd8f5611db1940"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f72edba003121f4ea2986a06d2ba3e1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a0f72edba003121f4ea2986a06d2ba3e1">draw_generic</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const unsigned int &gt; attrib_chunk_selector)</td></tr>
-<tr class="separator:a0f72edba003121f4ea2986a06d2ba3e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a608746200498683faa2be4101d1f8d67"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a608746200498683faa2be4101d1f8d67">draw_generic</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> &amp;src)</td></tr>
-<tr class="separator:a608746200498683faa2be4101d1f8d67"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab10472623c6f456c88a083befbf2a94c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ab10472623c6f456c88a083befbf2a94c">draw_generic</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; attrib_chunk, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; index_chunk, <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; int &gt; z_range, int index_adjust=0)</td></tr>
-<tr class="separator:ab10472623c6f456c88a083befbf2a94c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c4700e7611cd067bd1e9eaf72a9c2aa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5c4700e7611cd067bd1e9eaf72a9c2aa">draw_generic</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; int &gt; &gt; z_ranges, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts)</td></tr>
-<tr class="separator:a5c4700e7611cd067bd1e9eaf72a9c2aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d3095cacd9c08dc70457b8e89f94989"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a1d3095cacd9c08dc70457b8e89f94989">draw_generic</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> &amp;src, <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; int &gt; z_range)</td></tr>
-<tr class="separator:a1d3095cacd9c08dc70457b8e89f94989"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4194d8edf1cf732c0ae1d2189a9a29e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4194d8edf1cf732c0ae1d2189a9a29e9">draw_generic</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; attrib_chunk, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; index_chunk, int index_adjust=0)</td></tr>
+<tr class="separator:a4194d8edf1cf732c0ae1d2189a9a29e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b1a0ea25c7b8c787b08eea865acc882"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3b1a0ea25c7b8c787b08eea865acc882">draw_generic</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts)</td></tr>
+<tr class="separator:a3b1a0ea25c7b8c787b08eea865acc882"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec4e7c6d2ac9b3a65de6c8a9ca1ca3f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aec4e7c6d2ac9b3a65de6c8a9ca1ca3f4">draw_generic</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const unsigned int &gt; attrib_chunk_selector)</td></tr>
+<tr class="separator:aec4e7c6d2ac9b3a65de6c8a9ca1ca3f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12ac247765c37d3f9f053fdae37c728a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a12ac247765c37d3f9f053fdae37c728a">draw_generic</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; attrib_chunk, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; index_chunk, <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; int &gt; z_range, int index_adjust=0)</td></tr>
+<tr class="separator:a12ac247765c37d3f9f053fdae37c728a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a222bd90522e83c4892b4191a3c4a1965"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a222bd90522e83c4892b4191a3c4a1965">draw_generic</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; &gt; attrib_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; &gt; index_chunks, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; int &gt; &gt; z_ranges, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const int &gt; index_adjusts)</td></tr>
+<tr class="separator:a222bd90522e83c4892b4191a3c4a1965"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcb2d05771ca3088e63e7dfd62b74588"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#afcb2d05771ca3088e63e7dfd62b74588">draw_generic</a> (<a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> &amp;src)</td></tr>
+<tr class="separator:afcb2d05771ca3088e63e7dfd62b74588"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28e50af4581d111eff1da571e119cfe6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a28e50af4581d111eff1da571e119cfe6">draw_glyphs</a> (const <a class="el" href="../../d9/df2/classfastuidraw_1_1_painter_glyph_shader.html">PainterGlyphShader</a> &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a> &amp;glyph_sequence, <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> renderer=<a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>(<a class="el" href="../../de/df6/group___glyph.html#gga6308023a8250ddf0776ab2bd52e0d02da9f347b12dffba9406e93769ffcdb2599">banded_rays_glyph</a>))</td></tr>
 <tr class="separator:a28e50af4581d111eff1da571e119cfe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8de3cc39e2a2e27e71c7e1825f1e2729"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8de3cc39e2a2e27e71c7e1825f1e2729">draw_glyphs</a> (const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../d3/da9/classfastuidraw_1_1_glyph_sequence.html">GlyphSequence</a> &amp;glyph_sequence, <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> renderer=<a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a>(<a class="el" href="../../de/df6/group___glyph.html#gga6308023a8250ddf0776ab2bd52e0d02da9f347b12dffba9406e93769ffcdb2599">banded_rays_glyph</a>))</td></tr>
@@ -280,10 +283,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9426f7c4aca9bc91bef84989eddf1a6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48debd79b1b97580c10105f42014755f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a48debd79b1b97580c10105f42014755f">fill_rounded_rect</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;brush, const <a class="el" href="../../d9/d72/classfastuidraw_1_1_rounded_rect.html">RoundedRect</a> &amp;R, bool apply_shader_anti_aliasing=true)</td></tr>
 <tr class="separator:a48debd79b1b97580c10105f42014755f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a45d12fb9ed2cf142d165b0437bb9a7b0"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38e">return_code</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a45d12fb9ed2cf142d165b0437bb9a7b0">flush</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html">PainterSurface</a> &gt; &amp;new_surface)</td></tr>
-<tr class="separator:a45d12fb9ed2cf142d165b0437bb9a7b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88974e19deb559926d54fc3210ac5bf9"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38e">return_code</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a88974e19deb559926d54fc3210ac5bf9">flush</a> (void)</td></tr>
 <tr class="separator:a88974e19deb559926d54fc3210ac5bf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45d12fb9ed2cf142d165b0437bb9a7b0"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38e">return_code</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a45d12fb9ed2cf142d165b0437bb9a7b0">flush</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html">PainterSurface</a> &gt; &amp;new_surface)</td></tr>
+<tr class="separator:a45d12fb9ed2cf142d165b0437bb9a7b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a732db8b2d21c4f1504aef73f59b207fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/da8/classfastuidraw_1_1_glyph_atlas.html">GlyphAtlas</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a732db8b2d21c4f1504aef73f59b207fd">glyph_atlas</a> (void) const</td></tr>
 <tr class="separator:a732db8b2d21c4f1504aef73f59b207fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3411a5bcce13f37960a83ccc732c5112"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d38/classfastuidraw_1_1_glyph_cache.html">GlyphCache</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3411a5bcce13f37960a83ccc732c5112">glyph_cache</a> (void) const</td></tr>
@@ -308,30 +311,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2c980236887e6f85f5145677c30c904e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b723da08c86631c5d582378460dd02b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a9b723da08c86631c5d582378460dd02b">scale</a> (float s)</td></tr>
 <tr class="separator:a9b723da08c86631c5d582378460dd02b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf3a9332dad59d79927cd115081f3480"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#acf3a9332dad59d79927cd115081f3480">select_chunks</a> (const <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> &amp;caps_joins, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const float &gt; geometry_inflation, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbc">join_style</a> js, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58a">fastuidraw::Painter::cap_style</a> cp, <a class="el" href="../../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html">StrokedCapsJoins::ChunkSet</a> *dst)</td></tr>
-<tr class="separator:acf3a9332dad59d79927cd115081f3480"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c9f75afdf66a4f5f31f39ec8f5c491e"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3c9f75afdf66a4f5f31f39ec8f5c491e">select_subsets</a> (const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> &amp;path, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst)</td></tr>
 <tr class="separator:a3c9f75afdf66a4f5f31f39ec8f5c491e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3386194d4bdb62cf352ca609c2e16da9"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3386194d4bdb62cf352ca609c2e16da9">select_subsets</a> (const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;path, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const float &gt; geometry_inflation, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst)</td></tr>
-<tr class="separator:a3386194d4bdb62cf352ca609c2e16da9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93b4eee9f6af42ba4b93a7f66fcacd0c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a93b4eee9f6af42ba4b93a7f66fcacd0c">select_subsets</a> (const <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a> &amp;path, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const float &gt; geometry_inflation, bool select_miter_joins, <a class="el" href="../../d3/d94/classfastuidraw_1_1_partitioned_tessellated_path_1_1_subset_selection.html">fastuidraw::PartitionedTessellatedPath::SubsetSelection</a> &amp;dst, <a class="el" href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html">NormalizedCoordRect</a> *nrect)</td></tr>
+<tr class="separator:a93b4eee9f6af42ba4b93a7f66fcacd0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae3ab16b296c2338d3ec053889b12554"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aae3ab16b296c2338d3ec053889b12554">shear</a> (float sx, float sy)</td></tr>
 <tr class="separator:aae3ab16b296c2338d3ec053889b12554"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68e2d6ab9c69287576e07ec9cfa0332c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a68e2d6ab9c69287576e07ec9cfa0332c">stroke_dashed_path</a> (const <a class="el" href="../../dd/d61/classfastuidraw_1_1_painter_dashed_stroke_shader_set.html">PainterDashedStrokeShaderSet</a> &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;path, float rounded_thresh, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true)</td></tr>
-<tr class="separator:a68e2d6ab9c69287576e07ec9cfa0332c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc1c80a0e8f57ee3189b951f86315ae1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#acc1c80a0e8f57ee3189b951f86315ae1">stroke_dashed_path</a> (const <a class="el" href="../../dd/d61/classfastuidraw_1_1_painter_dashed_stroke_shader_set.html">PainterDashedStrokeShaderSet</a> &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>)</td></tr>
-<tr class="separator:acc1c80a0e8f57ee3189b951f86315ae1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3bcaf3cd7430a550a8dd7fe09d16cb9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae3bcaf3cd7430a550a8dd7fe09d16cb9">stroke_dashed_path</a> (const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>)</td></tr>
-<tr class="separator:ae3bcaf3cd7430a550a8dd7fe09d16cb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2cc7939a6e9d24147bf1a1507e9fb9d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2cc7939a6e9d24147bf1a1507e9fb9d2">stroke_dashed_path</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;brush, const <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;stroking_params, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>)</td></tr>
-<tr class="separator:a2cc7939a6e9d24147bf1a1507e9fb9d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbcd3666a38f57feb79878b7b8dc4691"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#abbcd3666a38f57feb79878b7b8dc4691">stroke_path</a> (const <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;path, float rounded_thresh, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true)</td></tr>
-<tr class="separator:abbcd3666a38f57feb79878b7b8dc4691"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7be1691bdbb9b76cb88bd5466bc29b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ad7be1691bdbb9b76cb88bd5466bc29b9">stroke_path</a> (const <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>)</td></tr>
-<tr class="separator:ad7be1691bdbb9b76cb88bd5466bc29b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2f449194d4c4090db0d94dac6d63f06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ad2f449194d4c4090db0d94dac6d63f06">stroke_path</a> (const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>)</td></tr>
-<tr class="separator:ad2f449194d4c4090db0d94dac6d63f06"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a08a38080a2c291950093efe6ff45f82a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a08a38080a2c291950093efe6ff45f82a">stroke_path</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;brush, const <a class="el" href="../../df/df5/classfastuidraw_1_1_painter_stroke_params.html">PainterStrokeParams</a> &amp;stroking_params, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>)</td></tr>
-<tr class="separator:a08a38080a2c291950093efe6ff45f82a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf0e3e81fb6a207629205a02951d0325"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aaf0e3e81fb6a207629205a02951d0325">stroke_dashed_path</a> (const <a class="el" href="../../dd/d61/classfastuidraw_1_1_painter_dashed_stroke_shader_set.html">PainterDashedStrokeShaderSet</a> &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>, const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *effect=nullptr)</td></tr>
+<tr class="separator:aaf0e3e81fb6a207629205a02951d0325"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bf788fddb1404564ab36fde4e79ca13"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a7bf788fddb1404564ab36fde4e79ca13">stroke_dashed_path</a> (const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>, const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *effect=nullptr)</td></tr>
+<tr class="separator:a7bf788fddb1404564ab36fde4e79ca13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3c2a7ea1c017f3155199213a613d9d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aa3c2a7ea1c017f3155199213a613d9d1">stroke_dashed_path</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;brush, const <a class="el" href="../../d6/d92/classfastuidraw_1_1_painter_dashed_stroke_params.html">PainterDashedStrokeParams</a> &amp;stroking_params, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>, const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *effect=nullptr)</td></tr>
+<tr class="separator:aa3c2a7ea1c017f3155199213a613d9d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81e41deebffc5fec072e708d12995245"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a81e41deebffc5fec072e708d12995245">stroke_path</a> (const <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;shader, const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>, const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *effect=nullptr)</td></tr>
+<tr class="separator:a81e41deebffc5fec072e708d12995245"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fcfa09041b20cc53cc8c2dd48a06385"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8fcfa09041b20cc53cc8c2dd48a06385">stroke_path</a> (const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;draw, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>, const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *effect=nullptr)</td></tr>
+<tr class="separator:a8fcfa09041b20cc53cc8c2dd48a06385"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2b7bf665a7a9076a56dc9ef83c1b3bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae2b7bf665a7a9076a56dc9ef83c1b3bd">stroke_path</a> (const <a class="el" href="../../d9/d57/classfastuidraw_1_1_painter_brush.html">PainterBrush</a> &amp;brush, const <a class="el" href="../../df/df5/classfastuidraw_1_1_painter_stroke_params.html">PainterStrokeParams</a> &amp;stroking_params, const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path, const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;stroke_style=<a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>(), bool apply_shader_anti_aliasing=true, enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a> stroking_method=<a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a>, const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *effect=nullptr)</td></tr>
+<tr class="separator:ae2b7bf665a7a9076a56dc9ef83c1b3bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addbf4dac586f65e47f8811f228e29016"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html">PainterSurface</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#addbf4dac586f65e47f8811f228e29016">surface</a> (void) const</td></tr>
 <tr class="separator:addbf4dac586f65e47f8811f228e29016"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa74d2d4e4b380f9959f61853703b3136"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#aa74d2d4e4b380f9959f61853703b3136">transformation</a> (const <a class="el" href="../../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3">float3x3</a> &amp;m)</td></tr>
@@ -552,7 +549,7 @@ Additional Inherited Members</h2></td></tr>
 <p><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> uses clip-planes and the depth buffer to perform clipping. The depth-buffer clips by occluding elements. For example, the method <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a23e6ea94500cc1404a1bda2f0bd775ac">clip_out_rect()</a> simply draws a rectangle so that it does not affect the color buffer but with a depth value that is infront of the elements that it is to occlude. <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> uses the convention that elements with greater than or equal depth values are visible (for example in GL this corresponds to the depth test being set to GL_GEQUAL). Unless an item occludes (or self occludes), the current active depth value is unaffected. An item's vertex shader will emit a relative z-value (i.e. relative to the item) which is then incremented by the current z-value of the <a class="el" href="../../d3/d46/group___painter.html">Painter</a>.</p>
 <p>A <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> is a HEAVY object (it creates pools of buffers during its lifetime for reuse). As such, one should reuse <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> objects as much as reasonably possible. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00118">118</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00119">119</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad28e47463d91406bd65442d77b6e81dc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad28e47463d91406bd65442d77b6e81dc">&#9670;&nbsp;</a></span>Painter()</h2>
@@ -672,7 +669,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="a008b8a5d1ed07fd902c42902e72b3c8e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a008b8a5d1ed07fd902c42902e72b3c8e">&#9670;&nbsp;</a></span>begin_coverage_buffer() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a008b8a5d1ed07fd902c42902e72b3c8e">&#9670;&nbsp;</a></span>begin_coverage_buffer() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -686,12 +683,12 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Begin a deferred coverage buffer layer. A deferred coverage buffer is needed for those <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> values for which <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html#a2a718fc86162342f487a0a19661fe3e6">PainterItemShader::coverage_shader()</a> is non-null. When a coverage buffer is active, those <a class="el" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html">PainterItemCoverageShader</a> will render to the current deferred coverage buffer and the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> will read from it for its rendering. This starts a coverage buffer layer region of the size of the bounding box of the current clip-region. It is strongly suggested to use begin_coverage_buffer(const Rect&amp;) to limit the size of the coverage buffer. </p>
+<p>Begin a deferred coverage buffer layer. A deferred coverage buffer is needed for those <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> values for which <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html#a2a718fc86162342f487a0a19661fe3e6">PainterItemShader::coverage_shader()</a> is non-null. When a coverage buffer is active, those <a class="el" href="../../d5/dac/classfastuidraw_1_1_painter_item_coverage_shader.html">PainterItemCoverageShader</a> will render to the current deferred coverage buffer and the <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> will read from it for its rendering. This starts a coverage buffer layer region of the size of the bounding box of the current clip-region. It is strongly suggested to use <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3781d372804bbb6ed96914068bd37f76">begin_coverage_buffer(const Rect&amp;, float, float)</a> or <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2f6d497cb900883f81795305ff1d5a74">begin_coverage_buffer(const NormalizedCoordRect&amp;, float)</a> to limit the size of the coverage buffer. </p>
 
 </div>
 </div>
-<a id="aab8e8876ae76a7deedf31a7e8fba45ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab8e8876ae76a7deedf31a7e8fba45ed">&#9670;&nbsp;</a></span>begin_coverage_buffer() <span class="overload">[2/2]</span></h2>
+<a id="a3781d372804bbb6ed96914068bd37f76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3781d372804bbb6ed96914068bd37f76">&#9670;&nbsp;</a></span>begin_coverage_buffer() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -701,6 +698,48 @@ Additional Inherited Members</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> &amp;&#160;</td>
           <td class="paramname"><em>logical_rect</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>additional_pixel_slack</em> = <code>0.0f</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>additional_item_slack</em> = <code>0.0f</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Acts the same as <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer(void)</a>, but limits the coverage buffer to the bounding box of the intersection of the current clipping region with the passed rectangle. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">logical_rect</td><td>rectangle in LOGICAL coordinates, i.e. before <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a68d3e3009107bc80c4ba11fbe2d90b43">transformation()</a> is applied. </td></tr>
+    <tr><td class="paramname">additional_pixel_slack</td><td>inflate the coverage buffer region by this many pixels on each side </td></tr>
+    <tr><td class="paramname">additional_item_slack</td><td>inflate the coverage buffer region by this amount in logical coordinates </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2f6d497cb900883f81795305ff1d5a74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f6d497cb900883f81795305ff1d5a74">&#9670;&nbsp;</a></span>begin_coverage_buffer() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::Painter::begin_coverage_buffer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html">NormalizedCoordRect</a> &amp;&#160;</td>
+          <td class="paramname"><em>normalized_rect</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -717,7 +756,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Acts the same as <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer(void)</a>, but limits the coverage buffer to the bounding box of the intersection of the current clipping region with the passed rectangle. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">logical_rect</td><td>rectangle in LOGICAL coordinates, i.e. before <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a68d3e3009107bc80c4ba11fbe2d90b43">transformation()</a> is applied. </td></tr>
+    <tr><td class="paramname">normalized_rect</td><td>rectangle in NORMALIZED DEVICE coordinates, i.e. after <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a68d3e3009107bc80c4ba11fbe2d90b43">transformation()</a> is applied. </td></tr>
     <tr><td class="paramname">additional_pixel_slack</td><td>inflate the coverage buffer region by this many pixels on each side </td></tr>
   </table>
   </dd>
@@ -827,7 +866,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00777">777</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00794">794</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -945,7 +984,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00283">283</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00300">300</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -979,7 +1018,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00297">297</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00314">314</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -1214,8 +1253,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="add58b138adb3956ddd3aa3a04674496f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#add58b138adb3956ddd3aa3a04674496f">&#9670;&nbsp;</a></span>clip_out_custom() <span class="overload">[1/3]</span></h2>
+<a id="a7042b8ee4772ba83cccc455e2edac157"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7042b8ee4772ba83cccc455e2edac157">&#9670;&nbsp;</a></span>clip_out_custom() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1223,7 +1262,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::clip_out_custom </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -1277,8 +1316,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a013428f5f07d854cfd13c6e0d535213b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a013428f5f07d854cfd13c6e0d535213b">&#9670;&nbsp;</a></span>clip_out_custom() <span class="overload">[2/3]</span></h2>
+<a id="a69bc148cc1fd6015cb771cf9c1b23b60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69bc148cc1fd6015cb771cf9c1b23b60">&#9670;&nbsp;</a></span>clip_out_custom() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1289,7 +1328,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::clip_out_custom </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -1339,12 +1378,12 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00644">644</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00661">661</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
-<a id="aae3e8ee946d2b8eb5067c2b87162cde2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae3e8ee946d2b8eb5067c2b87162cde2">&#9670;&nbsp;</a></span>clip_out_custom() <span class="overload">[3/3]</span></h2>
+<a id="ab391da9d8e624315c52e2cc91d6bb9bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab391da9d8e624315c52e2cc91d6bb9bc">&#9670;&nbsp;</a></span>clip_out_custom() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1355,7 +1394,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::clip_out_custom </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -1405,7 +1444,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00664">664</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00681">681</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -1779,7 +1818,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns what value <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> currently uses for <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a2ca4f82def0074ad2639dc0bfda785cb">Path::tessellation(float) const</a> to fetch the <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> from which it will fetch the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> to perform a path fill. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Returns what value <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> currently uses for <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ab973ff6c243b01b5ec7a2394a553f0a5">Path::tessellation(float) const</a> to fetch the <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> from which it will fetch the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> to perform a path fill. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> to choose the thresh for </td></tr>
   </table>
@@ -1825,12 +1864,12 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns what value <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> currently uses for <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a2ca4f82def0074ad2639dc0bfda785cb">Path::tessellation(float) const</a> to fetch the <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> from which it will fetch the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> to perform path stroking. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Returns what value <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> currently uses for <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ab973ff6c243b01b5ec7a2394a553f0a5">Path::tessellation(float) const</a> to fetch the <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> use to perform stroking and filling. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> to choose the thresh for </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">shader_data</td><td>data sent to stroking shader </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">selector</td><td>object (see <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html#a9dd8ad3508c948053f90b7f3972ceed2">PainterStrokeShader::stroking_data_selector()</a>) to use stroking parameters to help compute necessary thresh </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">out_rounded_thresh</td><td>location to which to write threshhold to be used for rounded caps and joins of <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out_rounded_thresh</td><td>location to which to write threshhold to be used for rounded caps and joins of <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1876,7 +1915,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set the curve flatness requirement for <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> and <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> selection when stroking or filling paths when passing to drawing methods a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> object. The value represents the distance, in pixels, requested for between the approximated curve (realized in <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a>) and the true curve (realized in <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a>). This value is combined with a value derived from the current transformation matrix to pass to Path::tessellation(float) to fetch a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>. Default value is 0.5. </p>
+<p>Set the curve flatness requirement for <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> selection when stroking or filling paths when passing to drawing methods a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> object. The value represents the distance, in pixels, requested for between the approximated curve (realized in <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a>) and the true curve (realized in <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a>). This value is combined with a value derived from the current transformation matrix to pass to Path::tessellation(float) to fetch a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>. Default value is 0.5. </p>
 
 </div>
 </div>
@@ -1952,12 +1991,12 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Everytime <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> generates attribute/index data to be sent to the 3D API, this counter is incremented. The value is essentially equivalent to the number of times <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a62d0a34036d9ff758ff1fda5fcd8a208">draw_generic()</a> is called (directly or indirectly through other methods). The counter is reset when <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a52aa170f6c6f07964f907d7afead7398">begin()</a> is called. </p>
+<p>Everytime <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> generates attribute/index data to be sent to the 3D API, this counter is incremented. The value is essentially equivalent to the number of times <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4194d8edf1cf732c0ae1d2189a9a29e9">draw_generic()</a> is called (directly or indirectly through other methods). The counter is reset when <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a52aa170f6c6f07964f907d7afead7398">begin()</a> is called. </p>
 
 </div>
 </div>
-<a id="a62d0a34036d9ff758ff1fda5fcd8a208"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a62d0a34036d9ff758ff1fda5fcd8a208">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[1/7]</span></h2>
+<a id="a4194d8edf1cf732c0ae1d2189a9a29e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4194d8edf1cf732c0ae1d2189a9a29e9">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[1/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1968,7 +2007,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::draw_generic </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -2018,12 +2057,12 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01631">1631</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01637">1637</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a6d6fab3a8c54e67f82cd8f5611db1940"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d6fab3a8c54e67f82cd8f5611db1940">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[2/7]</span></h2>
+<a id="a3b1a0ea25c7b8c787b08eea865acc882"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b1a0ea25c7b8c787b08eea865acc882">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[2/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2031,7 +2070,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::draw_generic </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -2078,8 +2117,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a0f72edba003121f4ea2986a06d2ba3e1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f72edba003121f4ea2986a06d2ba3e1">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[3/7]</span></h2>
+<a id="aec4e7c6d2ac9b3a65de6c8a9ca1ca3f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec4e7c6d2ac9b3a65de6c8a9ca1ca3f4">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[3/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2087,7 +2126,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::draw_generic </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -2141,8 +2180,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a608746200498683faa2be4101d1f8d67"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a608746200498683faa2be4101d1f8d67">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[4/7]</span></h2>
+<a id="a12ac247765c37d3f9f053fdae37c728a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12ac247765c37d3f9f053fdae37c728a">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[4/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2150,49 +2189,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::draw_generic </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>shader</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td>
-          <td class="paramname"><em>draw</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> &amp;&#160;</td>
-          <td class="paramname"><em>src</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Draw generic attribute data </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">shader</td><td>shader with which to draw data </td></tr>
-    <tr><td class="paramname">draw</td><td>data for how to draw </td></tr>
-    <tr><td class="paramname">src</td><td>generator of attribute and index data </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ab10472623c6f456c88a083befbf2a94c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab10472623c6f456c88a083befbf2a94c">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[5/7]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void fastuidraw::Painter::draw_generic </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -2246,8 +2243,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a5c4700e7611cd067bd1e9eaf72a9c2aa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5c4700e7611cd067bd1e9eaf72a9c2aa">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[6/7]</span></h2>
+<a id="a222bd90522e83c4892b4191a3c4a1965"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a222bd90522e83c4892b4191a3c4a1965">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[5/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2255,7 +2252,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::draw_generic </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -2309,8 +2306,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a1d3095cacd9c08dc70457b8e89f94989"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1d3095cacd9c08dc70457b8e89f94989">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[7/7]</span></h2>
+<a id="afcb2d05771ca3088e63e7dfd62b74588"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afcb2d05771ca3088e63e7dfd62b74588">&#9670;&nbsp;</a></span>draw_generic() <span class="overload">[6/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2318,7 +2315,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::draw_generic </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../db/d83/classfastuidraw_1_1_painter_item_shader.html">PainterItemShader</a> *&#160;</td>
           <td class="paramname"><em>shader</em>, </td>
         </tr>
         <tr>
@@ -2331,13 +2328,7 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> &amp;&#160;</td>
-          <td class="paramname"><em>src</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; int &gt;&#160;</td>
-          <td class="paramname"><em>z_range</em>&#160;</td>
+          <td class="paramname"><em>src</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2351,7 +2342,6 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">shader</td><td>shader with which to draw data </td></tr>
     <tr><td class="paramname">draw</td><td>data for how to draw </td></tr>
     <tr><td class="paramname">src</td><td>generator of attribute and index data </td></tr>
-    <tr><td class="paramname">z_range</td><td>z-range of item's attribute data </td></tr>
   </table>
   </dd>
 </dl>
@@ -2500,7 +2490,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00903">903</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00942">942</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2646,7 +2636,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00948">948</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00987">987</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2834,7 +2824,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01005">1005</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01044">1044</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2980,7 +2970,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01054">1054</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01093">1093</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3168,7 +3158,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01106">1106</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01145">1145</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3314,7 +3304,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01152">1152</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01191">1191</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3514,7 +3504,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01540">1540</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01546">1546</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3986,7 +3976,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01482">1482</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01488">1488</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4045,7 +4035,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01499">1499</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01505">1505</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4188,7 +4178,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01578">1578</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01584">1584</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4331,7 +4321,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01616">1616</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01622">1622</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4654,62 +4644,6 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="acf3a9332dad59d79927cd115081f3480"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf3a9332dad59d79927cd115081f3480">&#9670;&nbsp;</a></span>select_chunks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void fastuidraw::Painter::select_chunks </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> &amp;&#160;</td>
-          <td class="paramname"><em>caps_joins</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const float &gt;&#160;</td>
-          <td class="paramname"><em>geometry_inflation</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbc">join_style</a>&#160;</td>
-          <td class="paramname"><em>js</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58a">fastuidraw::Painter::cap_style</a>&#160;</td>
-          <td class="paramname"><em>cp</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="../../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html">StrokedCapsJoins::ChunkSet</a> *&#160;</td>
-          <td class="paramname"><em>dst</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Calls <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#a685231dd15e50063f7a27d71d8262fa7">StrokedCapsJoins::compute_chunks()</a> passing arguments derived from the current state of the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir"></td><td class="paramname">caps_joins</td><td><a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> from which to compute chunk selection </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">geometry_inflation</td><td>amount path geometry is inflated, array is indexed by the enumeration <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25">StrokingDataSelectorBase::path_geometry_inflation_index_t</a> </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">js</td><td>join style </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">cp</td><td>cap style </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">dst</td><td>location to which to write what chunks </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="a3c9f75afdf66a4f5f31f39ec8f5c491e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3c9f75afdf66a4f5f31f39ec8f5c491e">&#9670;&nbsp;</a></span>select_subsets() <span class="overload">[1/2]</span></h2>
 
@@ -4746,16 +4680,16 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a3386194d4bdb62cf352ca609c2e16da9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3386194d4bdb62cf352ca609c2e16da9">&#9670;&nbsp;</a></span>select_subsets() <span class="overload">[2/2]</span></h2>
+<a id="a93b4eee9f6af42ba4b93a7f66fcacd0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93b4eee9f6af42ba4b93a7f66fcacd0c">&#9670;&nbsp;</a></span>select_subsets() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned int fastuidraw::Painter::select_subsets </td>
+          <td class="memname">void fastuidraw::Painter::select_subsets </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a> &amp;&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
         <tr>
@@ -4767,8 +4701,20 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt;&#160;</td>
-          <td class="paramname"><em>dst</em>&#160;</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>select_miter_joins</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d3/d94/classfastuidraw_1_1_partitioned_tessellated_path_1_1_subset_selection.html">fastuidraw::PartitionedTessellatedPath::SubsetSelection</a> &amp;&#160;</td>
+          <td class="paramname"><em>dst</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html">NormalizedCoordRect</a> *&#160;</td>
+          <td class="paramname"><em>nrect</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -4777,15 +4723,16 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Calls <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a5cd669d22d069145b4633079ba41ed20">StrokedPath::select_subsets()</a> passing arguments derived from the current state of the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Calls <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html#a896ed7a01ba067986cd05aaaa33eaecd">PartitionedTessellatedPath::select_subsets()</a> passing arguments derived from the current state of the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir"></td><td class="paramname">path</td><td><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> from which to compute subset selection </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">geometry_inflation</td><td>amount path geometry is inflated, array is indexed by the enumeration <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25">StrokingDataSelectorBase::path_geometry_inflation_index_t</a> </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">dst</td><td>location to which to write the <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">StrokedPath::Subset</a> ID values </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">path</td><td><a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a> from which to compute subset selection </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">geometry_inflation</td><td>amount path geometry is inflated, array is indexed by the enumeration <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0">PathEnums::path_geometry_inflation_index_t</a> </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">select_miter_joins</td><td>if true, when selecting what joins are in the area, enlarge the join footprint for if the joins are stroked as a type of miter join. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">dst</td><td>location to which to write the selection </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">nrect</td><td>if non-null, location to which to write the bounding box of the selection. NOTE: if the selection is empty, then the value writen will be an empty-rect point at (0, 0). </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>the number of Subset object ID's written to dst, that number is guaranteed to be no more than <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ada604ffb00c8c1c2a49b24f565c6a19f">StrokedPath::number_subsets()</a>. </dd></dl>
 
 </div>
 </div>
@@ -4824,71 +4771,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a68e2d6ab9c69287576e07ec9cfa0332c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68e2d6ab9c69287576e07ec9cfa0332c">&#9670;&nbsp;</a></span>stroke_dashed_path() <span class="overload">[1/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void fastuidraw::Painter::stroke_dashed_path </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../dd/d61/classfastuidraw_1_1_painter_dashed_stroke_shader_set.html">PainterDashedStrokeShaderSet</a> &amp;&#160;</td>
-          <td class="paramname"><em>shader</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td>
-          <td class="paramname"><em>draw</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;&#160;</td>
-          <td class="paramname"><em>path</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>rounded_thresh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;&#160;</td>
-          <td class="paramname"><em>stroke_style</em> = <code><a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>()</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>apply_shader_anti_aliasing</em> = <code>true</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Stroke a path dashed. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">shader</td><td>shader with which to draw </td></tr>
-    <tr><td class="paramname">draw</td><td>data for how to draw </td></tr>
-    <tr><td class="paramname">path</td><td><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> to stroke </td></tr>
-    <tr><td class="paramname">rounded_thresh</td><td>value to feed to <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#aecdf102cd12419f45e537c33fc5441d3">StrokedCapsJoins::rounded_joins()</a> and/or <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#ab23281a83c3c30f0d38a8990b6691cd5">StrokedCapsJoins::rounded_caps()</a> if rounded joins and/or rounded caps are requested </td></tr>
-    <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
-    <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="acc1c80a0e8f57ee3189b951f86315ae1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acc1c80a0e8f57ee3189b951f86315ae1">&#9670;&nbsp;</a></span>stroke_dashed_path() <span class="overload">[2/4]</span></h2>
+<a id="aaf0e3e81fb6a207629205a02951d0325"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf0e3e81fb6a207629205a02951d0325">&#9670;&nbsp;</a></span>stroke_dashed_path() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4927,7 +4811,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>&#160;</td>
+          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *&#160;</td>
+          <td class="paramname"><em>effect</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -4943,15 +4833,16 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> to stroke </td></tr>
     <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
     <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-    <tr><td class="paramname">stroking_method</td><td>stroking method to select what <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> to use </td></tr>
+    <tr><td class="paramname">stroking_method</td><td>stroking method to use </td></tr>
+    <tr><td class="paramname">effect</td><td>if non-null, apply the given <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> on stroking </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ae3bcaf3cd7430a550a8dd7fe09d16cb9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae3bcaf3cd7430a550a8dd7fe09d16cb9">&#9670;&nbsp;</a></span>stroke_dashed_path() <span class="overload">[3/4]</span></h2>
+<a id="a7bf788fddb1404564ab36fde4e79ca13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bf788fddb1404564ab36fde4e79ca13">&#9670;&nbsp;</a></span>stroke_dashed_path() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4984,7 +4875,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>&#160;</td>
+          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *&#160;</td>
+          <td class="paramname"><em>effect</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -4999,15 +4896,16 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> to stroke </td></tr>
     <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
     <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-    <tr><td class="paramname">stroking_method</td><td>stroking method to select what <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> to use </td></tr>
+    <tr><td class="paramname">stroking_method</td><td>stroking method to use </td></tr>
+    <tr><td class="paramname">effect</td><td>if non-null, apply the given <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> on stroking </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a2cc7939a6e9d24147bf1a1507e9fb9d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2cc7939a6e9d24147bf1a1507e9fb9d2">&#9670;&nbsp;</a></span>stroke_dashed_path() <span class="overload">[4/4]</span></h2>
+<a id="aa3c2a7ea1c017f3155199213a613d9d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3c2a7ea1c017f3155199213a613d9d1">&#9670;&nbsp;</a></span>stroke_dashed_path() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5049,7 +4947,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>&#160;</td>
+          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *&#160;</td>
+          <td class="paramname"><em>effect</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5063,87 +4967,25 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/de0/classfastuidraw_1_1_painter.html#a68e2d6ab9c69287576e07ec9cfa0332c">stroke_dashed_path</a>(PainterData(&amp;brush, &amp;stroking_params), path,</div><div class="line">                   stroke_style, apply_shader_anti_aliasing,</div><div class="line">                   stroking_method);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/de0/classfastuidraw_1_1_painter.html#aaf0e3e81fb6a207629205a02951d0325">stroke_dashed_path</a>(PainterData(&amp;brush, &amp;stroking_params), path,</div><div class="line">                   stroke_style, apply_shader_anti_aliasing,</div><div class="line">                   stroking_method, effect);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">brush</td><td>brush to apply to stroking </td></tr>
     <tr><td class="paramname">stroking_params</td><td>stroking parameters to apply to stroking </td></tr>
     <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> to stroke </td></tr>
     <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
     <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-    <tr><td class="paramname">stroking_method</td><td>stroking method to select what <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> to use </td></tr>
+    <tr><td class="paramname">stroking_method</td><td>stroking method to use </td></tr>
+    <tr><td class="paramname">effect</td><td>if non-null, apply the given <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> on stroking </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01363">1363</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01368">1368</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
-<a id="abbcd3666a38f57feb79878b7b8dc4691"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abbcd3666a38f57feb79878b7b8dc4691">&#9670;&nbsp;</a></span>stroke_path() <span class="overload">[1/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void fastuidraw::Painter::stroke_path </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../db/da6/classfastuidraw_1_1_painter_stroke_shader.html">PainterStrokeShader</a> &amp;&#160;</td>
-          <td class="paramname"><em>shader</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../da/db4/classfastuidraw_1_1_painter_data.html">PainterData</a> &amp;&#160;</td>
-          <td class="paramname"><em>draw</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;&#160;</td>
-          <td class="paramname"><em>path</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>rounded_thresh</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a> &amp;&#160;</td>
-          <td class="paramname"><em>stroke_style</em> = <code><a class="el" href="../../d6/d1e/classfastuidraw_1_1_stroking_style.html">StrokingStyle</a>()</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>apply_shader_anti_aliasing</em> = <code>true</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Stroke a path. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">shader</td><td>shader with which to stroke the attribute data </td></tr>
-    <tr><td class="paramname">draw</td><td>data for how to draw </td></tr>
-    <tr><td class="paramname">path</td><td><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> to stroke </td></tr>
-    <tr><td class="paramname">rounded_thresh</td><td>value to feed to <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#aecdf102cd12419f45e537c33fc5441d3">StrokedCapsJoins::rounded_joins()</a> and/or <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html#ab23281a83c3c30f0d38a8990b6691cd5">StrokedCapsJoins::rounded_caps()</a> if rounded joins and/or rounded caps are requested </td></tr>
-    <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
-    <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ad7be1691bdbb9b76cb88bd5466bc29b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7be1691bdbb9b76cb88bd5466bc29b9">&#9670;&nbsp;</a></span>stroke_path() <span class="overload">[2/4]</span></h2>
+<a id="a81e41deebffc5fec072e708d12995245"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81e41deebffc5fec072e708d12995245">&#9670;&nbsp;</a></span>stroke_path() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5182,7 +5024,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>&#160;</td>
+          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *&#160;</td>
+          <td class="paramname"><em>effect</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5198,15 +5046,16 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> to stroke </td></tr>
     <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
     <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-    <tr><td class="paramname">stroking_method</td><td>stroking method to select what <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> to use </td></tr>
+    <tr><td class="paramname">stroking_method</td><td>stroking method to use </td></tr>
+    <tr><td class="paramname">effect</td><td>if non-null, apply the given <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> on stroking </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ad2f449194d4c4090db0d94dac6d63f06"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2f449194d4c4090db0d94dac6d63f06">&#9670;&nbsp;</a></span>stroke_path() <span class="overload">[3/4]</span></h2>
+<a id="a8fcfa09041b20cc53cc8c2dd48a06385"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fcfa09041b20cc53cc8c2dd48a06385">&#9670;&nbsp;</a></span>stroke_path() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5239,7 +5088,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>&#160;</td>
+          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *&#160;</td>
+          <td class="paramname"><em>effect</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5254,15 +5109,16 @@ Additional Inherited Members</h2></td></tr>
     <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> to stroke </td></tr>
     <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
     <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-    <tr><td class="paramname">stroking_method</td><td>stroking method to select what <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> to use </td></tr>
+    <tr><td class="paramname">stroking_method</td><td>stroking method to use </td></tr>
+    <tr><td class="paramname">effect</td><td>if non-null, apply the given <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> on stroking </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a08a38080a2c291950093efe6ff45f82a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a08a38080a2c291950093efe6ff45f82a">&#9670;&nbsp;</a></span>stroke_path() <span class="overload">[4/4]</span></h2>
+<a id="ae2b7bf665a7a9076a56dc9ef83c1b3bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2b7bf665a7a9076a56dc9ef83c1b3bd">&#9670;&nbsp;</a></span>stroke_path() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5304,7 +5160,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">enum <a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5d">stroking_method_t</a>&#160;</td>
-          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>&#160;</td>
+          <td class="paramname"><em>stroking_method</em> = <code><a class="el" href="../../d6/db7/classfastuidraw_1_1_painter_enums.html#a8216bd07f35fadd5a9848bee30241d5dabe7091c1336e8db7e4cebd9bd9400a20">stroking_method_fastest</a></code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> *&#160;</td>
+          <td class="paramname"><em>effect</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -5318,19 +5180,20 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/de0/classfastuidraw_1_1_painter.html#abbcd3666a38f57feb79878b7b8dc4691">stroke_path</a>(PainterData(&amp;brush, &amp;stroking_params), path,</div><div class="line">            stroke_style, apply_shader_anti_aliasing,</div><div class="line">            stroking_method);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/de0/classfastuidraw_1_1_painter.html#a81e41deebffc5fec072e708d12995245">stroke_path</a>(PainterData(&amp;brush, &amp;stroking_params), path,</div><div class="line">            stroke_style, apply_shader_anti_aliasing,</div><div class="line">            stroking_method, effect);</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">brush</td><td>brush to apply to stroking </td></tr>
     <tr><td class="paramname">stroking_params</td><td>stroking parameters to apply to stroking </td></tr>
     <tr><td class="paramname">path</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> to stroke </td></tr>
     <tr><td class="paramname">stroke_style</td><td>how to stroke the path </td></tr>
     <tr><td class="paramname">apply_shader_anti_aliasing</td><td>if true, stroke with shader-based anti-aliasing </td></tr>
-    <tr><td class="paramname">stroking_method</td><td>stroking method to select what <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> to use </td></tr>
+    <tr><td class="paramname">stroking_method</td><td>stroking method to use </td></tr>
+    <tr><td class="paramname">effect</td><td>if non-null, apply the given <a class="el" href="../../d3/d01/classfastuidraw_1_1_path_effect.html">PathEffect</a> on stroking </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01291">1291</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01307">1307</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>

@@ -80,7 +80,8 @@ Inheritance diagram for fastuidraw::PainterAttributeWriter:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../da/d4d/classfastuidraw_1_1_painter_attribute_writer__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_painter_attribute_writer_inherit__map" alt="Inheritance graph"/></div>
 <map name="fastuidraw_1_1_painter_attribute_writer_inherit__map" id="fastuidraw_1_1_painter_attribute_writer_inherit__map">
-<area shape="rect" id="node2" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="14,5,177,32"/>
+<area shape="rect" id="node3" href="../../de/d23/classfastuidraw_1_1_stroking_attribute_writer.html" title="A StrokingAttributeWriter is an implementation of PainterAttributeWriter for the purpose of stroking ..." alt="" coords="5,169,192,211"/>
+<area shape="rect" id="node2" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="17,5,180,32"/>
 </map>
 <center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -95,6 +96,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4b70d6af54c32cd855a51295eba1e007"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18776b47037c889a9a17cc5f784b557a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a18776b47037c889a9a17cc5f784b557a">on_new_store</a> (<a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *state) const =0</td></tr>
 <tr class="separator:a18776b47037c889a9a17cc5f784b557a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31ddbb47f82f036b84e3670c9c8100b1"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#a31ddbb47f82f036b84e3670c9c8100b1">requires_coverage_buffer</a> (void) const =0</td></tr>
+<tr class="separator:a31ddbb47f82f036b84e3670c9c8100b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef380fc8ff5a46651a116f8ac1875643"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#aef380fc8ff5a46651a116f8ac1875643">state_length</a> (void) const =0</td></tr>
 <tr class="separator:aef380fc8ff5a46651a116f8ac1875643"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae46b15f7c49d4e7e2770344d82fd1e9a"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d7/d5e/classfastuidraw_1_1_painter_attribute.html">PainterAttribute</a> &gt; dst_attribs, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; <a class="el" href="../../d1/dd6/group___painter_attribute.html#ga4ca331d8a5d5ca308cfe3850d6606519">PainterIndex</a> &gt; dst_indices, unsigned int attrib_location, <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> *state, unsigned int *num_attribs_written, unsigned int *num_indices_written) const =0</td></tr>
@@ -104,7 +107,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Provides an interface to write attribute and index data when a simple copy of data from <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a> objects is not sufficient. </p>
 <p>A <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> is to be stateless. However, in order to be able to successfully write multiple chunks of attributes and indices, a <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> is given a "cookie" (see <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a>) which represents how far along streaming it is. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html#l00042">42</a> of file <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html">painter_attribute_writer.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html#l00046">46</a> of file <a class="el" href="../../d3/d8f/painter__attribute__writer_8hpp_source.html">painter_attribute_writer.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a4b70d6af54c32cd855a51295eba1e007"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b70d6af54c32cd855a51295eba1e007">&#9670;&nbsp;</a></span>initialize_state()</h2>
@@ -129,12 +132,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived clas to initialize a <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> to indicate the start of writing data for a subsequence calls to <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data()</a>. Returns true if there is attribute and index data to upload. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>To be implemented by a derived clas to initialize a <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">PainterAttributeWriter::WriteState</a> to indicate the start of writing data for a subsequence calls to <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html#ae46b15f7c49d4e7e2770344d82fd1e9a">write_data()</a>. To return true if there is attribute and index data to upload. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">state</td><td><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> to initialize </td></tr>
+    <tr><td class="paramname">state</td><td><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">PainterAttributeWriter::WriteState</a> to initialize. </td></tr>
   </table>
   </dd>
 </dl>
+
+<p>Implemented in <a class="el" href="../../de/d23/classfastuidraw_1_1_stroking_attribute_writer.html#ace25a08c8a5d86dfed4c470c4cdb9fd8">fastuidraw::StrokingAttributeWriter</a>.</p>
 
 </div>
 </div>
@@ -163,10 +168,41 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>To be implemented by a derived class. Called by the caller of a <a class="el" href="../../d0/d9e/classfastuidraw_1_1_painter_attribute_writer.html">PainterAttributeWriter</a> to indicate that a new data store has been started. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">state</td><td><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">WriteState</a> to update </td></tr>
+    <tr><td class="paramname">state</td><td><a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html">PainterAttributeWriter::WriteState</a> to update </td></tr>
   </table>
   </dd>
 </dl>
+
+<p>Implemented in <a class="el" href="../../de/d23/classfastuidraw_1_1_stroking_attribute_writer.html#a690aec5d1b1793391b6be5dba1e5bb2a">fastuidraw::StrokingAttributeWriter</a>.</p>
+
+</div>
+</div>
+<a id="a31ddbb47f82f036b84e3670c9c8100b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31ddbb47f82f036b84e3670c9c8100b1">&#9670;&nbsp;</a></span>requires_coverage_buffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool fastuidraw::PainterAttributeWriter::requires_coverage_buffer </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>To be implemented by a derived class to indicate if the attribute rendering requires a coverage buffer. </p>
+
+<p>Implemented in <a class="el" href="../../de/d23/classfastuidraw_1_1_stroking_attribute_writer.html#a6fb1f45c185d80558fc798ba5d3a2f81">fastuidraw::StrokingAttributeWriter</a>.</p>
 
 </div>
 </div>
@@ -193,7 +229,9 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>To be implemented by a derived class to return how large the array <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html#ae812981ef73f769a78076615246885eb">WriteState::m_state</a> should be. </p>
+<p>To be implemented by a derived class to return how large the array <a class="el" href="../../d4/d0c/classfastuidraw_1_1_painter_attribute_writer_1_1_write_state.html#ae812981ef73f769a78076615246885eb">PainterAttributeWriter::WriteState::m_state</a> should be. </p>
+
+<p>Implemented in <a class="el" href="../../de/d23/classfastuidraw_1_1_stroking_attribute_writer.html#a014e1ba6499915ae641ff6fdb104774b">fastuidraw::StrokingAttributeWriter</a>.</p>
 
 </div>
 </div>
@@ -265,6 +303,8 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+<p>Implemented in <a class="el" href="../../de/d23/classfastuidraw_1_1_stroking_attribute_writer.html#a6d54437a8e1cd0f4c6065b3b2526ba7f">fastuidraw::StrokingAttributeWriter</a>.</p>
 
 </div>
 </div>

@@ -2,8 +2,10 @@ var searchData=
 [
   ['range_5ftype',['range_type',['../d6/dee/classfastuidraw_1_1range__type.html',1,'fastuidraw']]],
   ['range_5ftype_3c_20float_20_3e',['range_type&lt; float &gt;',['../d6/dee/classfastuidraw_1_1range__type.html',1,'fastuidraw']]],
+  ['range_5ftype_3c_20int_20_3e',['range_type&lt; int &gt;',['../d6/dee/classfastuidraw_1_1range__type.html',1,'fastuidraw']]],
   ['rectenums',['RectEnums',['../d1/d17/classfastuidraw_1_1_rect_enums.html',1,'fastuidraw']]],
   ['rectt',['RectT',['../d3/d44/classfastuidraw_1_1_rect_t.html',1,'fastuidraw']]],
+  ['rectt_3c_20float_20_3e',['RectT&lt; float &gt;',['../d3/d44/classfastuidraw_1_1_rect_t.html',1,'fastuidraw']]],
   ['reference_5fcount_5fatomic',['reference_count_atomic',['../dc/d69/classfastuidraw_1_1reference__count__atomic.html',1,'fastuidraw']]],
   ['reference_5fcount_5fnon_5fconcurrent',['reference_count_non_concurrent',['../dc/d59/classfastuidraw_1_1reference__count__non__concurrent.html',1,'fastuidraw']]],
   ['reference_5fcounted',['reference_counted',['../dd/db6/classfastuidraw_1_1reference__counted.html',1,'fastuidraw']]],

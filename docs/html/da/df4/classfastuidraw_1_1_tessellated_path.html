@@ -99,6 +99,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents segment of a tessellated or arc-tessellated path.  <a href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/def/classfastuidraw_1_1_tessellated_path_1_1_segment_storage.html">SegmentStorage</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A wrapper over a dynamic array of <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> objects; segment values added to <a class="el" href="../../d1/def/classfastuidraw_1_1_tessellated_path_1_1_segment_storage.html" title="A wrapper over a dynamic array of segment objects; segment values added to SegmentStorage must be add...">SegmentStorage</a> must be added in order of time along the domain of a <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a>.  <a href="../../d1/def/classfastuidraw_1_1_tessellated_path_1_1_segment_storage.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -113,6 +115,12 @@ Public Types</h2></td></tr>
  }<tr class="memdesc:a7e80892f4d3808c47222960ef8baedea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration to identify the type of a <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a>.  <a href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a7e80892f4d3808c47222960ef8baedea">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:a7e80892f4d3808c47222960ef8baedea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34d5e5d79140884ffb20cb0d5b34afed"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a34d5e5d79140884ffb20cb0d5b34afed">split_t</a> { <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a34d5e5d79140884ffb20cb0d5b34afeda89d0ea508175a87def2297d0b2fe4a31">segment_completey_before_split</a>, 
+<a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a34d5e5d79140884ffb20cb0d5b34afeda870e6c7447502db68fa0cd9c51c15293">segment_completey_after_split</a>, 
+<a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a34d5e5d79140884ffb20cb0d5b34afedadc6228007911c379a5323cbedd3ffb31">segment_split_start_before</a>, 
+<a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a34d5e5d79140884ffb20cb0d5b34afeda2587cd18a44e5260e294f432aba1b753">segment_split_start_after</a>
+ }</td></tr>
+<tr class="separator:a34d5e5d79140884ffb20cb0d5b34afed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -122,6 +130,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6a958a81e0de3696aca63d02eeff712d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7e8c3840d57116c4c849ddc236f180b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../dc/d7d/classfastuidraw_1_1_tessellated_path_1_1cap.html">cap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#af7e8c3840d57116c4c849ddc236f180b">cap_data</a> (void) const</td></tr>
 <tr class="separator:af7e8c3840d57116c4c849ddc236f180b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a3ebb93c7234f71e447a696f43c53e7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a5a3ebb93c7234f71e447a696f43c53e7">contour_chains</a> (unsigned int contour) const</td></tr>
+<tr class="separator:a5a3ebb93c7234f71e447a696f43c53e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a025e293bf21ea6072bcd589dd99203b6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a025e293bf21ea6072bcd589dd99203b6">contour_closed</a> (unsigned int contour) const</td></tr>
 <tr class="separator:a025e293bf21ea6072bcd589dd99203b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ce5ad598cad24a4c6e657a6815ab5ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; unsigned int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a7ce5ad598cad24a4c6e657a6815ab5ef">contour_range</a> (unsigned int contour) const</td></tr>
@@ -130,22 +140,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:acc57113ee9b4d6875302109d058cc55d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fae619ee0735f772124d285d4437228"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/dee/classfastuidraw_1_1range__type.html">range_type</a>&lt; unsigned int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a8fae619ee0735f772124d285d4437228">edge_range</a> (unsigned int contour, unsigned int edge) const</td></tr>
 <tr class="separator:a8fae619ee0735f772124d285d4437228"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47f6eb69e24710e90eef835bee8e3f79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a47f6eb69e24710e90eef835bee8e3f79">edge_segment_chain</a> (unsigned int contour, unsigned int edge) const</td></tr>
+<tr class="separator:a47f6eb69e24710e90eef835bee8e3f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb5cdc447fb434fa59d7654ef57aa33c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#adb5cdc447fb434fa59d7654ef57aa33c">edge_segment_data</a> (unsigned int contour, unsigned int edge) const</td></tr>
 <tr class="separator:adb5cdc447fb434fa59d7654ef57aa33c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1c940c8e2c90b7a46986d5499677328"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#ac1c940c8e2c90b7a46986d5499677328">edge_type</a> (unsigned int contour, unsigned int edge) const</td></tr>
+<tr class="memitem:ac1c940c8e2c90b7a46986d5499677328"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#ac1c940c8e2c90b7a46986d5499677328">edge_type</a> (unsigned int contour, unsigned int edge) const</td></tr>
 <tr class="separator:ac1c940c8e2c90b7a46986d5499677328"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac7c8aba0d344f13f5a5881fde8a73ba3"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#ac7c8aba0d344f13f5a5881fde8a73ba3">filled</a> (float thresh) const</td></tr>
-<tr class="separator:ac7c8aba0d344f13f5a5881fde8a73ba3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d00c0ef6b804cd6ad71f13d735a5042"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a3d00c0ef6b804cd6ad71f13d735a5042">filled</a> (void) const</td></tr>
-<tr class="separator:a3d00c0ef6b804cd6ad71f13d735a5042"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada7a5e63f68b958ac68b51996f40b388"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#ada7a5e63f68b958ac68b51996f40b388">filled</a> (float thresh) const</td></tr>
+<tr class="separator:ada7a5e63f68b958ac68b51996f40b388"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa54e1bf0e74db1ea8524e33214a88948"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#aa54e1bf0e74db1ea8524e33214a88948">filled</a> (void) const</td></tr>
+<tr class="separator:aa54e1bf0e74db1ea8524e33214a88948"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5bb273f95acbd7e851093c90d97ab04e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a5bb273f95acbd7e851093c90d97ab04e">has_arcs</a> (void) const</td></tr>
 <tr class="separator:a5bb273f95acbd7e851093c90d97ab04e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40495a3970a4cf139e8c6b717b6aa812"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d2/d10/classfastuidraw_1_1_tessellated_path_1_1join.html">join</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a40495a3970a4cf139e8c6b717b6aa812">join_data</a> (void) const</td></tr>
 <tr class="separator:a40495a3970a4cf139e8c6b717b6aa812"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5daf2f366d051899d88a7fabc5798b4e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a5daf2f366d051899d88a7fabc5798b4e">linearization</a> (float thresh) const</td></tr>
-<tr class="separator:a5daf2f366d051899d88a7fabc5798b4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abdb8e8afdb927ad3a7ff651b4e2aeb25"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#abdb8e8afdb927ad3a7ff651b4e2aeb25">linearization</a> (void) const</td></tr>
-<tr class="separator:abdb8e8afdb927ad3a7ff651b4e2aeb25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec835c290f915a40d7820178a0f39104"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#aec835c290f915a40d7820178a0f39104">linearization</a> (float thresh) const</td></tr>
+<tr class="separator:aec835c290f915a40d7820178a0f39104"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96cd33c03afbc8f85437540176486cd9"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a96cd33c03afbc8f85437540176486cd9">linearization</a> (void) const</td></tr>
+<tr class="separator:a96cd33c03afbc8f85437540176486cd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41b83dcda7e77b2b963fab92a3148765"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a41b83dcda7e77b2b963fab92a3148765">max_distance</a> (void) const</td></tr>
 <tr class="separator:a41b83dcda7e77b2b963fab92a3148765"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ff8f3e747bbfefce40d750efd836dfe"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a1ff8f3e747bbfefce40d750efd836dfe">max_recursion</a> (void) const</td></tr>
@@ -154,10 +166,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8b66fb90c6e91ca9bacc5356101840e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a568d3c018bd25e6a19afdbb6ce792db6"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a568d3c018bd25e6a19afdbb6ce792db6">number_edges</a> (unsigned int contour) const</td></tr>
 <tr class="separator:a568d3c018bd25e6a19afdbb6ce792db6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b354c271e751101af5415b30101361d"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a1b354c271e751101af5415b30101361d">partitioned</a> (void) const</td></tr>
+<tr class="separator:a1b354c271e751101af5415b30101361d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbbef9bcd8148a9d930ff1b1e505d3e7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#acbbef9bcd8148a9d930ff1b1e505d3e7">segment_chain_data</a> (void) const</td></tr>
+<tr class="separator:acbbef9bcd8148a9d930ff1b1e505d3e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fe617fde8e059e1ad7b909d5040dbbd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a2fe617fde8e059e1ad7b909d5040dbbd">segment_data</a> (void) const</td></tr>
 <tr class="separator:a2fe617fde8e059e1ad7b909d5040dbbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca081b91c1991dd6a3c69ec0994c1e2f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#aca081b91c1991dd6a3c69ec0994c1e2f">stroked</a> (void) const</td></tr>
-<tr class="separator:aca081b91c1991dd6a3c69ec0994c1e2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d3dba9af7d8b969922fc809c08509e6"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a9d3dba9af7d8b969922fc809c08509e6">stroked</a> (void) const</td></tr>
+<tr class="separator:a9d3dba9af7d8b969922fc809c08509e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08c18a06f5b2d7d63adee4f29d7de4c5"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d6a/classfastuidraw_1_1_tessellated_path_1_1_tessellation_params.html">TessellationParams</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a08c18a06f5b2d7d63adee4f29d7de4c5">tessellation_parameters</a> (void) const</td></tr>
 <tr class="separator:a08c18a06f5b2d7d63adee4f29d7de4c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfastuidraw_1_1reference__counted__base"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfastuidraw_1_1reference__counted__base')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">fastuidraw::reference_counted_base&lt; T, Counter &gt;</a></td></tr>
@@ -176,7 +192,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>An <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> represents the tessellation of a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> into line segments and arcs. </p>
 <p>A single contour of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is constructed from a single <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> of the source <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>. Each edge of a contour of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is contructed from a single <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> of the source <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a>. The ordering of the contours of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is the same ordering as the source <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> objects of the source <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>. Also, the ordering of edges within a contour is the same ordering as the <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> objects of the source <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a>. In particular, for each contour of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a>, if an edge is closed, the closing edge is the last edge. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00060">60</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00061">61</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a7e80892f4d3808c47222960ef8baedea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7e80892f4d3808c47222960ef8baedea">&#9670;&nbsp;</a></span>segment_type_t</h2>
@@ -198,7 +214,34 @@ Additional Inherited Members</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00068">68</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00069">69</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a34d5e5d79140884ffb20cb0d5b34afed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a34d5e5d79140884ffb20cb0d5b34afed">&#9670;&nbsp;</a></span>split_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a34d5e5d79140884ffb20cb0d5b34afed">fastuidraw::TessellatedPath::split_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Enumeration to describe if a segment is split </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a34d5e5d79140884ffb20cb0d5b34afeda89d0ea508175a87def2297d0b2fe4a31"></a>segment_completey_before_split&#160;</td><td class="fielddoc"><p>Indicates that entire segment is before the split value </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a34d5e5d79140884ffb20cb0d5b34afeda870e6c7447502db68fa0cd9c51c15293"></a>segment_completey_after_split&#160;</td><td class="fielddoc"><p>Indicates that entire segment is after the split value </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a34d5e5d79140884ffb20cb0d5b34afedadc6228007911c379a5323cbedd3ffb31"></a>segment_split_start_before&#160;</td><td class="fielddoc"><p>indicates that the <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> was split with the segment starting before the split point. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a34d5e5d79140884ffb20cb0d5b34afeda2587cd18a44e5260e294f432aba1b753"></a>segment_split_start_after&#160;</td><td class="fielddoc"><p>indicates that the <a class="el" href="../../dc/d42/classfastuidraw_1_1_tessellated_path_1_1segment.html">segment</a> was split with the segment starting after the split point. </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html#l00088">88</a> of file <a class="el" href="../../dc/dbd/tessellated__path_8hpp_source.html">tessellated_path.hpp</a>.</p>
 
 </div>
 </div>
@@ -280,7 +323,31 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns all the join data </p>
+<p>Returns all the cap data </p>
+
+</div>
+</div>
+<a id="a5a3ebb93c7234f71e447a696f43c53e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a3ebb93c7234f71e447a696f43c53e7">&#9670;&nbsp;</a></span>contour_chains()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;const <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a>&gt; fastuidraw::TessellatedPath::contour_chains </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>contour</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the array of <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a> objects of a contour. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">contour</td><td>which path contour to query, must have that 0 &lt;= contour &lt; <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a8b66fb90c6e91ca9bacc5356101840e2">number_contours()</a> </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -391,6 +458,41 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a47f6eb69e24710e90eef835bee8e3f79"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47f6eb69e24710e90eef835bee8e3f79">&#9670;&nbsp;</a></span>edge_segment_chain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a> fastuidraw::TessellatedPath::edge_segment_chain </td>
+          <td>(</td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>contour</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>edge</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the named edge as a <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a> taking correctly into account the value of <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#ac1c940c8e2c90b7a46986d5499677328">edge_type()</a> in setting <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html#aa5fe6a0ad52ca5b3f8da41e38335c1d1">segment_chain::m_prev_to_start</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">contour</td><td>which path contour to query, must have that 0 &lt;= contour &lt; <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a8b66fb90c6e91ca9bacc5356101840e2">number_contours()</a> </td></tr>
+    <tr><td class="paramname">edge</td><td>which edge of the contour to query, must have that 0 &lt;= edge &lt; number_edges(contour) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="adb5cdc447fb434fa59d7654ef57aa33c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adb5cdc447fb434fa59d7654ef57aa33c">&#9670;&nbsp;</a></span>edge_segment_data()</h2>
 
@@ -433,7 +535,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> fastuidraw::TessellatedPath::edge_type </td>
+          <td class="memname">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> fastuidraw::TessellatedPath::edge_type </td>
           <td>(</td>
           <td class="paramtype">unsigned int&#160;</td>
           <td class="paramname"><em>contour</em>, </td>
@@ -461,14 +563,14 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="ac7c8aba0d344f13f5a5881fde8a73ba3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac7c8aba0d344f13f5a5881fde8a73ba3">&#9670;&nbsp;</a></span>filled() <span class="overload">[1/2]</span></h2>
+<a id="ada7a5e63f68b958ac68b51996f40b388"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada7a5e63f68b958ac68b51996f40b388">&#9670;&nbsp;</a></span>filled() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>&gt;&amp; fastuidraw::TessellatedPath::filled </td>
+          <td class="memname">const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>&amp; fastuidraw::TessellatedPath::filled </td>
           <td>(</td>
           <td class="paramtype">float&#160;</td>
           <td class="paramname"><em>thresh</em></td><td>)</td>
@@ -476,7 +578,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns this <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> filled. If this <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> has arcs will return the fill associated to the <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#abdb8e8afdb927ad3a7ff651b4e2aeb25">linearization()</a> of this <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>. If a non-positive value is passed, returns the fill of the linearization where arc-segments are tessellated into very few line segments. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Returns this <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> filled. If this <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> has arcs will return the fill associated to the <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a96cd33c03afbc8f85437540176486cd9">linearization()</a> of this <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>. If a non-positive value is passed, returns the fill of the linearization where arc-segments are tessellated into very few line segments. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">thresh</td><td>threshhold at which to linearize arc-segments. </td></tr>
   </table>
@@ -485,14 +587,14 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a3d00c0ef6b804cd6ad71f13d735a5042"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d00c0ef6b804cd6ad71f13d735a5042">&#9670;&nbsp;</a></span>filled() <span class="overload">[2/2]</span></h2>
+<a id="aa54e1bf0e74db1ea8524e33214a88948"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa54e1bf0e74db1ea8524e33214a88948">&#9670;&nbsp;</a></span>filled() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>&gt;&amp; fastuidraw::TessellatedPath::filled </td>
+          <td class="memname">const <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>&amp; fastuidraw::TessellatedPath::filled </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -500,7 +602,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, returns the starting point tessellation. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a3d00c0ef6b804cd6ad71f13d735a5042">filled</a>(-1.0f)</div></div><!-- fragment --> 
+<p>Provided as a conveniance, returns the starting point tessellation. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#aa54e1bf0e74db1ea8524e33214a88948">filled</a>(-1.0f)</div></div><!-- fragment --> 
 </div>
 </div>
 <a id="a5bb273f95acbd7e851093c90d97ab04e"></a>
@@ -541,14 +643,14 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a5daf2f366d051899d88a7fabc5798b4e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5daf2f366d051899d88a7fabc5798b4e">&#9670;&nbsp;</a></span>linearization() <span class="overload">[1/2]</span></h2>
+<a id="aec835c290f915a40d7820178a0f39104"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec835c290f915a40d7820178a0f39104">&#9670;&nbsp;</a></span>linearization() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>* fastuidraw::TessellatedPath::linearization </td>
+          <td class="memname">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>&amp; fastuidraw::TessellatedPath::linearization </td>
           <td>(</td>
           <td class="paramtype">float&#160;</td>
           <td class="paramname"><em>thresh</em></td><td>)</td>
@@ -565,14 +667,14 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="abdb8e8afdb927ad3a7ff651b4e2aeb25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abdb8e8afdb927ad3a7ff651b4e2aeb25">&#9670;&nbsp;</a></span>linearization() <span class="overload">[2/2]</span></h2>
+<a id="a96cd33c03afbc8f85437540176486cd9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96cd33c03afbc8f85437540176486cd9">&#9670;&nbsp;</a></span>linearization() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>* fastuidraw::TessellatedPath::linearization </td>
+          <td class="memname">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>&amp; fastuidraw::TessellatedPath::linearization </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -580,7 +682,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, returns the starting point tessellation. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#abdb8e8afdb927ad3a7ff651b4e2aeb25">linearization</a>(-1.0f)</div></div><!-- fragment --> 
+<p>Provided as a conveniance, returns the starting point tessellation. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a96cd33c03afbc8f85437540176486cd9">linearization</a>(-1.0f)</div></div><!-- fragment --> 
 </div>
 </div>
 <a id="a41b83dcda7e77b2b963fab92a3148765"></a>
@@ -664,6 +766,44 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a1b354c271e751101af5415b30101361d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b354c271e751101af5415b30101361d">&#9670;&nbsp;</a></span>partitioned()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a>&amp; fastuidraw::TessellatedPath::partitioned </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the partitioning of this <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>. </p>
+
+</div>
+</div>
+<a id="acbbef9bcd8148a9d930ff1b1e505d3e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbbef9bcd8148a9d930ff1b1e505d3e7">&#9670;&nbsp;</a></span>segment_chain_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt;const <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a>&gt; fastuidraw::TessellatedPath::segment_chain_data </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the array of <a class="el" href="../../d9/daa/classfastuidraw_1_1_tessellated_path_1_1segment__chain.html">segment_chain</a> objects of the entire path. </p>
+
+</div>
+</div>
 <a id="a2fe617fde8e059e1ad7b909d5040dbbd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2fe617fde8e059e1ad7b909d5040dbbd">&#9670;&nbsp;</a></span>segment_data()</h2>
 
@@ -679,18 +819,18 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns all the segment data </p>
+<p>Returns all the segment data of the entire path. </p>
 
 </div>
 </div>
-<a id="aca081b91c1991dd6a3c69ec0994c1e2f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aca081b91c1991dd6a3c69ec0994c1e2f">&#9670;&nbsp;</a></span>stroked()</h2>
+<a id="a9d3dba9af7d8b969922fc809c08509e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d3dba9af7d8b969922fc809c08509e6">&#9670;&nbsp;</a></span>stroked()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a>&gt;&amp; fastuidraw::TessellatedPath::stroked </td>
+          <td class="memname">const <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a>&amp; fastuidraw::TessellatedPath::stroked </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>

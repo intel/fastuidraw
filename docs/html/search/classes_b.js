@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['packing_5fsize',['packing_size',['../db/df3/classfastuidraw_1_1_stroked_point_packing_1_1packing__size.html',1,'fastuidraw::StrokedPointPacking']]],
   ['painter',['Painter',['../da/de0/classfastuidraw_1_1_painter.html',1,'fastuidraw']]],
   ['painterattribute',['PainterAttribute',['../d7/d5e/classfastuidraw_1_1_painter_attribute.html',1,'fastuidraw']]],
   ['painterattributedata',['PainterAttributeData',['../d9/d77/classfastuidraw_1_1_painter_attribute_data.html',1,'fastuidraw']]],
@@ -64,8 +65,12 @@ var searchData=
   ['painterstrokeshader',['PainterStrokeShader',['../db/da6/classfastuidraw_1_1_painter_stroke_shader.html',1,'fastuidraw']]],
   ['paintersurface',['PainterSurface',['../d5/d60/classfastuidraw_1_1_painter_surface.html',1,'fastuidraw']]],
   ['paintersurfacegl',['PainterSurfaceGL',['../df/d29/classfastuidraw_1_1gl_1_1_painter_surface_g_l.html',1,'fastuidraw::gl']]],
+  ['partitionedtessellatedpath',['PartitionedTessellatedPath',['../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html',1,'fastuidraw']]],
   ['path',['Path',['../df/dea/classfastuidraw_1_1_path.html',1,'fastuidraw']]],
   ['pathcontour',['PathContour',['../dc/dfc/classfastuidraw_1_1_path_contour.html',1,'fastuidraw']]],
+  ['pathdasheffect',['PathDashEffect',['../d7/d6f/classfastuidraw_1_1_path_dash_effect.html',1,'fastuidraw']]],
+  ['patheffect',['PathEffect',['../d3/d01/classfastuidraw_1_1_path_effect.html',1,'fastuidraw']]],
+  ['pathenums',['PathEnums',['../d8/de5/classfastuidraw_1_1_path_enums.html',1,'fastuidraw']]],
   ['performancehints',['PerformanceHints',['../d9/d2b/classfastuidraw_1_1_painter_engine_1_1_performance_hints.html',1,'fastuidraw::PainterEngine']]],
   ['prelinkaction',['PreLinkAction',['../da/d20/classfastuidraw_1_1gl_1_1_pre_link_action.html',1,'fastuidraw::gl']]],
   ['prelinkactionarray',['PreLinkActionArray',['../d7/df3/classfastuidraw_1_1gl_1_1_pre_link_action_array.html',1,'fastuidraw::gl']]],

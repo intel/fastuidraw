@@ -1,17 +1,19 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/glsl/painter_item_shader_glsl.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/glsl/painter_item_shader_glsl.hpp">
-<area shape="rect" id="node2" href="$da/d27/painter__item__shader_8hpp.html" title="file painter_item_shader.hpp " alt="" coords="491,124,631,180"/>
-<area shape="rect" id="node15" href="$d0/dbd/shader__source_8hpp.html" title="file shader_source.hpp " alt="" coords="55,332,205,373"/>
-<area shape="rect" id="node22" href="$d6/d95/varying__list_8hpp.html" title="file varying_list.hpp " alt="" coords="273,235,425,277"/>
-<area shape="rect" id="node3" href="$d3/d3f/painter__shader_8hpp.html" title="file painter_shader.hpp " alt="" coords="586,332,765,373"/>
-<area shape="rect" id="node14" href="$dd/dc6/painter__item__coverage__shader_8hpp.html" title="file painter_item_coverage_shader.hpp " alt="" coords="599,228,752,284"/>
-<area shape="rect" id="node4" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="689,421,851,463"/>
-<area shape="rect" id="node5" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="355,607,505,634"/>
-<area shape="rect" id="node8" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="937,511,1104,552"/>
-<area shape="rect" id="node12" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="493,511,655,552"/>
-<area shape="rect" id="node13" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="679,511,861,552"/>
-<area shape="rect" id="node10" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="1005,600,1172,641"/>
-<area shape="rect" id="node16" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="22,518,185,545"/>
-<area shape="rect" id="node21" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="192,429,367,455"/>
-<area shape="rect" id="node18" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="5,607,167,634"/>
-<area shape="rect" id="node23" href="$d7/dc9/string__array_8hpp.html" title="file string_array.hpp " alt="" coords="279,332,418,373"/>
+<area shape="rect" id="node2" href="$da/d27/painter__item__shader_8hpp.html" title="file painter_item_shader.hpp " alt="" coords="468,124,608,180"/>
+<area shape="rect" id="node15" href="$d0/dbd/shader__source_8hpp.html" title="file shader_source.hpp " alt="" coords="967,332,1117,373"/>
+<area shape="rect" id="node21" href="$d9/dde/symbol__list_8hpp.html" title="file symbol_list.hpp " alt="" coords="738,131,890,173"/>
+<area shape="rect" id="node3" href="$d3/d3f/painter__shader_8hpp.html" title="file painter_shader.hpp " alt="" coords="339,332,518,373"/>
+<area shape="rect" id="node14" href="$dd/dc6/painter__item__coverage__shader_8hpp.html" title="file painter_item_coverage_shader.hpp " alt="" coords="461,228,615,284"/>
+<area shape="rect" id="node4" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="348,421,509,463"/>
+<area shape="rect" id="node5" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="647,607,797,634"/>
+<area shape="rect" id="node8" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="20,511,187,552"/>
+<area shape="rect" id="node12" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="469,511,631,552"/>
+<area shape="rect" id="node13" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="211,511,393,552"/>
+<area shape="rect" id="node10" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="89,600,256,641"/>
+<area shape="rect" id="node16" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="1053,518,1215,545"/>
+<area shape="rect" id="node20" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="820,429,995,455"/>
+<area shape="rect" id="node17" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="1053,607,1215,634"/>
+<area shape="rect" id="node22" href="$d6/d95/varying__list_8hpp.html" title="file varying_list.hpp " alt="" coords="830,235,982,277"/>
+<area shape="rect" id="node24" href="$d0/dea/shareable__value__list_8hpp.html" title="file shareable_value_list.hpp " alt="" coords="639,235,805,277"/>
+<area shape="rect" id="node23" href="$d7/dc9/string__array_8hpp.html" title="file string_array.hpp " alt="" coords="653,332,791,373"/>
 </map>

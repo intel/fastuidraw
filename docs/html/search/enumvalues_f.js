@@ -19,6 +19,7 @@ var searchData=
   ['restricted_5frays_5fglyph',['restricted_rays_glyph',['../de/df6/group___glyph.html#gga6308023a8250ddf0776ab2bd52e0d02dae895767e029ffe27df957b378a548b7c',1,'fastuidraw']]],
   ['reverse_5fsubtract',['REVERSE_SUBTRACT',['../da/d2e/classfastuidraw_1_1_blend_mode.html#a73b66e27681b83563258b0f2334c2355ad41ca92ad0dc487661efae620359145e',1,'fastuidraw::BlendMode']]],
   ['rgba_5fformat',['rgba_format',['../dc/dd5/classfastuidraw_1_1_image.html#a689a3d5fde110d49bbac1f1c31c1f535a8cc2856db82dbaa0de04be46351c5741',1,'fastuidraw::Image']]],
+  ['rounded_5fcap',['rounded_cap',['../dc/d10/namespacefastuidraw_1_1_stroked_point_packing.html#a22f49359676d7d03e906484b8cc6c805abc10482ca3d98c705810803608475db4',1,'fastuidraw::StrokedPointPacking']]],
   ['rounded_5fcaps',['rounded_caps',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa5c175ac2ce1367be331fca16da7cb3c7',1,'fastuidraw::PainterEnums']]],
   ['rounded_5fjoins',['rounded_joins',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa55cf0286168b9eac4987b376fc8ffbca43c31892e1cacbc3f15df3eda0c43de2',1,'fastuidraw::PainterEnums']]],
   ['routine_5ffail',['routine_fail',['../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38ea07012bc3a0da9650c25fbfacdb05742a',1,'fastuidraw']]],

@@ -65,6 +65,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="../../d5/dfa/classfastuidraw_1_1_stroked_path-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">fastuidraw::StrokedPath Class Reference<div class="ingroups"><a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a></div></div>  </div>
@@ -87,34 +88,59 @@ Inheritance diagram for fastuidraw::StrokedPath:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html">ScratchSpace</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque object to hold work room needed for functions of <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> that require scratch space.  <a href="../../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> represents a handle to a portion of a <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>. The handle is invalid once the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> from which it comes goes out of scope. Do not save these handle values without also saving a handle of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> from which they come.  <a href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> represents a handle to a portion of a <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>. The handle is invalid once the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> from which it comes goes out of scope. Do not save these handle values without also saving a handle of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> from which they come. The region of a <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a> is the exact same region as a <a class="el" href="../../d8/d53/classfastuidraw_1_1_partitioned_tessellated_path_1_1_subset.html">PartitionedTessellatedPath::Subset</a> object. Also, the <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html#a23b76dd64fb96426590ac7c035569e41">ID()</a> value for a <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> is the same value as <a class="el" href="../../d8/d53/classfastuidraw_1_1_partitioned_tessellated_path_1_1_subset.html#a675de1e84907a5fd69016c082e82de11">PartitionedTessellatedPath::Subset::ID()</a> as well.  <a href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1d/classfastuidraw_1_1_stroked_path_1_1_subset_selection.html">SubsetSelection</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad35225a555ad473405112c4cf0bd5fae"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ad35225a555ad473405112c4cf0bd5fae">StrokedPath</a> (const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;P)</td></tr>
-<tr class="separator:ad35225a555ad473405112c4cf0bd5fae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afcf07cb682d13c3e9ebc9e8402dd482e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#afcf07cb682d13c3e9ebc9e8402dd482e">caps_joins</a> (void) const</td></tr>
-<tr class="separator:afcf07cb682d13c3e9ebc9e8402dd482e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18942339267a393c1cb70278ce410141"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a18942339267a393c1cb70278ce410141">adjustable_caps</a> (void) const</td></tr>
+<tr class="separator:a18942339267a393c1cb70278ce410141"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a630a0c1d02fdb6ab1a7fef4193a889a6"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a630a0c1d02fdb6ab1a7fef4193a889a6">arc_rounded_caps</a> (void) const</td></tr>
+<tr class="separator:a630a0c1d02fdb6ab1a7fef4193a889a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad819f6f64f5573f902f55afddf26bf30"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ad819f6f64f5573f902f55afddf26bf30">arc_rounded_joins</a> (void) const</td></tr>
+<tr class="separator:ad819f6f64f5573f902f55afddf26bf30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5067666e561b7a094bc49bd36ad2959"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#aa5067666e561b7a094bc49bd36ad2959">bevel_joins</a> (void) const</td></tr>
+<tr class="separator:aa5067666e561b7a094bc49bd36ad2959"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58cb296a5bbef314049d26d0c59fe238"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a58cb296a5bbef314049d26d0c59fe238">flat_caps</a> (void) const</td></tr>
+<tr class="separator:a58cb296a5bbef314049d26d0c59fe238"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9fb36b07b2b3712e1be31aeaa700290"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#af9fb36b07b2b3712e1be31aeaa700290">has_arcs</a> (void) const</td></tr>
 <tr class="separator:af9fb36b07b2b3712e1be31aeaa700290"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcc532200ef28ae1aa8166632b5c573a"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#abcc532200ef28ae1aa8166632b5c573a">miter_bevel_joins</a> (void) const</td></tr>
+<tr class="separator:abcc532200ef28ae1aa8166632b5c573a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af328516c10dccf361bb5805059a5cf0f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#af328516c10dccf361bb5805059a5cf0f">miter_clip_joins</a> (void) const</td></tr>
+<tr class="separator:af328516c10dccf361bb5805059a5cf0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79022b56d53cdac41c55bfb09ad0ec7b"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a79022b56d53cdac41c55bfb09ad0ec7b">miter_joins</a> (void) const</td></tr>
+<tr class="separator:a79022b56d53cdac41c55bfb09ad0ec7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada604ffb00c8c1c2a49b24f565c6a19f"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ada604ffb00c8c1c2a49b24f565c6a19f">number_subsets</a> (void) const</td></tr>
 <tr class="separator:ada604ffb00c8c1c2a49b24f565c6a19f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dd21b3021b0dcdce2ca15187713e3c1"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a9dd21b3021b0dcdce2ca15187713e3c1">partitioned_path</a> (void) const</td></tr>
+<tr class="separator:a9dd21b3021b0dcdce2ca15187713e3c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6261e203b8da008b64192668011016a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a6261e203b8da008b64192668011016a4">root_subset</a> (void) const</td></tr>
 <tr class="separator:a6261e203b8da008b64192668011016a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5cd669d22d069145b4633079ba41ed20"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a5cd669d22d069145b4633079ba41ed20">select_subsets</a> (<a class="el" href="../../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html">ScratchSpace</a> &amp;scratch_space, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a> &gt; clip_equations, const <a class="el" href="../../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3">float3x3</a> &amp;clip_matrix_local, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;one_pixel_width, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const float &gt; geometry_inflation, unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst) const</td></tr>
-<tr class="separator:a5cd669d22d069145b4633079ba41ed20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a486b1f37b3a9aeebd7c6abd2d0f0d637"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a486b1f37b3a9aeebd7c6abd2d0f0d637">select_subsets_no_culling</a> (unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst) const</td></tr>
-<tr class="separator:a486b1f37b3a9aeebd7c6abd2d0f0d637"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9ee3f90d6a73bee25651680a4ca20af"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ae9ee3f90d6a73bee25651680a4ca20af">rounded_caps</a> (float thresh) const</td></tr>
+<tr class="separator:ae9ee3f90d6a73bee25651680a4ca20af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a092a061dc987b7a39df64d0deb77348c"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a092a061dc987b7a39df64d0deb77348c">rounded_joins</a> (float thresh) const</td></tr>
+<tr class="separator:a092a061dc987b7a39df64d0deb77348c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff135009a2fc16749c09417bab35f1ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#aff135009a2fc16749c09417bab35f1ab">select_subsets</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a> &gt; clip_equations, const <a class="el" href="../../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3">float3x3</a> &amp;clip_matrix_local, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;one_pixel_width, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const float &gt; geometry_inflation, unsigned int max_attribute_cnt, unsigned int max_index_cnt, bool select_miter_joins, <a class="el" href="../../d5/d1d/classfastuidraw_1_1_stroked_path_1_1_subset_selection.html">SubsetSelection</a> &amp;dst) const</td></tr>
+<tr class="separator:aff135009a2fc16749c09417bab35f1ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a972ad673de120c216f80e97408789e7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a972ad673de120c216f80e97408789e7a">select_subsets_no_culling</a> (unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../d5/d1d/classfastuidraw_1_1_stroked_path_1_1_subset_selection.html">SubsetSelection</a> &amp;dst) const</td></tr>
+<tr class="separator:a972ad673de120c216f80e97408789e7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a560db8dfefb53932abadf7578cad67"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a7a560db8dfefb53932abadf7578cad67">square_caps</a> (void) const</td></tr>
+<tr class="separator:a7a560db8dfefb53932abadf7578cad67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e05f645f7a471c4999782c185ba9892"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a1e05f645f7a471c4999782c185ba9892">subset</a> (unsigned int I) const</td></tr>
 <tr class="separator:a1e05f645f7a471c4999782c185ba9892"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classfastuidraw_1_1reference__counted__base"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfastuidraw_1_1reference__counted__base')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">fastuidraw::reference_counted_base&lt; T, Counter &gt;</a></td></tr>
 <tr class="memitem:a1043ffe68beb4f2b6f670ae9ec420e63 inherit pub_methods_classfastuidraw_1_1reference__counted__base"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html#a1043ffe68beb4f2b6f670ae9ec420e63">reference_counted_base</a> (void)</td></tr>
 <tr class="separator:a1043ffe68beb4f2b6f670ae9ec420e63 inherit pub_methods_classfastuidraw_1_1reference__counted__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:aa0f7f9aeddcd1e84127b3bb6020f3936"><td class="memItemLeft" align="right" valign="top"><a id="aa0f7f9aeddcd1e84127b3bb6020f3936"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>TessellatedPath</b></td></tr>
+<tr class="separator:aa0f7f9aeddcd1e84127b3bb6020f3936"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -127,49 +153,16 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> represents the data needed to draw a path stroked. It contains -all- the data needed to stroke a path regardless of stroking style. In particular, for a given <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a>, one only needs to construct a <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> <em>once</em> regardless of how one strokes the original path for drawing. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/df0/stroked__path_8hpp_source.html#l00050">50</a> of file <a class="el" href="../../dc/df0/stroked__path_8hpp_source.html">stroked_path.hpp</a>.</p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ad35225a555ad473405112c4cf0bd5fae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad35225a555ad473405112c4cf0bd5fae">&#9670;&nbsp;</a></span>StrokedPath()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">fastuidraw::StrokedPath::StrokedPath </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;&#160;</td>
-          <td class="paramname"><em>P</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Ctor. Construct a <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> from the data of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">P</td><td>source <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="afcf07cb682d13c3e9ebc9e8402dd482e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afcf07cb682d13c3e9ebc9e8402dd482e">&#9670;&nbsp;</a></span>caps_joins()</h2>
+<p class="definition">Definition at line <a class="el" href="../../dc/df0/stroked__path_8hpp_source.html#l00045">45</a> of file <a class="el" href="../../dc/df0/stroked__path_8hpp_source.html">stroked_path.hpp</a>.</p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a18942339267a393c1cb70278ce410141"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18942339267a393c1cb70278ce410141">&#9670;&nbsp;</a></span>adjustable_caps()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html">StrokedCapsJoins</a>&amp; fastuidraw::StrokedPath::caps_joins </td>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::adjustable_caps </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -177,7 +170,83 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the <a class="el" href="../../de/d9b/classfastuidraw_1_1_stroked_caps_joins.html" title="A StrokedCapsJoins represents the data needed to draw a the joins and caps of a stroked path...">StrokedCapsJoins</a> of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a> that provides the attribute data for teh stroking of the joins and caps. </p>
+<p>Returns the data to draw the caps of a stroked path used when stroking with a dash pattern. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p>
+
+</div>
+</div>
+<a id="a630a0c1d02fdb6ab1a7fef4193a889a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a630a0c1d02fdb6ab1a7fef4193a889a6">&#9670;&nbsp;</a></span>arc_rounded_caps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::arc_rounded_caps </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw rounded caps of a stroked path using the fragment shader to provide per-pixel coverage computation. The attribute data is packed <a class="el" href="../../d3/daa/classfastuidraw_1_1_arc_stroked_point.html">ArcStrokedPoint</a> data. </p>
+
+</div>
+</div>
+<a id="ad819f6f64f5573f902f55afddf26bf30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad819f6f64f5573f902f55afddf26bf30">&#9670;&nbsp;</a></span>arc_rounded_joins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::arc_rounded_joins </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw rounded joins of a stroked path using the fragment shader to provide per-pixel coverage computation. The attribute data is packed <a class="el" href="../../d3/daa/classfastuidraw_1_1_arc_stroked_point.html">ArcStrokedPoint</a> data. </p>
+
+</div>
+</div>
+<a id="aa5067666e561b7a094bc49bd36ad2959"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5067666e561b7a094bc49bd36ad2959">&#9670;&nbsp;</a></span>bevel_joins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::bevel_joins </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw the bevel joins of a stroked path. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p>
+
+</div>
+</div>
+<a id="a58cb296a5bbef314049d26d0c59fe238"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58cb296a5bbef314049d26d0c59fe238">&#9670;&nbsp;</a></span>flat_caps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::flat_caps </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw the flat caps of a stroked path. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p>
 
 </div>
 </div>
@@ -200,6 +269,63 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="abcc532200ef28ae1aa8166632b5c573a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abcc532200ef28ae1aa8166632b5c573a">&#9670;&nbsp;</a></span>miter_bevel_joins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::miter_bevel_joins </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw the miter joins of a stroked path, if the miter-limit is exceeded on stroking, the miter-join is to be drawn as a bevel join. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p>
+
+</div>
+</div>
+<a id="af328516c10dccf361bb5805059a5cf0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af328516c10dccf361bb5805059a5cf0f">&#9670;&nbsp;</a></span>miter_clip_joins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::miter_clip_joins </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw the miter joins of a stroked path, if the miter-limit is exceeded on stroking, the miter-join is clipped to the miter-limit. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p>
+
+</div>
+</div>
+<a id="a79022b56d53cdac41c55bfb09ad0ec7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79022b56d53cdac41c55bfb09ad0ec7b">&#9670;&nbsp;</a></span>miter_joins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::miter_joins </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw the miter joins of a stroked path, if the miter-limit is exceeded on stroking, the miter-join end point is clamped to the miter-distance. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p>
+
+</div>
+</div>
 <a id="ada604ffb00c8c1c2a49b24f565c6a19f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ada604ffb00c8c1c2a49b24f565c6a19f">&#9670;&nbsp;</a></span>number_subsets()</h2>
 
@@ -216,6 +342,25 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Returns the number of <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> objects of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>. </p>
+
+</div>
+</div>
+<a id="a9dd21b3021b0dcdce2ca15187713e3c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dd21b3021b0dcdce2ca15187713e3c1">&#9670;&nbsp;</a></span>partitioned_path()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a>&amp; fastuidraw::StrokedPath::partitioned_path </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the source <a class="el" href="../../d6/d69/classfastuidraw_1_1_partitioned_tessellated_path.html">PartitionedTessellatedPath</a> of this <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html">StrokedPath</a>. </p>
 
 </div>
 </div>
@@ -238,21 +383,63 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a5cd669d22d069145b4633079ba41ed20"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5cd669d22d069145b4633079ba41ed20">&#9670;&nbsp;</a></span>select_subsets()</h2>
+<a id="ae9ee3f90d6a73bee25651680a4ca20af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9ee3f90d6a73bee25651680a4ca20af">&#9670;&nbsp;</a></span>rounded_caps()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned int fastuidraw::StrokedPath::select_subsets </td>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::rounded_caps </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d9f/classfastuidraw_1_1_stroked_path_1_1_scratch_space.html">ScratchSpace</a> &amp;&#160;</td>
-          <td class="paramname"><em>scratch_space</em>, </td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>thresh</em></td><td>)</td>
+          <td> const</td>
         </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw rounded caps of a stroked path. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">thresh</td><td>will return rounded caps so that the distance between the approximation of the round and the actual round is no more than thresh when the path is stroked with a stroking radius of one. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a092a061dc987b7a39df64d0deb77348c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a092a061dc987b7a39df64d0deb77348c">&#9670;&nbsp;</a></span>rounded_joins()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
         <tr>
-          <td class="paramkey"></td>
-          <td></td>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::rounded_joins </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>thresh</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw rounded joins of a stroked path. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">thresh</td><td>will return rounded joins so that the distance between the approximation of the round and the actual round is no more than thresh when the path is stroked with a stroking radius of one. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aff135009a2fc16749c09417bab35f1ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff135009a2fc16749c09417bab35f1ab">&#9670;&nbsp;</a></span>select_subsets()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fastuidraw::StrokedPath::select_subsets </td>
+          <td>(</td>
           <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a> &gt;&#160;</td>
           <td class="paramname"><em>clip_equations</em>, </td>
         </tr>
@@ -289,7 +476,13 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt;&#160;</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>select_miter_joins</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d5/d1d/classfastuidraw_1_1_stroked_path_1_1_subset_selection.html">SubsetSelection</a> &amp;&#160;</td>
           <td class="paramname"><em>dst</em>&#160;</td>
         </tr>
         <tr>
@@ -301,29 +494,28 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Given a set of clip equations in clip coordinates and a tranformation from local coordiante to clip coordinates, compute what <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> are not completely culled by the clip equations. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir"></td><td class="paramname">scratch_space</td><td>scratch space for computations </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">clip_equations</td><td>array of clip equations </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">clip_matrix_local</td><td>3x3 transformation from local (x, y, 1) coordinates to clip coordinates. </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">one_pixel_width</td><td>holds the size of a single pixel in normalized device coordinates </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">geometry_inflation</td><td>amount path geometry is inflated, array is indexed by the enumeration <a class="el" href="../../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25">StrokingDataSelectorBase::path_geometry_inflation_index_t</a> </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">geometry_inflation</td><td>amount path geometry is inflated, array is indexed by the enumeration <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0">PathEnums::path_geometry_inflation_index_t</a> </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">max_attribute_cnt</td><td>only allow those chunks for which have no more than max_attribute_cnt attributes </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">max_index_cnt</td><td>only allow those chunks for which have no more than max_index_cnt indices </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">dst</td><td>location to which to write the <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html">Subset</a> ID values </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">select_miter_joins</td><td>if true, when selecting what joins are in the area, enlarge the join footprint for if the joins are stroked as a type of miter join. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">dst</td><td>location to which to write the subset-selection. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>the number of <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> object ID's written to dst, that number is guaranteed to be no more than <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ada604ffb00c8c1c2a49b24f565c6a19f">number_subsets()</a>. </dd></dl>
 
 </div>
 </div>
-<a id="a486b1f37b3a9aeebd7c6abd2d0f0d637"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a486b1f37b3a9aeebd7c6abd2d0f0d637">&#9670;&nbsp;</a></span>select_subsets_no_culling()</h2>
+<a id="a972ad673de120c216f80e97408789e7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a972ad673de120c216f80e97408789e7a">&#9670;&nbsp;</a></span>select_subsets_no_culling()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned int fastuidraw::StrokedPath::select_subsets_no_culling </td>
+          <td class="memname">void fastuidraw::StrokedPath::select_subsets_no_culling </td>
           <td>(</td>
           <td class="paramtype">unsigned int&#160;</td>
           <td class="paramname"><em>max_attribute_cnt</em>, </td>
@@ -337,7 +529,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="../../d5/d1d/classfastuidraw_1_1_stroked_path_1_1_subset_selection.html">SubsetSelection</a> &amp;&#160;</td>
           <td class="paramname"><em>dst</em>&#160;</td>
         </tr>
         <tr>
@@ -347,7 +539,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>In contrast to <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#a5cd669d22d069145b4633079ba41ed20">select_subsets()</a> which performs hierarchical culling against a set of clip equations, this routine performs no culling and returns the subsets needed to draw all of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>In contrast to <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#aff135009a2fc16749c09417bab35f1ab">select_subsets()</a> which performs hierarchical culling against a set of clip equations, this routine performs no culling and returns the subsets needed to draw all of the <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html" title="A StrokedPath represents the data needed to draw a path stroked. It contains -all- the data needed to...">StrokedPath</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">max_attribute_cnt</td><td>only allow those chunks for which have no more than max_attribute_cnt attributes </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">max_index_cnt</td><td>only allow those chunks for which have no more than max_index_cnt indices </td></tr>
@@ -355,7 +547,25 @@ Additional Inherited Members</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>the number of <a class="el" href="../../d8/de1/classfastuidraw_1_1_stroked_path_1_1_subset.html" title="A Subset represents a handle to a portion of a StrokedPath. The handle is invalid once the StrokedPat...">Subset</a> object ID's written to dst, that number is guaranteed to be no more than <a class="el" href="../../d7/d83/classfastuidraw_1_1_stroked_path.html#ada604ffb00c8c1c2a49b24f565c6a19f">number_subsets()</a>. </dd></dl>
+
+</div>
+</div>
+<a id="a7a560db8dfefb53932abadf7578cad67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a560db8dfefb53932abadf7578cad67">&#9670;&nbsp;</a></span>square_caps()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="../../d9/d77/classfastuidraw_1_1_painter_attribute_data.html">PainterAttributeData</a>&amp; fastuidraw::StrokedPath::square_caps </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the data to draw the square caps of a stroked path. The attribute data is packed <a class="el" href="../../d4/d1b/classfastuidraw_1_1_stroked_point.html">StrokedPoint</a> data. </p>
 
 </div>
 </div>

@@ -389,7 +389,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 <p>Clears the <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html" title="A wrapper over a pointer to implement reference counting. ">reference_counted_ptr</a> object, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html#a9234eaed49207f402c59c66631c3a4a8">operator=</a>(<a class="code" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html#acfc5c27efafa10e010f8178f117d9eea">reference_counted_ptr</a>());</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00323">323</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00325">325</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -427,7 +427,7 @@ template&lt;typename U &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00348">348</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00350">350</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -465,7 +465,7 @@ template&lt;typename U &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00359">359</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00361">361</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -524,8 +524,8 @@ template&lt;typename T&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Allows one to legally write: </p><div class="fragment"><div class="line">reference_counted_ptr&lt;T&gt; p;</div><div class="line"></div><div class="line"><span class="keywordflow">if</span> (p)</div><div class="line"> {</div><div class="line"> }</div><div class="line"></div><div class="line"><span class="keywordflow">if</span> (!p)</div><div class="line"> {</div><div class="line"> }</div></div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00251">251</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p>Allows one to legally write: </p><div class="fragment"><div class="line">reference_counted_ptr&lt;T&gt; p;</div><div class="line"></div><div class="line"><span class="keywordflow">if</span> (p)</div><div class="line">  {</div><div class="line">     <span class="comment">// i.e. p.get() is not nullptr</span></div><div class="line">  }</div><div class="line"></div><div class="line"><span class="keywordflow">if</span> (!p)</div><div class="line">  {</div><div class="line">     <span class="comment">// i.e. p.get() is nullptr</span></div><div class="line">  }</div></div><!-- fragment --> 
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00253">253</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -569,7 +569,7 @@ template&lt;typename U &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00287">287</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00289">289</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -613,7 +613,7 @@ template&lt;typename U &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00300">300</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00302">302</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -711,7 +711,7 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00310">310</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00312">312</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -901,7 +901,7 @@ template&lt;typename U &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00262">262</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00264">264</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -945,7 +945,7 @@ template&lt;typename U &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00275">275</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00277">277</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>
@@ -983,7 +983,7 @@ template&lt;typename U &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00337">337</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html#l00339">339</a> of file <a class="el" href="../../d3/dd6/reference__counted_8hpp_source.html">reference_counted.hpp</a>.</p>
 
 </div>
 </div>

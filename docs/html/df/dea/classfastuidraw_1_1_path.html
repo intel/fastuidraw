@@ -76,6 +76,14 @@ $(function() {
  <a href="../../df/dea/classfastuidraw_1_1_path.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for fastuidraw::Path:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../df/d79/classfastuidraw_1_1_path__inherit__graph.png" border="0" usemap="#fastuidraw_1_1_path_inherit__map" alt="Inheritance graph"/></div>
+<map name="fastuidraw_1_1_path_inherit__map" id="fastuidraw_1_1_path_inherit__map">
+<area shape="rect" id="node2" href="../../da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="5,5,168,32"/>
+</map>
+<center><span class="legend">[<a href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -88,8 +96,11 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html">contour_close_arc</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tag class to mark the close of an contour with an arc.  <a href="../../d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d60/classfastuidraw_1_1_path_1_1contour__end.html">contour_end</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tag class to mark the end of a contour without adding a closing edge of the contour and start a new contour.  <a href="../../de/d60/classfastuidraw_1_1_path_1_1contour__end.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/df3/classfastuidraw_1_1_path_1_1contour__start.html">contour_start</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates to end the existing contour and start a new contour.  <a href="../../d0/df3/classfastuidraw_1_1_path_1_1contour__start.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates to end the existing contour with adding a closing edge of the contour and start a new contour.  <a href="../../d0/df3/classfastuidraw_1_1_path_1_1contour__start.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d77/classfastuidraw_1_1_path_1_1control__point.html">control_point</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class that wraps a vec2 to mark a point as a control point for a Bezier curve.  <a href="../../df/d77/classfastuidraw_1_1_path_1_1control__point.html#details">More...</a><br /></td></tr>
@@ -99,37 +110,35 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a5a6070b0d5c915ef3fd55eb3ca21f364"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a5a6070b0d5c915ef3fd55eb3ca21f364">Path</a> (void)</td></tr>
 <tr class="separator:a5a6070b0d5c915ef3fd55eb3ca21f364"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab965d978c370ffecdfbb44042e69d043"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ab965d978c370ffecdfbb44042e69d043">Path</a> (const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;obj)</td></tr>
-<tr class="separator:ab965d978c370ffecdfbb44042e69d043"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add8fd266af0323953b7e1303858c1022"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#add8fd266af0323953b7e1303858c1022">add_contour</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> &gt; &amp;<a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a981f2d2563eeffb159619f3e0cef6cae">contour</a>)</td></tr>
 <tr class="separator:add8fd266af0323953b7e1303858c1022"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a386ef7d7f4a49d6c351132637c58bbc2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a386ef7d7f4a49d6c351132637c58bbc2">add_contours</a> (const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;path)</td></tr>
 <tr class="separator:a386ef7d7f4a49d6c351132637c58bbc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7e991445293d22122fe67281be3cb65"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ae7e991445293d22122fe67281be3cb65">approximate_bounding_box</a> (<a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> *out_bb) const</td></tr>
 <tr class="separator:ae7e991445293d22122fe67281be3cb65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d5356ad9bad73057cbf39dbe6b349e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a1d5356ad9bad73057cbf39dbe6b349e5">arc_to</a> (float angle, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:a1d5356ad9bad73057cbf39dbe6b349e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a1d5356ad9bad73057cbf39dbe6b349e5">arc_to</a> (float angle, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:a1d5356ad9bad73057cbf39dbe6b349e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57770e379444ef7fe377d83f5c71305e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a57770e379444ef7fe377d83f5c71305e">clear</a> (void)</td></tr>
 <tr class="separator:a57770e379444ef7fe377d83f5c71305e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3fd8f41a34d162e2a95f72493d3d8e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ab3fd8f41a34d162e2a95f72493d3d8e3">close_contour</a> (enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:ab3fd8f41a34d162e2a95f72493d3d8e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ab3fd8f41a34d162e2a95f72493d3d8e3">close_contour</a> (enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:ab3fd8f41a34d162e2a95f72493d3d8e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a6ab2e7509836bc7eb24641a24de33a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a4a6ab2e7509836bc7eb24641a24de33a">close_contour_arc</a> (float angle, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:a4a6ab2e7509836bc7eb24641a24de33a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a4a6ab2e7509836bc7eb24641a24de33a">close_contour_arc</a> (float angle, enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:a4a6ab2e7509836bc7eb24641a24de33a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef9ff8e598f45b63dbac9ad385a85fac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#aef9ff8e598f45b63dbac9ad385a85fac">close_contour_cubic</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct1, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct2, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:aef9ff8e598f45b63dbac9ad385a85fac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#aef9ff8e598f45b63dbac9ad385a85fac">close_contour_cubic</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct1, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct2, enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:aef9ff8e598f45b63dbac9ad385a85fac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf1ace8faf07ee46e747e3c3679a50ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#aaf1ace8faf07ee46e747e3c3679a50ef">close_contour_custom</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> &gt; &amp;p)</td></tr>
-<tr class="separator:aaf1ace8faf07ee46e747e3c3679a50ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f66e964439f4acfc9294a0049817d32"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a3f66e964439f4acfc9294a0049817d32">close_contour_quadratic</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:a3f66e964439f4acfc9294a0049817d32"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a3f66e964439f4acfc9294a0049817d32">close_contour_quadratic</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct, enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:a3f66e964439f4acfc9294a0049817d32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a981f2d2563eeffb159619f3e0cef6cae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a981f2d2563eeffb159619f3e0cef6cae">contour</a> (unsigned int i) const</td></tr>
 <tr class="separator:a981f2d2563eeffb159619f3e0cef6cae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ec0ef18197446e61207a976df6f5f7c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a0ec0ef18197446e61207a976df6f5f7c">cubic_to</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct1, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct2, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:a0ec0ef18197446e61207a976df6f5f7c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a0ec0ef18197446e61207a976df6f5f7c">cubic_to</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct1, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct2, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:a0ec0ef18197446e61207a976df6f5f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8093c2654d44dbb24d6016e88b5cad81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a8093c2654d44dbb24d6016e88b5cad81">custom_to</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> &gt; &amp;p)</td></tr>
-<tr class="separator:a8093c2654d44dbb24d6016e88b5cad81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34e18670ef9170cbf3a8067765c03539"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a34e18670ef9170cbf3a8067765c03539">current_contour</a> (void)</td></tr>
+<tr class="separator:a34e18670ef9170cbf3a8067765c03539"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46c3f3e40b81ec905a3ceccf081eef4d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a46c3f3e40b81ec905a3ceccf081eef4d">end_contour</a> (void)</td></tr>
+<tr class="separator:a46c3f3e40b81ec905a3ceccf081eef4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57d8ac177596c64894938bacaa152c8c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a57d8ac177596c64894938bacaa152c8c">is_flat</a> (void) const</td></tr>
 <tr class="separator:a57d8ac177596c64894938bacaa152c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae515b12b23053fb5e6b4a70c0ab021bc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ae515b12b23053fb5e6b4a70c0ab021bc">line_to</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:ae515b12b23053fb5e6b4a70c0ab021bc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ae515b12b23053fb5e6b4a70c0ab021bc">line_to</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:ae515b12b23053fb5e6b4a70c0ab021bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02da6cad1008a5e16773b0081e2e83ea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a02da6cad1008a5e16773b0081e2e83ea">move</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt)</td></tr>
 <tr class="separator:a02da6cad1008a5e16773b0081e2e83ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -143,26 +152,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad5094a17e3af85dde3e259a18d78a026"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a911c7a0b144541f14d7035538dbfe8a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a911c7a0b144541f14d7035538dbfe8a4">operator&lt;&lt;</a> (<a class="el" href="../../d4/d39/classfastuidraw_1_1_path_1_1contour__close.html">contour_close</a>)</td></tr>
 <tr class="separator:a911c7a0b144541f14d7035538dbfe8a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ebfa2542aede06e0e0e6f2c8b2482a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a8ebfa2542aede06e0e0e6f2c8b2482a1">operator&lt;&lt;</a> (<a class="el" href="../../de/d60/classfastuidraw_1_1_path_1_1contour__end.html">contour_end</a>)</td></tr>
+<tr class="separator:a8ebfa2542aede06e0e0e6f2c8b2482a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9111f14bf89a4cff124298127a1ca6b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#aa9111f14bf89a4cff124298127a1ca6b">operator&lt;&lt;</a> (<a class="el" href="../../d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html">contour_close_arc</a> a)</td></tr>
 <tr class="separator:aa9111f14bf89a4cff124298127a1ca6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a661ff8cf0a88583ede93c84b55fd4bf8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a661ff8cf0a88583ede93c84b55fd4bf8">operator&lt;&lt;</a> (const <a class="el" href="../../d0/df3/classfastuidraw_1_1_path_1_1contour__start.html">contour_start</a> &amp;st)</td></tr>
 <tr class="separator:a661ff8cf0a88583ede93c84b55fd4bf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3c179860935039086eae9727ed3a5dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ad3c179860935039086eae9727ed3a5dd">operator&lt;&lt;</a> (enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp)</td></tr>
+<tr class="memitem:ad3c179860935039086eae9727ed3a5dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ad3c179860935039086eae9727ed3a5dd">operator&lt;&lt;</a> (enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp)</td></tr>
 <tr class="separator:ad3c179860935039086eae9727ed3a5dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28db9607c5e16d69187c5e8ccf172cd8"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a28db9607c5e16d69187c5e8ccf172cd8">operator=</a> (const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;rhs)</td></tr>
-<tr class="separator:a28db9607c5e16d69187c5e8ccf172cd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bf8e7afd1d19559042bfa88d6836d62"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a5bf8e7afd1d19559042bfa88d6836d62">prev_interpolator</a> (void)</td></tr>
-<tr class="separator:a5bf8e7afd1d19559042bfa88d6836d62"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adee30e2bc51c8d5331752a124037c0fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#adee30e2bc51c8d5331752a124037c0fd">quadratic_to</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
+<tr class="memitem:adee30e2bc51c8d5331752a124037c0fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#adee30e2bc51c8d5331752a124037c0fd">quadratic_to</a> (const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;ct, const <a class="el" href="../../da/d46/group___utility.html#ga95ebcfae5ab0df7fe30d4fa95be4313d">vec2</a> &amp;pt, enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> etp=<a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a>)</td></tr>
 <tr class="separator:adee30e2bc51c8d5331752a124037c0fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5c2867087bbcb25401bb07845254e46"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d7/d86/classfastuidraw_1_1_shader_filled_path.html">ShaderFilledPath</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#af5c2867087bbcb25401bb07845254e46">shader_filled_path</a> (void) const</td></tr>
-<tr class="separator:af5c2867087bbcb25401bb07845254e46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41bd1763ae4cb0f3a8f62cd13110f7bf"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d7/d86/classfastuidraw_1_1_shader_filled_path.html">ShaderFilledPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a41bd1763ae4cb0f3a8f62cd13110f7bf">shader_filled_path</a> (void) const</td></tr>
+<tr class="separator:a41bd1763ae4cb0f3a8f62cd13110f7bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c415632e547779e826953dcea739751"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a9c415632e547779e826953dcea739751">swap</a> (<a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;obj)</td></tr>
 <tr class="separator:a9c415632e547779e826953dcea739751"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ca4f82def0074ad2639dc0bfda785cb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a2ca4f82def0074ad2639dc0bfda785cb">tessellation</a> (float thresh) const</td></tr>
-<tr class="separator:a2ca4f82def0074ad2639dc0bfda785cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a65dc724a61bf63fc3ae4292f437df616"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a65dc724a61bf63fc3ae4292f437df616">tessellation</a> (void) const</td></tr>
-<tr class="separator:a65dc724a61bf63fc3ae4292f437df616"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab973ff6c243b01b5ec7a2394a553f0a5"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ab973ff6c243b01b5ec7a2394a553f0a5">tessellation</a> (float thresh) const</td></tr>
+<tr class="separator:ab973ff6c243b01b5ec7a2394a553f0a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad938917f4d4fe6a65930f5932fe7c0ff"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ad938917f4d4fe6a65930f5932fe7c0ff">tessellation</a> (void) const</td></tr>
+<tr class="separator:ad938917f4d4fe6a65930f5932fe7c0ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -173,12 +180,11 @@ Static Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> represents a collection of <a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html" title="An PathContour represents a single contour within a Path. ">PathContour</a> objects. </p>
-<p>To close a contour in a <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> (see <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a3f66e964439f4acfc9294a0049817d32">close_contour_quadratic()</a>, <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a4a6ab2e7509836bc7eb24641a24de33a">close_contour_arc()</a>, <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#aef9ff8e598f45b63dbac9ad385a85fac">close_contour_cubic()</a>, <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#aaf1ace8faf07ee46e747e3c3679a50ef">close_contour_custom()</a>, <a class="el" href="../../d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html">contour_close_arc</a> and <a class="el" href="../../d4/d39/classfastuidraw_1_1_path_1_1contour__close.html">contour_close</a>) means to specify the edge from the last point of the current contour to the first point of it. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00658">658</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00667">667</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5a6070b0d5c915ef3fd55eb3ca21f364"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5a6070b0d5c915ef3fd55eb3ca21f364">&#9670;&nbsp;</a></span>Path() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a6070b0d5c915ef3fd55eb3ca21f364">&#9670;&nbsp;</a></span>Path()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -201,30 +207,6 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>Ctor. </p>
-
-</div>
-</div>
-<a id="ab965d978c370ffecdfbb44042e69d043"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab965d978c370ffecdfbb44042e69d043">&#9670;&nbsp;</a></span>Path() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">fastuidraw::Path::Path </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td>
-          <td class="paramname"><em>obj</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Copy ctor. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">obj</td><td><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> from which to copy path data </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -342,7 +324,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00823">823</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00828">828</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
 
 </div>
 </div>
@@ -367,8 +349,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -381,7 +363,7 @@ Static Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">angle</td><td>gives the angle of the arc in radians. For a coordinate system where y increases upwards and x increases to the right, a positive value indicates counter-clockwise and a negative value indicates clockwise </td></tr>
     <tr><td class="paramname">pt</td><td>point to which the arc curve goes </td></tr>
-    <tr><td class="paramname">etp</td><td>the edge type of the new arc made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
+    <tr><td class="paramname">etp</td><td>the edge type of the new arc made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
   </table>
   </dd>
 </dl>
@@ -416,8 +398,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>&amp; fastuidraw::Path::close_contour </td>
           <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code></td><td>)</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -446,8 +428,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -487,8 +469,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -502,30 +484,6 @@ Static Public Member Functions</h2></td></tr>
     <tr><td class="paramname">ct1</td><td>first control point of the cubic Bezier curve </td></tr>
     <tr><td class="paramname">ct2</td><td>second control point of the cubic Bezier curve </td></tr>
     <tr><td class="paramname">etp</td><td>the edge type of the closing edge made. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="aaf1ace8faf07ee46e747e3c3679a50ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf1ace8faf07ee46e747e3c3679a50ef">&#9670;&nbsp;</a></span>close_contour_custom()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>&amp; fastuidraw::Path::close_contour_custom </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>p</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Use a custom interpolator to close the current contour Use <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a5bf8e7afd1d19559042bfa88d6836d62">prev_interpolator()</a> to get the last interpolator of the current contour. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">p</td><td>custom interpolator </td></tr>
   </table>
   </dd>
 </dl>
@@ -547,8 +505,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -621,7 +579,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00834">834</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00839">839</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
 
 </div>
 </div>
@@ -652,8 +610,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -667,29 +625,48 @@ Static Public Member Functions</h2></td></tr>
     <tr><td class="paramname">ct1</td><td>first control point of the cubic Bezier curve </td></tr>
     <tr><td class="paramname">ct2</td><td>second control point of the cubic Bezier curve </td></tr>
     <tr><td class="paramname">pt</td><td>point to which the cubic Bezier curve goes </td></tr>
-    <tr><td class="paramname">etp</td><td>the edge type of the new cubic made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
+    <tr><td class="paramname">etp</td><td>the edge type of the new cubic made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a8093c2654d44dbb24d6016e88b5cad81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8093c2654d44dbb24d6016e88b5cad81">&#9670;&nbsp;</a></span>custom_to()</h2>
+<a id="a34e18670ef9170cbf3a8067765c03539"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a34e18670ef9170cbf3a8067765c03539">&#9670;&nbsp;</a></span>current_contour()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>&amp; fastuidraw::Path::custom_to </td>
+          <td class="memname"><a class="el" href="../../dc/dfc/classfastuidraw_1_1_path_contour.html">PathContour</a>&amp; fastuidraw::Path::current_contour </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>p</em></td><td>)</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Add a custom interpolator. Use <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a5bf8e7afd1d19559042bfa88d6836d62">prev_interpolator()</a> to get the last interpolator of the current contour. </p>
+<p>The current contour of this <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>. Use thie value when creating <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a> objects. </p>
+
+</div>
+</div>
+<a id="a46c3f3e40b81ec905a3ceccf081eef4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46c3f3e40b81ec905a3ceccf081eef4d">&#9670;&nbsp;</a></span>end_contour()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>&amp; fastuidraw::Path::end_contour </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>End the current contour without adding a closing edge. </p>
 
 </div>
 </div>
@@ -727,8 +704,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -740,7 +717,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Append a line to the current contour. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pt</td><td>point to which the line goes </td></tr>
-    <tr><td class="paramname">etp</td><td>the edge type of the new line made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
+    <tr><td class="paramname">etp</td><td>the edge type of the new line made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
   </table>
   </dd>
 </dl>
@@ -791,7 +768,7 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="ab413e8fb3fafea0afdbcedcecc97264a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab413e8fb3fafea0afdbcedcecc97264a">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[1/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab413e8fb3fafea0afdbcedcecc97264a">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[1/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -815,7 +792,7 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a1c546dff0dfe6a94dbadbcd3e653056e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1c546dff0dfe6a94dbadbcd3e653056e">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[2/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c546dff0dfe6a94dbadbcd3e653056e">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[2/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -839,7 +816,7 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="ad5094a17e3af85dde3e259a18d78a026"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5094a17e3af85dde3e259a18d78a026">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[3/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5094a17e3af85dde3e259a18d78a026">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[3/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -863,7 +840,7 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a911c7a0b144541f14d7035538dbfe8a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a911c7a0b144541f14d7035538dbfe8a4">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[4/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a911c7a0b144541f14d7035538dbfe8a4">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[4/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -881,8 +858,27 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a8ebfa2542aede06e0e0e6f2c8b2482a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ebfa2542aede06e0e0e6f2c8b2482a1">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[5/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>&amp; fastuidraw::Path::operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../de/d60/classfastuidraw_1_1_path_1_1contour__end.html">contour_end</a>&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Operator overload to end the current contour </p>
+
+</div>
+</div>
 <a id="aa9111f14bf89a4cff124298127a1ca6b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9111f14bf89a4cff124298127a1ca6b">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[5/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9111f14bf89a4cff124298127a1ca6b">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[6/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -906,7 +902,7 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="a661ff8cf0a88583ede93c84b55fd4bf8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a661ff8cf0a88583ede93c84b55fd4bf8">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[6/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a661ff8cf0a88583ede93c84b55fd4bf8">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[7/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -935,12 +931,12 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00883">883</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d4c/path_8hpp_source.html#l00894">894</a> of file <a class="el" href="../../d1/d4c/path_8hpp_source.html">path.hpp</a>.</p>
 
 </div>
 </div>
 <a id="ad3c179860935039086eae9727ed3a5dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad3c179860935039086eae9727ed3a5dd">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[7/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3c179860935039086eae9727ed3a5dd">&#9670;&nbsp;</a></span>operator<<() <span class="overload">[8/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -948,61 +944,18 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>&amp; fastuidraw::Path::operator&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
           <td class="paramname"><em>etp</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Operator overload to control <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> of the next edge made via operator overloads. If no edge is yet present on the current contour, then the value is ignored. The tag is reset back to <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> after an edge is added. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Operator overload to control <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a> of the next edge made via operator overloads. If no edge is yet present on the current contour, then the value is ignored. The tag is reset back to <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> after an edge is added. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">etp</td><td>edge type </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a28db9607c5e16d69187c5e8ccf172cd8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a28db9607c5e16d69187c5e8ccf172cd8">&#9670;&nbsp;</a></span>operator=()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a>&amp; fastuidraw::Path::operator= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html">Path</a> &amp;&#160;</td>
-          <td class="paramname"><em>rhs</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Assignment operator </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">rhs</td><td>value from which to assign. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a5bf8e7afd1d19559042bfa88d6836d62"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5bf8e7afd1d19559042bfa88d6836d62">&#9670;&nbsp;</a></span>prev_interpolator()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../d0/d7d/classfastuidraw_1_1_path_contour_1_1interpolator__base.html">PathContour::interpolator_base</a>&gt;&amp; fastuidraw::Path::prev_interpolator </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns the last interpolator added to this the current contour of this <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a>. When creating custom interpolator to be added with <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a8093c2654d44dbb24d6016e88b5cad81">custom_to()</a>, You MUST use this interpolator in the ctor of interpolator_base. </p>
 
 </div>
 </div>
@@ -1027,8 +980,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">enum <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
-          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
+          <td class="paramtype">enum <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cd">PathEnums::edge_type_t</a>&#160;</td>
+          <td class="paramname"><em>etp</em> = <code><a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1041,21 +994,21 @@ Static Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">ct</td><td>control point of the quadratic Bezier curve </td></tr>
     <tr><td class="paramname">pt</td><td>point to which the quadratic Bezier curve goes </td></tr>
-    <tr><td class="paramname">etp</td><td>the edge type of the new quadratic made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../df/dda/namespacefastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
+    <tr><td class="paramname">etp</td><td>the edge type of the new quadratic made; if this is the first edge of the current contour, the value of etp is ignored and the value <a class="el" href="../../d8/de5/classfastuidraw_1_1_path_enums.html#ad2bc4ae9ff3a03d2551de130b5c274cda9ef6adcd6e3df86937b7e3869e403072">PathEnums::starts_new_edge</a> is used. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="af5c2867087bbcb25401bb07845254e46"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af5c2867087bbcb25401bb07845254e46">&#9670;&nbsp;</a></span>shader_filled_path()</h2>
+<a id="a41bd1763ae4cb0f3a8f62cd13110f7bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41bd1763ae4cb0f3a8f62cd13110f7bf">&#9670;&nbsp;</a></span>shader_filled_path()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../d7/d86/classfastuidraw_1_1_shader_filled_path.html">ShaderFilledPath</a>&gt;&amp; fastuidraw::Path::shader_filled_path </td>
+          <td class="memname">const <a class="el" href="../../d7/d86/classfastuidraw_1_1_shader_filled_path.html">ShaderFilledPath</a>&amp; fastuidraw::Path::shader_filled_path </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -1091,14 +1044,14 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a2ca4f82def0074ad2639dc0bfda785cb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ca4f82def0074ad2639dc0bfda785cb">&#9670;&nbsp;</a></span>tessellation() <span class="overload">[1/2]</span></h2>
+<a id="ab973ff6c243b01b5ec7a2394a553f0a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab973ff6c243b01b5ec7a2394a553f0a5">&#9670;&nbsp;</a></span>tessellation() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>&gt;&amp; fastuidraw::Path::tessellation </td>
+          <td class="memname">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>&amp; fastuidraw::Path::tessellation </td>
           <td>(</td>
           <td class="paramtype">float&#160;</td>
           <td class="paramname"><em>thresh</em></td><td>)</td>
@@ -1106,7 +1059,7 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Return the tessellation of this <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> at a specific level of detail. The <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is constructed lazily. Additionally, if this <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> changes its geometry, then a new <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> will be contructed on the next call to <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#a65dc724a61bf63fc3ae4292f437df616">tessellation()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Return the tessellation of this <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> at a specific level of detail. The <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> is constructed lazily. Additionally, if this <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html" title="A Path represents a collection of PathContour objects. ">Path</a> changes its geometry, then a new <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> will be contructed on the next call to <a class="el" href="../../df/dea/classfastuidraw_1_1_path.html#ad938917f4d4fe6a65930f5932fe7c0ff">tessellation()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">thresh</td><td>the returned tessellated path will be so that <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html#a41b83dcda7e77b2b963fab92a3148765">TessellatedPath::max_distance()</a> is no more than thresh. A non-positive value will return the lowest level of detail tessellation. </td></tr>
   </table>
@@ -1115,14 +1068,14 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a65dc724a61bf63fc3ae4292f437df616"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a65dc724a61bf63fc3ae4292f437df616">&#9670;&nbsp;</a></span>tessellation() <span class="overload">[2/2]</span></h2>
+<a id="ad938917f4d4fe6a65930f5932fe7c0ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad938917f4d4fe6a65930f5932fe7c0ff">&#9670;&nbsp;</a></span>tessellation() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt;const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>&gt;&amp; fastuidraw::Path::tessellation </td>
+          <td class="memname">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a>&amp; fastuidraw::Path::tessellation </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -1130,7 +1083,7 @@ Static Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, returns the starting point tessellation. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../df/dea/classfastuidraw_1_1_path.html#a65dc724a61bf63fc3ae4292f437df616">tessellation</a>(-1.0f)</div></div><!-- fragment --> 
+<p>Provided as a conveniance, returns the starting point tessellation. Equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../df/dea/classfastuidraw_1_1_path.html#ad938917f4d4fe6a65930f5932fe7c0ff">tessellation</a>(-1.0f)</div></div><!-- fragment --> 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>

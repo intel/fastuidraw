@@ -2,6 +2,7 @@ var searchData=
 [
   ['varying_5flist',['varying_list',['../d5/da3/classfastuidraw_1_1glsl_1_1varying__list.html',1,'fastuidraw::glsl']]],
   ['vecn',['vecN',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
+  ['vecn_3c_20fastuidraw_3a_3astring_5farray_2c_20type_5fnumber_5ftypes_20_3e',['vecN&lt; fastuidraw::string_array, type_number_types &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20fastuidraw_3a_3avecn_2c_204_20_3e',['vecN&lt; fastuidraw::vecN, 4 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20float_2c_202_20_3e',['vecN&lt; float, 2 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],
   ['vecn_3c_20float_2c_204_20_3e',['vecN&lt; float, 4 &gt;',['../d1/d96/classfastuidraw_1_1vec_n.html',1,'fastuidraw']]],

@@ -1,3 +1,4 @@
 <map id="fastuidraw::PainterAttributeWriter" name="fastuidraw::PainterAttributeWriter">
-<area shape="rect" id="node2" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="14,5,177,32"/>
+<area shape="rect" id="node3" href="$de/d23/classfastuidraw_1_1_stroking_attribute_writer.html" title="A StrokingAttributeWriter is an implementation of PainterAttributeWriter for the purpose of stroking ..." alt="" coords="5,169,192,211"/>
+<area shape="rect" id="node2" href="$da/d81/classfastuidraw_1_1noncopyable.html" title="Class for which copy ctor and assignment operator are private functions. " alt="" coords="17,5,180,32"/>
 </map>

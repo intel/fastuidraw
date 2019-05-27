@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['arcstrokedpointpacking',['ArcStrokedPointPacking',['../d3/d95/namespacefastuidraw_1_1_arc_stroked_point_packing.html',1,'fastuidraw']]],
   ['characterencoding',['CharacterEncoding',['../d6/def/namespacefastuidraw_1_1_character_encoding.html',1,'fastuidraw']]],
   ['face',['face',['../d8/dd1/classfastuidraw_1_1_free_type_face.html#abd01307d4399b7cf547b115d9eca6c75',1,'fastuidraw::FreeTypeFace']]],
   ['face_5fforward',['face_forward',['../d1/d96/classfastuidraw_1_1vec_n.html#add8d8a9bf46fd5685e86e6f0204393cf',1,'fastuidraw::vecN']]],
@@ -152,9 +153,9 @@ var searchData=
   ['fill_5frule_5ft',['fill_rule_t',['../d6/db7/classfastuidraw_1_1_painter_enums.html#a22fe6f492c30865a274792bf10ce7d69',1,'fastuidraw::PainterEnums']]],
   ['fill_5fshader',['fill_shader',['../db/d4b/classfastuidraw_1_1_painter_shader_set.html#a39d27a77e152f34cb5b2fd02de29ab5c',1,'fastuidraw::PainterShaderSet::fill_shader(void) const'],['../db/d4b/classfastuidraw_1_1_painter_shader_set.html#a0c8b27e8f43aedb83493f7d77f3553ba',1,'fastuidraw::PainterShaderSet::fill_shader(const PainterFillShader &amp;sh)']]],
   ['fill_5funiform_5fbuffer',['fill_uniform_buffer',['../d4/d1d/classfastuidraw_1_1glsl_1_1_painter_shader_registrar_g_l_s_l.html#a084841330fbeeadc3aeb266da2abd446',1,'fastuidraw::glsl::PainterShaderRegistrarGLSL']]],
-  ['filled',['filled',['../da/df4/classfastuidraw_1_1_tessellated_path.html#ac7c8aba0d344f13f5a5881fde8a73ba3',1,'fastuidraw::TessellatedPath::filled(float thresh) const'],['../da/df4/classfastuidraw_1_1_tessellated_path.html#a3d00c0ef6b804cd6ad71f13d735a5042',1,'fastuidraw::TessellatedPath::filled(void) const']]],
+  ['filled',['filled',['../da/df4/classfastuidraw_1_1_tessellated_path.html#ada7a5e63f68b958ac68b51996f40b388',1,'fastuidraw::TessellatedPath::filled(float thresh) const'],['../da/df4/classfastuidraw_1_1_tessellated_path.html#aa54e1bf0e74db1ea8524e33214a88948',1,'fastuidraw::TessellatedPath::filled(void) const']]],
   ['filled_5fpath_2ehpp',['filled_path.hpp',['../d7/d73/filled__path_8hpp.html',1,'']]],
-  ['filledpath',['FilledPath',['../d7/d9a/classfastuidraw_1_1_filled_path.html',1,'fastuidraw::FilledPath'],['../d7/d9a/classfastuidraw_1_1_filled_path.html#a055f433ed02865dc531c064977b451f9',1,'fastuidraw::FilledPath::FilledPath()']]],
+  ['filledpath',['FilledPath',['../d7/d9a/classfastuidraw_1_1_filled_path.html',1,'fastuidraw']]],
   ['filter_5fbit0',['filter_bit0',['../dd/dac/classfastuidraw_1_1_painter_image_brush_shader.html#a87856e5e370a37ad50ef8d8aae34ae31a38d2904a40a2381df7c13162608be2b1',1,'fastuidraw::PainterImageBrushShader']]],
   ['filter_5fcubic',['filter_cubic',['../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaf527f9346a76e91551490ac3c226736f',1,'fastuidraw::PainterBrushEnums']]],
   ['filter_5flinear',['filter_linear',['../d5/dcd/classfastuidraw_1_1_painter_brush_enums.html#a5755076b60e546fdde983e5f1e14b15aaccaf6cf862f6555fdcac4815a8970626',1,'fastuidraw::PainterBrushEnums']]],
@@ -166,8 +167,13 @@ var searchData=
   ['find_5fshader_5fvariable',['find_shader_variable',['../d0/d53/classfastuidraw_1_1gl_1_1_program.html#a8704e3c65801a14cbbb3df44b538a060',1,'fastuidraw::gl::Program']]],
   ['first_5finterval_5fstart',['first_interval_start',['../d2/d0b/structfastuidraw__dashed__stroking__params__header.html#a0c661ab6b7aa8c1350f97f8d29c0efdb',1,'fastuidraw_dashed_stroking_params_header']]],
   ['first_5finterval_5fstart_5fon_5flooping',['first_interval_start_on_looping',['../d2/d0b/structfastuidraw__dashed__stroking__params__header.html#afb8b6858e0db52defe3d6077c655366b',1,'fastuidraw_dashed_stroking_params_header']]],
-  ['flat',['flat',['../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html',1,'fastuidraw::PathContour::flat'],['../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#a94ac49e9a06e52d5c69d05cf4978dacc',1,'fastuidraw::PathContour::flat::flat()']]],
-  ['flat_5fcaps',['flat_caps',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa24e58db6553eb46347e5c71ace02b05f',1,'fastuidraw::PainterEnums']]],
+  ['flat',['flat',['../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html',1,'fastuidraw::PathContour::flat'],['../df/de7/classfastuidraw_1_1_path_contour_1_1flat.html#a17562ece1a8eebd06e7da19edb5fa9c0',1,'fastuidraw::PathContour::flat::flat()']]],
+  ['flat_5fcap',['flat_cap',['../dc/d10/namespacefastuidraw_1_1_stroked_point_packing.html#a22f49359676d7d03e906484b8cc6c805af1bb776890090a366c2553a18e83fd9b',1,'fastuidraw::StrokedPointPacking']]],
+  ['flat_5fcap_5fending_5fbit',['flat_cap_ending_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#af4a1936d7b43f00f4978b8a9ff7c5632aa133872daa7b7d7376c46d46d905fb27',1,'fastuidraw::StrokedPoint']]],
+  ['flat_5fcap_5fending_5fmask',['flat_cap_ending_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a91c2b36896c8e9caa8cd4640aab8031b',1,'fastuidraw::StrokedPoint']]],
+  ['flat_5fcap_5fis_5fend_5fcontour_5fbit',['flat_cap_is_end_contour_bit',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#af4a1936d7b43f00f4978b8a9ff7c5632a515ec8426c2f3302a96fb7df62d9f133',1,'fastuidraw::StrokedPoint']]],
+  ['flat_5fcap_5fis_5fend_5fcontour_5fmask',['flat_cap_is_end_contour_mask',['../d4/d1b/classfastuidraw_1_1_stroked_point.html#a85d498de52cf4e9cf058e341962e9139a58b1f6642fb789071051b74763a7b8a3',1,'fastuidraw::StrokedPoint']]],
+  ['flat_5fcaps',['flat_caps',['../d6/db7/classfastuidraw_1_1_painter_enums.html#aa57a55ca84e32bfd33f39cdc8ba3b58aa24e58db6553eb46347e5c71ace02b05f',1,'fastuidraw::PainterEnums::flat_caps()'],['../d7/d83/classfastuidraw_1_1_stroked_path.html#a58cb296a5bbef314049d26d0c59fe238',1,'fastuidraw::StrokedPath::flat_caps()']]],
   ['flatten_5farray',['flatten_array',['../de/df7/classfastuidraw_1_1c__array.html#a368aaea45c44e5ac3f18be2c7f9cae19',1,'fastuidraw::c_array']]],
   ['float2x2',['float2x2',['../da/d46/group___utility.html#gadd88b5eb6f9b1db5df50f86869c47a2e',1,'fastuidraw']]],
   ['float3x3',['float3x3',['../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3',1,'fastuidraw']]],
@@ -222,5 +228,5 @@ var searchData=
   ['glsl',['glsl',['../df/d7b/namespacefastuidraw_1_1glsl.html',1,'fastuidraw']]],
   ['glyphgenerateparams',['GlyphGenerateParams',['../dd/d49/namespacefastuidraw_1_1_glyph_generate_params.html',1,'fastuidraw']]],
   ['fastuidraw',['FastUIDraw',['../index.html',1,'']]],
-  ['pathenums',['PathEnums',['../df/dda/namespacefastuidraw_1_1_path_enums.html',1,'fastuidraw']]]
+  ['strokedpointpacking',['StrokedPointPacking',['../dc/d10/namespacefastuidraw_1_1_stroked_point_packing.html',1,'fastuidraw']]]
 ];

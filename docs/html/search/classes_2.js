@@ -2,6 +2,7 @@ var searchData=
 [
   ['c_5farray',['c_array',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20const_20fastuidraw_3a_3ac_5farray_3c_20const_20fastuidraw_3a_3avecn_20_3e_20_3e',['c_array&lt; const fastuidraw::c_array&lt; const fastuidraw::vecN &gt; &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
+  ['c_5farray_3c_20const_20fastuidraw_3a_3atessellatedpath_3a_3asegment_20_3e',['c_array&lt; const fastuidraw::TessellatedPath::segment &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20const_20t_20_3e',['c_array&lt; const T &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20const_20uint32_5ft_20_3e',['c_array&lt; const uint32_t &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
   ['c_5farray_3c_20const_20uint8_5ft_20_3e',['c_array&lt; const uint8_t &gt;',['../de/df7/classfastuidraw_1_1c__array.html',1,'fastuidraw']]],
@@ -14,7 +15,6 @@ var searchData=
   ['callback',['CallBack',['../dc/d3e/classfastuidraw_1_1_a_p_i_callback_set_1_1_call_back.html',1,'fastuidraw::APICallbackSet']]],
   ['callbackgl',['CallbackGL',['../d9/ded/classfastuidraw_1_1gl__binding_1_1_callback_g_l.html',1,'fastuidraw::gl_binding']]],
   ['cap',['cap',['../dc/d7d/classfastuidraw_1_1_tessellated_path_1_1cap.html',1,'fastuidraw::TessellatedPath']]],
-  ['chunkset',['ChunkSet',['../d3/d3f/classfastuidraw_1_1_stroked_caps_joins_1_1_chunk_set.html',1,'fastuidraw::StrokedCapsJoins']]],
   ['colorstop',['ColorStop',['../dd/d78/classfastuidraw_1_1_color_stop.html',1,'fastuidraw']]],
   ['colorstoparray',['ColorStopArray',['../db/d27/classfastuidraw_1_1_color_stop_array.html',1,'fastuidraw']]],
   ['colorstopatlas',['ColorStopAtlas',['../db/d62/classfastuidraw_1_1_color_stop_atlas.html',1,'fastuidraw']]],
@@ -26,6 +26,7 @@ var searchData=
   ['contextproperties',['ContextProperties',['../da/d0c/classfastuidraw_1_1gl_1_1_context_properties.html',1,'fastuidraw::gl']]],
   ['contour_5fclose',['contour_close',['../d4/d39/classfastuidraw_1_1_path_1_1contour__close.html',1,'fastuidraw::Path']]],
   ['contour_5fclose_5farc',['contour_close_arc',['../d4/d91/classfastuidraw_1_1_path_1_1contour__close__arc.html',1,'fastuidraw::Path']]],
+  ['contour_5fend',['contour_end',['../de/d60/classfastuidraw_1_1_path_1_1contour__end.html',1,'fastuidraw::Path']]],
   ['contour_5fstart',['contour_start',['../d0/df3/classfastuidraw_1_1_path_1_1contour__start.html',1,'fastuidraw::Path']]],
   ['control_5fpoint',['control_point',['../df/d77/classfastuidraw_1_1_path_1_1control__point.html',1,'fastuidraw::Path']]],
   ['customfillrulebase',['CustomFillRuleBase',['../d8/d47/classfastuidraw_1_1_custom_fill_rule_base.html',1,'fastuidraw']]],

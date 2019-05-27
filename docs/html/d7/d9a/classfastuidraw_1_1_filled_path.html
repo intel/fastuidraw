@@ -65,6 +65,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="../../de/deb/classfastuidraw_1_1_filled_path-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">fastuidraw::FilledPath Class Reference<div class="ingroups"><a class="el" href="../../d1/dd6/group___painter_attribute.html">Painter Attribute</a></div></div>  </div>
@@ -96,12 +97,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a055f433ed02865dc531c064977b451f9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#a055f433ed02865dc531c064977b451f9">FilledPath</a> (const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;P)</td></tr>
-<tr class="separator:a055f433ed02865dc531c064977b451f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9da65f364589b77d99ca23d737c95ec"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d3/d46/group___painter.html#ga93ac7c37c68e4f483709db208d90cea4">Rect</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#ab9da65f364589b77d99ca23d737c95ec">bounding_box</a> (void) const</td></tr>
 <tr class="separator:ab9da65f364589b77d99ca23d737c95ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae11118f6f09d2f502108c6e92d703ef6"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#ae11118f6f09d2f502108c6e92d703ef6">number_subsets</a> (void) const</td></tr>
 <tr class="separator:ae11118f6f09d2f502108c6e92d703ef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6231cf7919829fb55362ce4830903a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html">Subset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#ab6231cf7919829fb55362ce4830903a2">root_subset</a> (void) const</td></tr>
+<tr class="separator:ab6231cf7919829fb55362ce4830903a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3a76f691873c495fd2520a4dcc26e3a"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#ab3a76f691873c495fd2520a4dcc26e3a">select_subsets</a> (<a class="el" href="../../df/dac/classfastuidraw_1_1_filled_path_1_1_scratch_space.html">ScratchSpace</a> &amp;scratch_space, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../da/d46/group___utility.html#ga8b05b436406cc6f7e556ffa91c58c249">vec3</a> &gt; clip_equations, const <a class="el" href="../../da/d46/group___utility.html#ga3515a6961897dd485cfc084f6a6c2ad3">float3x3</a> &amp;clip_matrix_local, unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst) const</td></tr>
 <tr class="separator:ab3a76f691873c495fd2520a4dcc26e3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0bbade07047d9f68b3c4b0eed6bd3f57"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html#a0bbade07047d9f68b3c4b0eed6bd3f57">select_subsets_no_culling</a> (unsigned int max_attribute_cnt, unsigned int max_index_cnt, <a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; unsigned int &gt; dst) const</td></tr>
@@ -111,6 +112,12 @@ Public Member Functions</h2></td></tr>
 <tr class="inherit_header pub_methods_classfastuidraw_1_1reference__counted__base"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classfastuidraw_1_1reference__counted__base')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html">fastuidraw::reference_counted_base&lt; T, Counter &gt;</a></td></tr>
 <tr class="memitem:a1043ffe68beb4f2b6f670ae9ec420e63 inherit pub_methods_classfastuidraw_1_1reference__counted__base"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df5/classfastuidraw_1_1reference__counted__base.html#a1043ffe68beb4f2b6f670ae9ec420e63">reference_counted_base</a> (void)</td></tr>
 <tr class="separator:a1043ffe68beb4f2b6f670ae9ec420e63 inherit pub_methods_classfastuidraw_1_1reference__counted__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:aa0f7f9aeddcd1e84127b3bb6020f3936"><td class="memItemLeft" align="right" valign="top"><a id="aa0f7f9aeddcd1e84127b3bb6020f3936"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>TessellatedPath</b></td></tr>
+<tr class="separator:aa0f7f9aeddcd1e84127b3bb6020f3936"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -124,40 +131,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>A <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html" title="A FilledPath represents the data needed to draw a path filled. It contains -all- the data needed to f...">FilledPath</a> represents the data needed to draw a path filled. It contains -all- the data needed to fill a path regardless of the fill rule. </p>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d73/filled__path_8hpp_source.html#l00051">51</a> of file <a class="el" href="../../d7/d73/filled__path_8hpp_source.html">filled_path.hpp</a>.</p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a055f433ed02865dc531c064977b451f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a055f433ed02865dc531c064977b451f9">&#9670;&nbsp;</a></span>FilledPath()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">fastuidraw::FilledPath::FilledPath </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html">TessellatedPath</a> &amp;&#160;</td>
-          <td class="paramname"><em>P</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Ctor. Construct a <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html" title="A FilledPath represents the data needed to draw a path filled. It contains -all- the data needed to f...">FilledPath</a> from the data of a <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a>. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">P</td><td>source <a class="el" href="../../da/df4/classfastuidraw_1_1_tessellated_path.html" title="An TessellatedPath represents the tessellation of a Path into line segments and arcs. ">TessellatedPath</a> </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ab9da65f364589b77d99ca23d737c95ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab9da65f364589b77d99ca23d737c95ec">&#9670;&nbsp;</a></span>bounding_box()</h2>
 
@@ -193,6 +167,25 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Returns the number of <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html" title="A Subset represents a handle to a portion of a FilledPath. The handle is invalid once the FilledPath ...">Subset</a> objects of the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html" title="A FilledPath represents the data needed to draw a path filled. It contains -all- the data needed to f...">FilledPath</a>. </p>
+
+</div>
+</div>
+<a id="ab6231cf7919829fb55362ce4830903a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6231cf7919829fb55362ce4830903a2">&#9670;&nbsp;</a></span>root_subset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html">Subset</a> fastuidraw::FilledPath::root_subset </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the root <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html">Subset</a>, i.e. the <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html">Subset</a> that encompasses the entire <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html">FilledPath</a>. </p>
 
 </div>
 </div>
@@ -318,7 +311,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Return the named <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html" title="A Subset represents a handle to a portion of a FilledPath. The handle is invalid once the FilledPath ...">Subset</a> object of the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html" title="A FilledPath represents the data needed to draw a path filled. It contains -all- the data needed to f...">FilledPath</a>. </p>
+<p>Return the named <a class="el" href="../../d4/d2e/classfastuidraw_1_1_filled_path_1_1_subset.html">Subset</a> object of the <a class="el" href="../../d7/d9a/classfastuidraw_1_1_filled_path.html" title="A FilledPath represents the data needed to draw a path filled. It contains -all- the data needed to f...">FilledPath</a>. </p>
 
 </div>
 </div>

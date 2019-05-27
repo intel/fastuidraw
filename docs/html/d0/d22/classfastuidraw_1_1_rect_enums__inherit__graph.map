@@ -1,4 +1,5 @@
 <map id="fastuidraw::RectEnums" name="fastuidraw::RectEnums">
-<area shape="rect" id="node2" href="$d3/d44/classfastuidraw_1_1_rect_t.html" title="fastuidraw::RectT\&lt; T \&gt;" alt="" coords="11,80,170,107"/>
-<area shape="rect" id="node3" href="$d9/d72/classfastuidraw_1_1_rounded_rect.html" title="fastuidraw::RoundedRect\l\&lt; float \&gt;" alt="" coords="5,155,176,196"/>
+<area shape="rect" id="node2" href="$d3/d44/classfastuidraw_1_1_rect_t.html" title="fastuidraw::RectT\&lt; T \&gt;" alt="" coords="5,87,164,114"/>
+<area shape="rect" id="node3" href="$d3/d44/classfastuidraw_1_1_rect_t.html" title="fastuidraw::RectT\&lt;\l float \&gt;" alt="" coords="188,80,323,121"/>
+<area shape="rect" id="node4" href="$d9/d72/classfastuidraw_1_1_rounded_rect.html" title="fastuidraw::RoundedRect" alt="" coords="170,169,341,196"/>
 </map>

@@ -19,6 +19,6 @@ var searchData=
   ['item_5fmatrix_5flocation_5foffset',['item_matrix_location_offset',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a6967440c9d4058b2f182b534b805dc52',1,'fastuidraw::PainterHeader']]],
   ['item_5fshader_5fdata_5flocation_5foffset',['item_shader_data_location_offset',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a05cd4c7b4a36b5fd046c85934226752b',1,'fastuidraw::PainterHeader']]],
   ['item_5fshader_5foffset',['item_shader_offset',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a85cb36bd43ee905a6bba97fb340cdc23',1,'fastuidraw::PainterHeader']]],
-  ['item_5fspace_5fdistance',['item_space_distance',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25ae343509dc56afa17662427e2127417b8',1,'fastuidraw::StrokingDataSelectorBase']]],
-  ['item_5fspace_5fdistance_5fmiter_5fjoins',['item_space_distance_miter_joins',['../db/da5/classfastuidraw_1_1_stroking_data_selector_base.html#a14ccee44aad351389534f892f25c7d25a8a61434f8539ac35163bbfdd61743a87',1,'fastuidraw::StrokingDataSelectorBase']]]
+  ['item_5fspace_5fdistance',['item_space_distance',['../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0a050fc721ba89b99e162af0e941d795a1',1,'fastuidraw::PathEnums']]],
+  ['item_5fspace_5fdistance_5fmiter_5fjoins',['item_space_distance_miter_joins',['../d8/de5/classfastuidraw_1_1_path_enums.html#a71a07e90523553c563833cf40b955af0afffccc4b2cc81ab6479fe9f357181a3a',1,'fastuidraw::PathEnums']]]
 ];

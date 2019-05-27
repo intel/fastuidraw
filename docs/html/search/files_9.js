@@ -49,7 +49,10 @@ var searchData=
   ['painter_5fstroke_5fshader_2ehpp',['painter_stroke_shader.hpp',['../d1/d91/painter__stroke__shader_8hpp.html',1,'']]],
   ['painter_5fsurface_2ehpp',['painter_surface.hpp',['../d2/d7b/painter__surface_8hpp.html',1,'']]],
   ['painter_5fsurface_5fgl_2ehpp',['painter_surface_gl.hpp',['../dd/d5a/painter__surface__gl_8hpp.html',1,'']]],
+  ['partitioned_5ftessellated_5fpath_2ehpp',['partitioned_tessellated_path.hpp',['../db/d08/partitioned__tessellated__path_8hpp.html',1,'']]],
   ['path_2ehpp',['path.hpp',['../d1/d4c/path_8hpp.html',1,'']]],
+  ['path_5fdash_5feffect_2ehpp',['path_dash_effect.hpp',['../d8/dbc/path__dash__effect_8hpp.html',1,'']]],
+  ['path_5feffect_2ehpp',['path_effect.hpp',['../de/d2d/path__effect_8hpp.html',1,'']]],
   ['path_5fenums_2ehpp',['path_enums.hpp',['../d6/d99/path__enums_8hpp.html',1,'']]],
   ['pixel_5fdistance_5fmath_2ehpp',['pixel_distance_math.hpp',['../dd/de0/pixel__distance__math_8hpp.html',1,'']]]
 ];
