@@ -126,7 +126,8 @@
   The data represents the small amount of data that the shader unpacks from the
   data store.
 
-  The implementation of the data used by the custom brush and the shader
+  Using the symbols documented in \ref GLSLBuiltInShaders, the implementation
+  of the data used by the custom brush and the shader
   for it is given by \snippet example_custom_brush.cpp ExampleCustomBrushDefining
 
   The implementation of using the custom brush is given by
@@ -151,4 +152,19 @@
  * The code is given by
  * \snippet example_packed_value.cpp ExamplePackedValue
  *
+ */
+
+/*!
+ * \page ex_custom_stroking_shader Example Custom Stroking Shader
+ * \brief
+ * Example of using the shader-chaining interface to create a
+ * custom strok shader that applies an animated wave effect
+ * entirely within the shader.
+ *
+ * Using the symbols documented in \ref GLSLBuiltInShaders, the
+ * implementation of the custom shader and data is given by
+ * \snippet example_custom_path_shading.cpp ExampleCustomPathShaderDefining
+ *
+ * The implementation of using the custom stroking is given by
+ * \snippet example_custom_path_shading.cpp ExampleCustomPathShading
  */

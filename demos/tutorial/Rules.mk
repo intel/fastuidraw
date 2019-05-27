@@ -28,6 +28,9 @@ include $(dir)/Rules.mk
 dir := $(d)/packed_value
 include $(dir)/Rules.mk
 
+dir := $(d)/custom_path_shading
+include $(dir)/Rules.mk
+
 # Begin standard footer
 d		:= $(dirstack_$(sp))
 sp		:= $(basename $(sp))
