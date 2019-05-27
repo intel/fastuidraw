@@ -691,14 +691,7 @@ PartitionedTessellatedPathPrivate(const fastuidraw::TessellatedPath &P)
 {
   SubsetBuilder builder;
 
-  for (unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
-    {
-      for (unsigned int E = 0, endE = P.number_edges(C); E < endE; ++E)
-        {
-          builder.process_chain(P.edge_segment_chain(C, E));
-        }
-    }
-
+  builder.process_chains(P.segment_chain_data());
   builder.process_joins(P.join_data());
   builder.process_caps(P.cap_data());
   m_has_arcs = builder.m_has_arcs;
