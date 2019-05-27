@@ -252,6 +252,7 @@ namespace
   public:
     std::vector<Edge> m_edges;
     bool m_is_closed;
+    fastuidraw::range_type<unsigned int> m_segment_chain_range;
   };
 
   class TessellatedPathPrivate
@@ -284,6 +285,7 @@ namespace
 
     std::vector<TessellatedContour> m_contours;
     std::vector<fastuidraw::TessellatedPath::segment> m_segment_data;
+    std::vector<fastuidraw::TessellatedPath::segment_chain> m_segment_chain_data;
     std::vector<fastuidraw::TessellatedPath::join> m_join_data;
     std::vector<fastuidraw::TessellatedPath::cap> m_cap_data;
     fastuidraw::BoundingBox<float> m_bounding_box;
@@ -894,11 +896,15 @@ finalize(TessellatedPathBuildingState &b)
   /* set the edge/contour properties of each segment */
   for (unsigned int C = 0, endC = m_contours.size(); C < endC; ++C)
     {
-      const TessellatedContour &contour(m_contours[C]);
+      TessellatedContour &contour(m_contours[C]);
+      TessellatedPath::segment_chain chain;
       const TessellatedPath::segment *prev_segment(nullptr);
 
+      chain.m_prev_to_start = nullptr;
+      contour.m_segment_chain_range.m_begin = m_segment_chain_data.size();
       if (contour.m_edges.empty())
         {
+          contour.m_segment_chain_range.m_end = m_segment_chain_data.size();
           continue;
         }
 
@@ -955,6 +961,12 @@ finalize(TessellatedPathBuildingState &b)
               m_join_data.push_back(J);
             }
 
+          chain.m_segments = edge_segs;
+          chain.m_prev_to_start = (edge.m_edge_type == PathEnums::starts_new_edge) ?
+            nullptr:
+            prev_segment;
+          m_segment_chain_data.push_back(chain);
+
           for (TessellatedPath::segment &S : edge_segs)
             {
               S.m_contour_id = C;
@@ -966,6 +978,7 @@ finalize(TessellatedPathBuildingState &b)
           edge_segs.front().m_first_segment_of_edge = true;
           edge_segs.back().m_last_segment_of_edge = true;
         }
+      contour.m_segment_chain_range.m_end = m_segment_chain_data.size();
     }
 }
 
@@ -1419,6 +1432,16 @@ segment_data(void) const
   return make_c_array(d->m_segment_data);
 }
 
+fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain>
+fastuidraw::TessellatedPath::
+segment_chain_data(void) const
+{
+  TessellatedPathPrivate *d;
+  d = static_cast<TessellatedPathPrivate*>(m_d);
+
+  return make_c_array(d->m_segment_chain_data);
+}
+
 fastuidraw::c_array<const fastuidraw::TessellatedPath::join>
 fastuidraw::TessellatedPath::
 join_data(void) const
@@ -1478,6 +1501,16 @@ contour_segment_data(unsigned int contour) const
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
   return make_c_array(d->m_segment_data).sub_array(contour_range(contour));
+}
+
+fastuidraw::c_array<const fastuidraw::TessellatedPath::segment_chain>
+fastuidraw::TessellatedPath::
+contour_chains(unsigned int contour) const
+{
+  TessellatedPathPrivate *d;
+  d = static_cast<TessellatedPathPrivate*>(m_d);
+
+  return make_c_array(d->m_segment_chain_data).sub_array(d->m_contours[contour].m_segment_chain_range);
 }
 
 unsigned int

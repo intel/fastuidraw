@@ -735,10 +735,17 @@ public:
   max_recursion(void) const;
 
   /*!
-   * Returns all the segment data
+   * Returns all the segment data of the entire path.
    */
   c_array<const segment>
   segment_data(void) const;
+
+  /*!
+   * Returns the array of \ref segment_chain objects
+   * of the entire path.
+   */
+  c_array<const segment_chain>
+  segment_chain_data(void) const;
 
   /*!
    * Returns all the join data
@@ -786,6 +793,15 @@ public:
    */
   c_array<const segment>
   contour_segment_data(unsigned int contour) const;
+
+  /*!
+   * Returns the array of \ref segment_chain objects
+   * of a contour.
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
+   */
+  c_array<const segment_chain>
+  contour_chains(unsigned int contour) const;
 
   /*!
    * Returns the number of edges for the named contour
