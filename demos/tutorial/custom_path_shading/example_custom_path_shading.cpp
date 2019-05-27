@@ -249,7 +249,7 @@ create_custom_shader(const fastuidraw::reference_counted_ptr<T> &stroking_shader
     "   float q, dd;\n"
     // we want a coverage value so that if a < stroke_shader::fastuidraw_stroking_relative_distance_from_center
     // then we get zero, but we want to apply some anti-aliasing as well.
-    "   q = max(a - stroke_shader::fastuidraw_stroking_relative_distance_from_center);\n"
+    "   q = max(a - stroke_shader::fastuidraw_stroking_relative_distance_from_center, 0.0);\n"
     "   dd = max(q, stroke_shader::fastuidraw_stroking_relative_distance_from_center_fwidth);\n"
     "   return_value *= q / dd;\n"
     "#endif\n"
