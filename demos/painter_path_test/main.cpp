@@ -31,27 +31,36 @@ on_off(bool v)
   return v ? "ON" : "OFF";
 }
 
-class ExampleItemData:public fastuidraw::PainterItemShaderData
+class WavyEffect
+{
+public:
+  float m_domain_coeff, m_phase;
+  vecN<float, 4> m_cos_coeffs;
+  vecN<float, 4> m_sin_coeffs;
+};
+
+template<typename T>
+class ExampleItemData:public PainterItemShaderData
 {
 public:
   virtual
   void
-  pack_data(fastuidraw::c_array<fastuidraw::uvec4> dst) const override
+  pack_data(c_array<uvec4> dst) const override
   {
     float sum(0.0f);
 
     for (int i = 0; i < 4; ++i)
       {
-        sum += fastuidraw::t_abs(m_cos_coeffs[i]);
-        sum += fastuidraw::t_abs(m_sin_coeffs[i]);
+        sum += t_abs(m_wavy_effect.m_cos_coeffs[i]);
+        sum += t_abs(m_wavy_effect.m_sin_coeffs[i]);
       }
 
-    dst[0] = fastuidraw::pack_vec4(m_cos_coeffs);
-    dst[1] = fastuidraw::pack_vec4(m_sin_coeffs);
-    dst[2].x() = fastuidraw::pack_float(m_domain_coeff);
-    dst[2].y() = fastuidraw::pack_float(1.0f / sum);
-    dst[2].z() = fastuidraw::pack_float(m_phase);
-    dst[2].w() = fastuidraw::pack_float(m_stroke_params.width());
+    dst[0] = pack_vec4(m_wavy_effect.m_cos_coeffs);
+    dst[1] = pack_vec4(m_wavy_effect.m_sin_coeffs);
+    dst[2].x() = pack_float(m_wavy_effect.m_domain_coeff);
+    dst[2].y() = pack_float(1.0f / sum);
+    dst[2].z() = pack_float(m_wavy_effect.m_phase);
+    dst[2].w() = pack_float(m_stroke_params.width());
     m_stroke_params.pack_data(dst.sub_array(3));
   }
 
@@ -62,48 +71,60 @@ public:
     return 3 + m_stroke_params.data_size();
   }
 
-  float m_domain_coeff, m_phase;
-  fastuidraw::vecN<float, 4> m_cos_coeffs;
-  fastuidraw::vecN<float, 4> m_sin_coeffs;
-  fastuidraw::PainterStrokeParams m_stroke_params;
+  WavyEffect m_wavy_effect;
+  T m_stroke_params;
 };
 
-fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL>
-call_ctor(bool has_wavy_effect,
-          const fastuidraw::glsl::ShaderSource &vert_src,
-          const fastuidraw::glsl::ShaderSource &frag_src,
-          const fastuidraw::glsl::PainterItemShaderGLSL::DependencyList deps,
+reference_counted_ptr<glsl::PainterItemShaderGLSL>
+call_ctor(bool uses_discard,
+          const glsl::ShaderSource &vert_src,
+          const glsl::ShaderSource &frag_src,
+          const glsl::PainterItemShaderGLSL::DependencyList deps,
           unsigned int num_subshaders)
 {
-  return FASTUIDRAWnew fastuidraw::glsl::PainterItemShaderGLSL(has_wavy_effect,
-                                                               vert_src,
-                                                               frag_src,
-                                                               fastuidraw::glsl::varying_list(),
-                                                               deps,
-                                                               num_subshaders);
+  return FASTUIDRAWnew glsl::PainterItemShaderGLSL(uses_discard,
+                                                   vert_src,
+                                                   frag_src,
+                                                   glsl::varying_list(),
+                                                   deps,
+                                                   num_subshaders);
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemCoverageShaderGLSL>
+reference_counted_ptr<glsl::PainterItemCoverageShaderGLSL>
 call_ctor(bool,
-          const fastuidraw::glsl::ShaderSource &vert_src,
-          const fastuidraw::glsl::ShaderSource &frag_src,
-          const fastuidraw::glsl::PainterItemCoverageShaderGLSL::DependencyList deps,
+          const glsl::ShaderSource &vert_src,
+          const glsl::ShaderSource &frag_src,
+          const glsl::PainterItemCoverageShaderGLSL::DependencyList deps,
           unsigned int num_subshaders)
 {
-  return FASTUIDRAWnew fastuidraw::glsl::PainterItemCoverageShaderGLSL(vert_src,
-                                                                       frag_src,
-                                                                       fastuidraw::glsl::varying_list(),
-                                                                       deps,
-                                                                       num_subshaders);
+  return FASTUIDRAWnew glsl::PainterItemCoverageShaderGLSL(vert_src,
+                                                           frag_src,
+                                                           glsl::varying_list(),
+                                                           deps,
+                                                           num_subshaders);
+}
+
+bool
+uses_discard(const reference_counted_ptr<glsl::PainterItemShaderGLSL> &sh,
+             bool apply_wavy_effect)
+{
+  return apply_wavy_effect || sh->uses_discard();
+}
+
+bool
+uses_discard(const reference_counted_ptr<glsl::PainterItemCoverageShaderGLSL>&,
+             bool)
+{
+  return false;
 }
 
 template<typename T>
-fastuidraw::reference_counted_ptr<T>
-create_custom_shader(const fastuidraw::reference_counted_ptr<T> &stroking_shader,
+reference_counted_ptr<T>
+create_custom_shader(const reference_counted_ptr<T> &stroking_shader,
                      bool add_wavy_effect)
 {
   using namespace fastuidraw;
-  using namespace fastuidraw::glsl;
+  using namespace glsl;
 
   typename T::DependencyList deps;
   deps.add_shader("stroke_shader", stroking_shader);
@@ -145,14 +166,13 @@ create_custom_shader(const fastuidraw::reference_counted_ptr<T> &stroking_shader
     "   float coeff, inverse_sum, phase, width;\n"
     "   return_type return_value;\n"
     "   cos_coeffs = uintBitsToFloat(fastuidraw_fetch_data(shader_data_block));\n"
-    "   ++shader_data_block;\n"
-    "   sin_coeffs = uintBitsToFloat(fastuidraw_fetch_data(shader_data_block));\n"
-    "   ++shader_data_block;\n"
-    "   tmp = fastuidraw_fetch_data(shader_data_block);\n"
+    "   sin_coeffs = uintBitsToFloat(fastuidraw_fetch_data(shader_data_block + 1u));\n"
+    "   tmp = fastuidraw_fetch_data(shader_data_block + 2u);\n"
     "   coeff = uintBitsToFloat(tmp.x);\n"
     "   inverse_sum = uintBitsToFloat(tmp.y);\n"
     "   phase = uintBitsToFloat(tmp.z);\n"
     "   width = uintBitsToFloat(tmp.w);\n"
+    "   shader_data_block += 3u;\n"
     "\n"
     "   return_value = stroke_shader(sub_shader, shader_data_block);\n"
     // use the symbols fastuidraw_stroking_relative_distance_from_center
@@ -172,7 +192,7 @@ create_custom_shader(const fastuidraw::reference_counted_ptr<T> &stroking_shader
     "   float q, dd;\n"
     // we want a coverage value so that if a < stroke_shader::fastuidraw_stroking_relative_distance_from_center
     // then we get zero, but we want to apply some anti-aliasing as well.
-    "   q = a - stroke_shader::fastuidraw_stroking_relative_distance_from_center;\n"
+    "   q = max(0.0, a - stroke_shader::fastuidraw_stroking_relative_distance_from_center);\n"
     "   dd = max(q, stroke_shader::fastuidraw_stroking_relative_distance_from_center_fwidth);\n"
     "   return_value *= q / dd;\n"
     "#endif\n"
@@ -190,7 +210,7 @@ create_custom_shader(const fastuidraw::reference_counted_ptr<T> &stroking_shader
     "                        inout uint shader_data_block)\n"
     "{\n"
     "   shader_data_block += 3u;"
-    "   return stroke_shader(sub_shader, shader_data_block).gbar;\n"
+    "   return stroke_shader(sub_shader, shader_data_block);\n"
     "}\n";
 
   const char *custom_frag_shader;
@@ -199,7 +219,7 @@ create_custom_shader(const fastuidraw::reference_counted_ptr<T> &stroking_shader
     custom_wavy_frag_shader:
     custom_pass_through_frag_shader;
 
-  return call_ctor(add_wavy_effect,
+  return call_ctor(uses_discard(stroking_shader, add_wavy_effect),
                    ShaderSource().add_source(custom_vert_shader, ShaderSource::from_string),
                    ShaderSource().add_source(custom_frag_shader, ShaderSource::from_string),
                    deps,
@@ -207,10 +227,10 @@ create_custom_shader(const fastuidraw::reference_counted_ptr<T> &stroking_shader
 }
 
 template<typename T>
-class CustomShaderGenerator:fastuidraw::noncopyable
+class CustomShaderGenerator:noncopyable
 {
 public:
-  typedef fastuidraw::reference_counted_ptr<T> shader_ref;
+  typedef reference_counted_ptr<T> shader_ref;
   typedef std::map<shader_ref, shader_ref> shader_map;
 
   shader_ref
@@ -236,10 +256,10 @@ private:
   shader_map m_shaders;
 };
 
-fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
-generate_item_shader(CustomShaderGenerator<fastuidraw::glsl::PainterItemShaderGLSL> &item_shaders,
-                     CustomShaderGenerator<fastuidraw::glsl::PainterItemCoverageShaderGLSL> &cvg_shaders,
-                     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> src)
+reference_counted_ptr<PainterItemShader>
+generate_item_shader(CustomShaderGenerator<glsl::PainterItemShaderGLSL> &item_shaders,
+                     CustomShaderGenerator<glsl::PainterItemCoverageShaderGLSL> &cvg_shaders,
+                     reference_counted_ptr<PainterItemShader> src)
 {
   using namespace fastuidraw;
   using namespace glsl;
@@ -264,7 +284,7 @@ generate_item_shader(CustomShaderGenerator<fastuidraw::glsl::PainterItemShaderGL
   src_cvg = src->coverage_shader();
   if (src_cvg)
     {
-      fastuidraw::reference_counted_ptr<PainterItemCoverageShaderGLSL> src_cvg_glsl;
+      reference_counted_ptr<PainterItemCoverageShaderGLSL> src_cvg_glsl;
 
       if (src_cvg->parent())
         {
@@ -293,14 +313,14 @@ generate_item_shader(CustomShaderGenerator<fastuidraw::glsl::PainterItemShaderGL
 }
 
 void
-set_shader(fastuidraw::PainterStrokeShader &dst,
-           CustomShaderGenerator<fastuidraw::glsl::PainterItemShaderGLSL> &item_shaders,
-           CustomShaderGenerator<fastuidraw::glsl::PainterItemCoverageShaderGLSL> &cvg_shaders,
-           const fastuidraw::PainterStrokeShader &src,
-           enum fastuidraw::Painter::stroking_method_t tp,
-           enum fastuidraw::PainterStrokeShader::shader_type_t sh)
+set_shader(PainterStrokeShader &dst,
+           CustomShaderGenerator<glsl::PainterItemShaderGLSL> &item_shaders,
+           CustomShaderGenerator<glsl::PainterItemCoverageShaderGLSL> &cvg_shaders,
+           const PainterStrokeShader &src,
+           enum Painter::stroking_method_t tp,
+           enum PainterStrokeShader::shader_type_t sh)
 {
-  fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> new_shader, src_shader;
+  reference_counted_ptr<PainterItemShader> new_shader, src_shader;
 
   src_shader = src.shader(tp, sh);
   new_shader = generate_item_shader(item_shaders, cvg_shaders, src_shader);
@@ -309,17 +329,17 @@ set_shader(fastuidraw::PainterStrokeShader &dst,
   dst.shader(tp, sh, new_shader);
 }
 
-class CustomStrokingDataSelector:public fastuidraw::StrokingDataSelectorBase
+class CustomStrokingDataSelector:public StrokingDataSelectorBase
 {
 public:
   explicit
-  CustomStrokingDataSelector(const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> &base):
+  CustomStrokingDataSelector(const reference_counted_ptr<const StrokingDataSelectorBase> &base):
     m_base(base)
   {}
 
   virtual
   float
-  compute_thresh(fastuidraw::c_array<const fastuidraw::uvec4> data,
+  compute_thresh(c_array<const uvec4> data,
                  float path_magnification,
                  float curve_flatness) const override
   {
@@ -330,37 +350,37 @@ public:
 
   virtual
   void
-  stroking_distances(fastuidraw::c_array<const fastuidraw::uvec4 > data,
-                     fastuidraw::c_array<float> out_values) const override
+  stroking_distances(c_array<const uvec4 > data,
+                     c_array<float> out_values) const override
   {
     m_base->stroking_distances(data.sub_array(3), out_values);
   }
 
   virtual
   bool
-  arc_stroking_possible(fastuidraw::c_array<const fastuidraw::uvec4 > data) const override
+  arc_stroking_possible(c_array<const uvec4 > data) const override
   {
     return m_base->arc_stroking_possible(data.sub_array(3));
   }
 
   virtual
   bool
-  data_compatible(fastuidraw::c_array<const fastuidraw::uvec4 > data) const override
+  data_compatible(c_array<const uvec4 > data) const override
   {
     return m_base->data_compatible(data.sub_array(3));
   }
 
-  fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> m_base;
+  reference_counted_ptr<const StrokingDataSelectorBase> m_base;
 };
 
-fastuidraw::PainterStrokeShader
-generate_stroke_shader(const fastuidraw::PainterStrokeShader &src)
+PainterStrokeShader
+generate_stroke_shader(const PainterStrokeShader &src,
+                       CustomShaderGenerator<glsl::PainterItemShaderGLSL> &item_shaders,
+                       CustomShaderGenerator<glsl::PainterItemCoverageShaderGLSL> &cvg_shaders)
 {
   using namespace fastuidraw;
-  using namespace fastuidraw::glsl;
+  using namespace glsl;
 
-  CustomShaderGenerator<PainterItemShaderGLSL> item_shaders;
-  CustomShaderGenerator<PainterItemCoverageShaderGLSL> cvg_shaders;
   PainterStrokeShader return_value;
 
   set_shader(return_value, item_shaders, cvg_shaders,
@@ -383,6 +403,30 @@ generate_stroke_shader(const fastuidraw::PainterStrokeShader &src)
     .stroking_data_selector(FASTUIDRAWnew CustomStrokingDataSelector(src.stroking_data_selector()))
     .fastest_non_anti_aliased_stroking_method(src.fastest_non_anti_aliased_stroking_method())
     .fastest_anti_aliased_stroking_method(src.fastest_anti_aliased_stroking_method());
+
+  return return_value;
+}
+
+void
+set_shader(PainterDashedStrokeShaderSet &dst,
+           CustomShaderGenerator<glsl::PainterItemShaderGLSL> &item_shaders,
+           CustomShaderGenerator<glsl::PainterItemCoverageShaderGLSL> &cvg_shaders,
+           const PainterDashedStrokeShaderSet &src,
+           enum Painter::cap_style st)
+{
+  dst.shader(st, generate_stroke_shader(src.shader(st), item_shaders, cvg_shaders));
+}
+
+PainterDashedStrokeShaderSet
+generate_dashed_stroke_shader(const PainterDashedStrokeShaderSet &src,
+                               CustomShaderGenerator<glsl::PainterItemShaderGLSL> &item_shaders,
+                               CustomShaderGenerator<glsl::PainterItemCoverageShaderGLSL> &cvg_shaders)
+{
+  PainterDashedStrokeShaderSet return_value;
+
+  set_shader(return_value, item_shaders, cvg_shaders, src, Painter::flat_caps);
+  set_shader(return_value, item_shaders, cvg_shaders, src, Painter::rounded_caps);
+  set_shader(return_value, item_shaders, cvg_shaders, src, Painter::square_caps);
 
   return return_value;
 }
@@ -514,7 +558,7 @@ public:
   {}
 
   virtual
-  fastuidraw::gpu_dirty_state
+  gpu_dirty_state
   execute(PainterBackend*) const
   {
     if (m_lines)
@@ -807,6 +851,9 @@ private:
   void
   draw_scene(bool drawing_wire_frame);
 
+  void
+  fill_way_effect(WavyEffect &data);
+
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -918,7 +965,8 @@ private:
   PathDashEffect m_current_effect;
 
   bool m_use_shader_effect;
-  fastuidraw::PainterStrokeShader m_stroke_shader;
+  PainterStrokeShader m_stroke_shader;
+  PainterDashedStrokeShaderSet m_dashed_stroke_shader;
 };
 
 ///////////////////////////////////
@@ -1274,7 +1322,7 @@ update_cts_params(void)
     {
       m_grid_path_dirty = true;
       m_stroke_width -= speed_stroke;
-      m_stroke_width = fastuidraw::t_max(m_stroke_width, 0.0f);
+      m_stroke_width = t_max(m_stroke_width, 0.0f);
     }
 
   if (keyboard_state[SDL_SCANCODE_RIGHTBRACKET] || keyboard_state[SDL_SCANCODE_LEFTBRACKET])
@@ -1302,13 +1350,13 @@ update_cts_params(void)
       if (keyboard_state[SDL_SCANCODE_UP])
         {
           changer->y() += delta_y;
-          changer->y() = fastuidraw::t_max(0.0f, changer->y());
+          changer->y() = t_max(0.0f, changer->y());
         }
 
       if (keyboard_state[SDL_SCANCODE_DOWN])
         {
           changer->y() -= delta_y;
-          changer->y() = fastuidraw::t_max(0.0f, changer->y());
+          changer->y() = t_max(0.0f, changer->y());
         }
 
       if (keyboard_state[SDL_SCANCODE_RIGHT])
@@ -1319,7 +1367,7 @@ update_cts_params(void)
       if (keyboard_state[SDL_SCANCODE_LEFT])
         {
           changer->x() -= delta;
-          changer->x() = fastuidraw::t_max(0.0f, changer->x());
+          changer->x() = t_max(0.0f, changer->x());
         }
 
       if (keyboard_state[SDL_SCANCODE_UP] || keyboard_state[SDL_SCANCODE_DOWN]
@@ -1338,7 +1386,7 @@ update_cts_params(void)
       if (keyboard_state[SDL_SCANCODE_1])
         {
           gradient_r0() -= delta;
-          gradient_r0() = fastuidraw::t_max(0.0f, gradient_r0());
+          gradient_r0() = t_max(0.0f, gradient_r0());
         }
       if (keyboard_state[SDL_SCANCODE_2])
         {
@@ -1348,7 +1396,7 @@ update_cts_params(void)
       if (keyboard_state[SDL_SCANCODE_3])
         {
           gradient_r1() -= delta;
-          gradient_r1() = fastuidraw::t_max(0.0f, gradient_r1());
+          gradient_r1() = t_max(0.0f, gradient_r1());
         }
       if (keyboard_state[SDL_SCANCODE_4])
         {
@@ -1394,7 +1442,7 @@ update_cts_params(void)
       if (keyboard_state[SDL_SCANCODE_B])
         {
           m_miter_limit -= m_change_miter_limit_rate.value() * speed;
-          m_miter_limit = fastuidraw::t_max(0.0f, m_miter_limit);
+          m_miter_limit = t_max(0.0f, m_miter_limit);
         }
 
       if (keyboard_state[SDL_SCANCODE_N] || keyboard_state[SDL_SCANCODE_B])
@@ -1718,6 +1766,7 @@ handle_event(const SDL_Event &ev)
           if (ev.key.keysym.mod & KMOD_CTRL)
             {
               m_use_shader_effect = !m_use_shader_effect;
+              std::cout << "Use shader effect set to: " << on_off(m_use_shader_effect) << "\n";
             }
           else
             {
@@ -1968,7 +2017,7 @@ per_path_processing(void)
               std::cout << "\tContour #" << c << "\n";
               for(unsigned int e = 0; e < tess->number_edges(c); ++e)
                 {
-                  fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> segs;
+                  c_array<const TessellatedPath::segment> segs;
 
                   std::cout << "\t\tEdge #" << e << " has "
                             << tess->edge_segment_data(c, e).size() << " segments\n";
@@ -1988,7 +2037,7 @@ per_path_processing(void)
             }
         }
     }
-  m_miter_limit = fastuidraw::t_min(100.0f, m_miter_limit); //100 is an insane miter limit.
+  m_miter_limit = t_min(100.0f, m_miter_limit); //100 is an insane miter limit.
 }
 
 void
@@ -2046,6 +2095,33 @@ construct_dash_patterns(void)
       m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(10.0f, 10.0f));
       m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement( 5.0f, 10.0f));
     }
+}
+
+void
+painter_stroke_test::
+fill_way_effect(WavyEffect &data)
+{
+  uint32_t ms;
+  float fc, fs, fc2, fs2;
+
+  ms = m_phase_timer.elapsed();
+  ms = ms % 4000;
+
+  data.m_phase = static_cast<float>(ms) / 2000.0f * FASTUIDRAW_PI;
+  fc = t_cos(data.m_phase);
+  fs = t_sin(data.m_phase);
+  fc2 = t_cos(2.0f * data.m_phase);
+  fs2 = t_sin(2.0f * data.m_phase);
+
+  data.m_domain_coeff = 8.0f * FASTUIDRAW_PI / (m_stroke_width * 10.0f);
+  data.m_cos_coeffs = vec4(+8.0f * fc,
+                           -4.0f * fs,
+                           +2.0f * fs2,
+                           -1.0f * fc2);
+  data.m_sin_coeffs = vec4(+1.3f * fs,
+                           -2.0f * fc,
+                           +4.0f * fs2,
+                           -8.0f * fc2);
 }
 
 void
@@ -2297,71 +2373,64 @@ draw_scene(bool drawing_wire_frame)
 
       if (is_dashed_stroking() && !m_use_path_effect)
         {
-          PainterDashedStrokeParams st;
+          ExampleItemData<PainterDashedStrokeParams> st;
 
-          st.miter_limit(m_miter_limit);
-          st.width(m_stroke_width);
+          st.m_stroke_params.miter_limit(m_miter_limit);
+          st.m_stroke_params.width(m_stroke_width);
 
           unsigned int D(dash_pattern());
           c_array<const PainterDashedStrokeParams::DashPatternElement> dash_ptr(&m_dash_patterns[D][0],
                                                                                 m_dash_patterns[D].size());
-          st.dash_pattern(dash_ptr);
+          st.m_stroke_params.dash_pattern(dash_ptr);
           if (m_stroke_width_in_pixels)
             {
-              st.stroking_units(PainterStrokeParams::pixel_stroking_units);
+              st.m_stroke_params.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
 
-          m_painter->stroke_dashed_path(PainterData(*stroke_pen, &st),
-                                        path(),
-                                        StrokingStyle()
-                                        .join_style(m_join_style)
-                                        .cap_style(m_cap_style),
-                                        m_aa_stroke_mode, m_stroking_mode);
+          if (m_use_shader_effect)
+            {
+              fill_way_effect(st.m_wavy_effect);
+              m_painter->stroke_dashed_path(m_dashed_stroke_shader,
+                                            PainterData(*stroke_pen, &st),
+                                            path(),
+                                            StrokingStyle()
+                                            .join_style(m_join_style)
+                                            .cap_style(m_cap_style),
+                                            m_aa_stroke_mode, m_stroking_mode);
+            }
+          else
+            {
+              m_painter->stroke_dashed_path(PainterData(*stroke_pen, &st.m_stroke_params),
+                                            path(),
+                                            StrokingStyle()
+                                            .join_style(m_join_style)
+                                            .cap_style(m_cap_style),
+                                            m_aa_stroke_mode, m_stroking_mode);
+            }
 
         }
       else
         {
           PathDashEffect *effect(nullptr);
+          ExampleItemData<PainterStrokeParams> st;
 
           if (m_use_path_effect)
             {
               effect = &m_current_effect;
             }
 
+          st.m_stroke_params.miter_limit(m_miter_limit);
+          st.m_stroke_params.width(m_stroke_width);
+          if (m_stroke_width_in_pixels)
+            {
+              st.m_stroke_params.stroking_units(PainterStrokeParams::pixel_stroking_units);
+            }
+
           if (m_use_shader_effect)
             {
-              ExampleItemData data;
-              uint32_t ms;
-              float fc, fs, fc2, fs2;
-
-              ms = m_phase_timer.elapsed();
-              ms = ms % 4000;
-
-              data.m_phase = static_cast<float>(ms) / 2000.0f * FASTUIDRAW_PI;
-              fc = t_cos(data.m_phase);
-              fs = t_sin(data.m_phase);
-              fc2 = t_cos(2.0f * data.m_phase);
-              fs2 = t_sin(2.0f * data.m_phase);
-
-              data.m_domain_coeff = 8.0f * FASTUIDRAW_PI / (m_stroke_width * 10.0f);
-              data.m_cos_coeffs = fastuidraw::vec4(+8.0f * fc,
-                                                   -4.0f * fs,
-                                                   +2.0f * fs2,
-                                                   -1.0f * fc2);
-              data.m_sin_coeffs = fastuidraw::vec4(+1.3f * fs,
-                                                   -2.0f * fc,
-                                                   +4.0f * fs2,
-                                                   -8.0f * fc2);
-              data.m_stroke_params
-                .miter_limit(m_miter_limit)
-                .width(m_stroke_width);
-              if (m_stroke_width_in_pixels)
-                {
-                  data.m_stroke_params.stroking_units(PainterStrokeParams::pixel_stroking_units);
-                }
-
+              fill_way_effect(st.m_wavy_effect);
               m_painter->stroke_path(m_stroke_shader,
-                                     PainterData(*stroke_pen, &data),
+                                     PainterData(*stroke_pen, &st),
                                      path(),
                                      StrokingStyle()
                                      .join_style(m_join_style)
@@ -2371,16 +2440,7 @@ draw_scene(bool drawing_wire_frame)
             }
           else
             {
-              PainterStrokeParams st;
-
-              st.miter_limit(m_miter_limit);
-              st.width(m_stroke_width);
-              if (m_stroke_width_in_pixels)
-                {
-                  st.stroking_units(PainterStrokeParams::pixel_stroking_units);
-                }
-
-              m_painter->stroke_path(PainterData(*stroke_pen, &st),
+              m_painter->stroke_path(PainterData(*stroke_pen, &st.m_stroke_params),
                                      path(),
                                      StrokingStyle()
                                      .join_style(m_join_style)
@@ -2620,7 +2680,7 @@ draw_frame(void)
                 }
             }
         }
-      fastuidraw::c_array<const unsigned int> stats(painter_stats());
+      c_array<const unsigned int> stats(painter_stats());
       for (unsigned int i = 0; i < stats.size(); ++i)
         {
           enum Painter::query_stats_t st;
@@ -2747,8 +2807,14 @@ derived_init(int w, int h)
   m_draw_timer.restart();
   m_fps_timer.restart();
 
-  m_stroke_shader = generate_stroke_shader(m_backend->default_shaders().stroke_shader());
+  CustomShaderGenerator<glsl::PainterItemShaderGLSL> item_shaders;
+  CustomShaderGenerator<glsl::PainterItemCoverageShaderGLSL> cvg_shaders;
+  m_stroke_shader = generate_stroke_shader(m_backend->default_shaders().stroke_shader(),
+                                           item_shaders, cvg_shaders);
+  m_dashed_stroke_shader = generate_dashed_stroke_shader(m_backend->default_shaders().dashed_stroke_shader(),
+                                                         item_shaders, cvg_shaders);
   m_backend->register_shader(m_stroke_shader);
+  m_backend->register_shader(m_dashed_stroke_shader);
 }
 
 int
