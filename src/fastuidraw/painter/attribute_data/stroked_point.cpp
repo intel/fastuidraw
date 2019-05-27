@@ -58,10 +58,10 @@ namespace
   set_distance_values(const fastuidraw::TessellatedPath::cap &C,
                       fastuidraw::StrokedPoint *pt)
   {
-    pt->m_distance_from_edge_start = (C.m_is_starting_cap) ? 0.0f : C.m_edge_length;
+    pt->m_distance_from_edge_start = C.m_distance_from_edge_start;
     pt->m_edge_length = C.m_edge_length;
     pt->m_contour_length = C.m_contour_length;
-    pt->m_distance_from_contour_start = (C.m_is_starting_cap) ? 0.0f : C.m_contour_length;
+    pt->m_distance_from_contour_start = C.m_distance_from_contour_start;
   }
 
   inline

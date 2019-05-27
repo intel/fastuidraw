@@ -94,6 +94,8 @@ namespace
       }
     C.m_contour_length = S.m_contour_length;
     C.m_edge_length = S.m_edge_length;
+    C.m_distance_from_contour_start = S.m_distance_from_contour_start + t * S.m_length;
+    C.m_distance_from_edge_start = S.m_distance_from_edge_start + t * S.m_length;
     C.m_is_starting_cap = is_start_cap;
     C.m_contour_id = S.m_contour_id;
     dst.add_cap(C);
