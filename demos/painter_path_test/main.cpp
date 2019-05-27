@@ -1119,7 +1119,7 @@ painter_stroke_test(void):
   m_clip_window_path_dirty(true),
   m_show_surface(0),
   m_last_shown_surface(0),
-  m_use_shader_effect(true)
+  m_use_shader_effect(false)
 {
   std::cout << "Controls:\n"
             << "\tv: cycle through stroking modes\n"
