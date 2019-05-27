@@ -552,7 +552,10 @@ build_uber_stroke_coverage_shader(uint32_t flags, unsigned int num_sub_shaders) 
   symbol_list symbols(build_uber_stroke_varyings(flags));
 
   symbols.m_vert_shareable_values
-    .add_float("fastuidraw_stroking_distance");
+    .add_float("fastuidraw_stroking_distance")
+    .add_float("fastuidraw_stroking_contour_length")
+    .add_float("fastuidraw_stroking_edge_length")
+    .add_float("fastuidraw_stroking_edge_start");
 
   symbols.m_frag_shareable_values
     .add_float("fastuidraw_stroking_relative_distance_from_center")
@@ -573,7 +576,12 @@ build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
 {
   symbol_list symbols(build_uber_stroke_varyings(flags));
 
-  symbols.m_vert_shareable_values.add_float("fastuidraw_stroking_distance");
+  symbols.m_vert_shareable_values
+    .add_float("fastuidraw_stroking_distance")
+    .add_float("fastuidraw_stroking_contour_length")
+    .add_float("fastuidraw_stroking_edge_length")
+    .add_float("fastuidraw_stroking_edge_start");
+
   if ((flags & coverage_shader) == 0)
     {
       symbols.m_frag_shareable_values
