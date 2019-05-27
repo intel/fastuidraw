@@ -78,6 +78,67 @@ as embodied by the classes \ref fastuidraw::glsl::PainterItemShaderGLSL,
 fastuidraw::glsl::PainterBrushShaderGLSL.
 @}
 
+\defgroup GLSLBuiltInShaders GLSL Built in Shaders
+@{
+\brief
+This group documents the symbols and varyings of the built in shaders
+provided by the GLSL module (which is used by both the GL and GLES
+backends.
+
+The following symbols are available as keyed by the values within
+a \ref fastuidraw::PainterShaderSet.
+
+For \ref fastuidraw::PainterShaderSet::stroke_shader() and each \ref
+fastuidraw::PainterStrokeShader of \ref fastuidraw::PainterShaderSet::dashed_stroke_shader(),
+there is the following. For the vertex shaders there are the public symbols:
+- fastuidraw_stroking_distance gives the distance from the start of the contour along the path
+- fastuidraw_stroking_contour_length gives the length of the contour
+- fastuidraw_stroking_edge_length gives the length of the edge
+- fastuidraw_stroking_edge_start gives how far along the path the start of the edge is
+The non anti-aliased shaders (i.e. \ref fastuidraw::PainterStrokeShader::non_aa_shader),
+have the following symbols in the fragment shader exposed:
+- fastuidraw_stroking_distance the distance from the start of the contour along the path
+- fastuidraw_stroking_distance_fwidth fwidth of fastuidraw_stroking_distance. Use this value to
+                                      perform anti-aliasing coverage computations
+- fastuidraw_stroking_relative_distance_from_center this value is 0.0 on the path and grows to 1.0
+                                                    at the stroking boundary
+- fastuidraw_stroking_distance_fwidth fwidth of fastuidraw_stroking_relative_distance_from_center.
+                                       Use this value to perform anti-aliasing coverage computations
+The anti-aliasing shaders (i.e. \ref fastuidraw::PainterStrokeShader::aa_shader) are two pass
+shaders where the coverage shader (i.e. \ref fastuidraw::PainterItemShader::coverage_shader()) has
+the above symbols in fragment shader (and also the vertex symbols in the vertex shader), but the
+item shader only has the vertex shader symbols but not the fragment shader symbols.
+
+Each shader present in \ref fastuidraw::PainterShaderSet::brush_shaders() has the two varyings:
+- fastuidraw_brush_p_x which gives the x-coordinate of the brush
+- fastuidraw_brush_p_y which gives the y-coordinate of the brush
+The \ref fastuidraw::PainterGradientBrushShader::linear_sub_shader() has the varyings:
+- fastuidraw_brush_gradient_p0_x the x-coordinate of the start position of the linear gradient
+- fastuidraw_brush_gradient_p0_y the y-coordinate of the start position of the linear gradient
+- fastuidraw_brush_gradient_p1_x the x-coordinate of the end position of the linear gradient
+- fastuidraw_brush_gradient_p1_y the y-coordinate of the end position of the linear gradient
+The \ref fastuidraw::PainterGradientBrushShader::radial_sub_shader() has the varyings:
+- fastuidraw_brush_gradient_p0_x the x-coordinate of the start position of the radial gradient
+- fastuidraw_brush_gradient_p0_y the y-coordinate of the start position of the radial gradient
+- fastuidraw_brush_gradient_r0 the start radius of the radial gradient
+- fastuidraw_brush_gradient_p1_x the x-coordinate of the end position of the radial gradient
+- fastuidraw_brush_gradient_p1_y the y-coordinate of the end position of the radial gradient
+- fastuidraw_brush_gradient_r1 the end radius of the radial gradient
+The \ref fastuidraw::PainterGradientBrushShader::sweep_sub_shader() has the varyings:
+- fastuidraw_brush_gradient_sweep_point_x the x-coordinate of the sweep point
+- fastuidraw_brush_gradient_sweep_point_y the y-coordinate of the sweep point
+- fastuidraw_brush_gradient_sweep_angle the start angle of the sweep gradient
+- fastuidraw_brush_gradient_sweep_sign_factor the signed multiplier of the sweep gradient.
+The \ref fastuidraw::PainterGradientBrushShader::sub_shader() has all of the above varyings
+(since it encompasses all of the gradients) either directly or realized as aliases.
+
+The standard brush, \ref fastuidraw::PainterBrushShaderSet::standard_brush(), is itself
+realized as a chain shader with the image of the brush accessible via its dependee named
+image_brush, and the gradient via the dependee name gradient_brush.
+
+
+@}
+
 \defgroup Painter Painter
 @{
 \brief
