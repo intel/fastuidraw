@@ -47,6 +47,15 @@ namespace fastuidraw
     ~PainterShaderRegistrar();
 
     /*!
+     * Returns a unique ID for the \ref PainterShaderRegistrar, this
+     * unique value will be used only by this PainterShaderRegistrar
+     * even if it destroyed, no other \ref PainterShaderRegistrar will
+     * have it.
+     */
+    unsigned int
+    unique_id(void) const;
+
+    /*!
      * Registers an item shader for use; registering a shader more than
      * once to the SAME PainterShaderRegistrar has no effect. However,
      * registering a shader to multiple PainterShaderRegistrar objects

@@ -19,16 +19,41 @@
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
 #include <private/util_private.hpp>
 #include <algorithm>
+#include <mutex>
 
 namespace
 {
+  class IDGenerator:fastuidraw::noncopyable
+  {
+  public:
+    static
+    unsigned int
+    new_value(void)
+    {
+      static IDGenerator D;
+
+      std::lock_guard<std::mutex> M(D.m_mutex);
+      return D.m_current++;
+    }
+
+  private:
+    IDGenerator(void):
+      m_current(0)
+    {}
+
+    std::mutex m_mutex;
+    unsigned int m_current;
+  };
+
   class PainterShaderRegistrarPrivate
   {
   public:
-    PainterShaderRegistrarPrivate(void)
+    PainterShaderRegistrarPrivate(void):
+      m_unique_id(IDGenerator::new_value())
     {}
 
     fastuidraw::Mutex m_mutex;
+    unsigned int m_unique_id;
   };
 }
 
@@ -55,6 +80,15 @@ mutex(void)
   PainterShaderRegistrarPrivate *d;
   d = static_cast<PainterShaderRegistrarPrivate*>(m_d);
   return d->m_mutex;
+}
+
+unsigned int
+fastuidraw::PainterShaderRegistrar::
+unique_id(void) const
+{
+  PainterShaderRegistrarPrivate *d;
+  d = static_cast<PainterShaderRegistrarPrivate*>(m_d);
+  return d->m_unique_id;
 }
 
 void
