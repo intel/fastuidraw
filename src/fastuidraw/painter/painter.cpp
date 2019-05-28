@@ -2927,6 +2927,7 @@ fetch(unsigned int effects_depth,
 
           packer = FASTUIDRAWnew PainterPacker(d->m_default_brush_shader,
                                                d->m_stats, d->m_backend,
+                                               d->m_backend_factory->painter_shader_registrar(),
                                                d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::color_buffer_type);
@@ -3112,6 +3113,7 @@ fetch(const fastuidraw::Rect &normalized_rect, PainterPrivate *d)
 
           packer = FASTUIDRAWnew PainterPacker(d->m_default_brush_shader,
                                                d->m_stats, d->m_backend,
+                                               d->m_backend_factory->painter_shader_registrar(),
                                                d->m_backend_factory->configuration_base());
           surface = d->m_backend_factory->create_surface(m_current_backing_size,
                                                          PainterSurface::deferred_coverage_buffer_type);
@@ -3180,6 +3182,7 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine
   m_default_brush_shader = m_default_shaders.brush_shaders().standard_brush().get();
   m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
   m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_default_brush_shader, m_stats, m_backend,
+                                                          m_backend_factory->painter_shader_registrar(),
                                                           m_backend_factory->configuration_base());
   m_black_brush = m_pool.create_packed_brush(fastuidraw::PainterBrush()
                                              .color(0.0f, 0.0f, 0.0f, 0.0f));

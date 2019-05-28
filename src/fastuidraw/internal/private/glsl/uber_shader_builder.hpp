@@ -167,42 +167,49 @@ void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum);
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp);
 
 void
 stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum);
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp);
 
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemCoverageShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum);
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp);
 
 void
 stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemCoverageShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum);
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp);
 
 void
 stream_uber_brush_vert_shader(bool use_switch, ShaderSource &vert,
                               c_array<const reference_counted_ptr<PainterBrushShaderGLSL> > brush_shaders,
                               const UberShaderVaryings &declare_varyings,
-                              const AliasVaryingLocation &datum);
+                              const AliasVaryingLocation &datum,
+                              const PainterShaderRegistrar &rp);
 
 void
 stream_uber_brush_frag_shader(bool use_switch, ShaderSource &frag,
                               c_array<const reference_counted_ptr<PainterBrushShaderGLSL> > brush_shaders,
                               const UberShaderVaryings &declare_varyings,
-                              const AliasVaryingLocation &datum);
+                              const AliasVaryingLocation &datum,
+                              const PainterShaderRegistrar &rp);
 
 void
 stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
-                             c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders,
-                             enum PainterBlendShader::shader_type tp);
+                         c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders,
+                         enum PainterBlendShader::shader_type tp,
+                         const PainterShaderRegistrar &rp);
 
 
 }}}

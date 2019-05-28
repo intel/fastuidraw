@@ -95,34 +95,31 @@ void
 fastuidraw::PainterShaderRegistrar::
 register_shader(PainterItemShader *shader)
 {
-  if (!shader || shader->registered_to() == this)
+  if (!shader || shader->registered_to(*this))
     {
       return;
     }
-  FASTUIDRAWassert(shader->registered_to() == nullptr);
-  if (shader->registered_to() == nullptr)
+
+  /* register the coverage shader if it has one. */
+  register_shader(shader->coverage_shader().get());
+
+  if (shader->parent())
     {
-      /* register the coverage shader if it has one. */
-      register_shader(shader->coverage_shader().get());
+      register_shader(static_cast<PainterItemShader*>(shader->parent().get()));
 
-      if (shader->parent())
-        {
-          register_shader(static_cast<PainterItemShader*>(shader->parent().get()));
+      /* activate the guard AFTER calling register_shader(),
+       * otherwise we would attempt to double-lock the mutex
+       */
+      Mutex::Guard m(mutex());
+      shader->set_group_of_sub_shader(*this, compute_item_sub_shader_group(shader));
+    }
+  else
+    {
+      Mutex::Guard m(mutex());
+      PainterShader::Tag tag;
 
-          /* activate the guard AFTER calling register_shader(),
-           * otherwise we would attempt to double-lock the mutex
-           */
-          Mutex::Guard m(mutex());
-          shader->set_group_of_sub_shader(compute_item_sub_shader_group(shader));
-        }
-      else
-        {
-          Mutex::Guard m(mutex());
-          PainterShader::Tag tag;
-
-          tag = absorb_item_shader(shader);
-          shader->register_shader(tag, this);
-        }
+      tag = absorb_item_shader(shader);
+      shader->register_shader(tag, *this);
     }
 }
 
@@ -130,31 +127,28 @@ void
 fastuidraw::PainterShaderRegistrar::
 register_shader(PainterItemCoverageShader *shader)
 {
-  if (!shader || shader->registered_to() == this)
+  if (!shader || shader->registered_to(*this))
     {
       return;
     }
-  FASTUIDRAWassert(shader->registered_to() == nullptr);
-  if (shader->registered_to() == nullptr)
+
+  if (shader->parent())
     {
-      if (shader->parent())
-        {
-          register_shader(static_cast<PainterItemCoverageShader*>(shader->parent().get()));
+      register_shader(static_cast<PainterItemCoverageShader*>(shader->parent().get()));
 
-          /* activate the guard AFTER calling register_shader(),
-           * otherwise we would attempt to double-lock the mutex
-           */
-          Mutex::Guard m(mutex());
-          shader->set_group_of_sub_shader(compute_item_coverage_sub_shader_group(shader));
-        }
-      else
-        {
-          Mutex::Guard m(mutex());
-          PainterShader::Tag tag;
+      /* activate the guard AFTER calling register_shader(),
+       * otherwise we would attempt to double-lock the mutex
+       */
+      Mutex::Guard m(mutex());
+      shader->set_group_of_sub_shader(*this, compute_item_coverage_sub_shader_group(shader));
+    }
+  else
+    {
+      Mutex::Guard m(mutex());
+      PainterShader::Tag tag;
 
-          tag = absorb_item_coverage_shader(shader);
-          shader->register_shader(tag, this);
-        }
+      tag = absorb_item_coverage_shader(shader);
+      shader->register_shader(tag, *this);
     }
 }
 
@@ -162,7 +156,7 @@ void
 fastuidraw::PainterShaderRegistrar::
 register_shader(PainterBlendShader *shader)
 {
-  if (!shader || shader->registered_to() == this)
+  if (!shader || shader->registered_to(*this))
     {
       return;
     }
@@ -173,27 +167,23 @@ register_shader(PainterBlendShader *shader)
       return;
     }
 
-  FASTUIDRAWassert(shader->registered_to() == nullptr);
-  if (shader->registered_to() == nullptr)
+  if (shader->parent())
     {
-      if (shader->parent())
-        {
-          register_shader(static_cast<PainterBlendShader*>(shader->parent().get()));
+      register_shader(static_cast<PainterBlendShader*>(shader->parent().get()));
 
-          /* activate the guard AFTER calling register_shader(),
-           * otherwise we would attempt to double-lock the mutex
-           */
-          Mutex::Guard m(mutex());
-          shader->set_group_of_sub_shader(compute_blend_sub_shader_group(shader));
-        }
-      else
-        {
-          Mutex::Guard m(mutex());
-          PainterShader::Tag tag;
+      /* activate the guard AFTER calling register_shader(),
+       * otherwise we would attempt to double-lock the mutex
+       */
+      Mutex::Guard m(mutex());
+      shader->set_group_of_sub_shader(*this, compute_blend_sub_shader_group(shader));
+    }
+  else
+    {
+      Mutex::Guard m(mutex());
+      PainterShader::Tag tag;
 
-          tag = absorb_blend_shader(shader);
-          shader->register_shader(tag, this);
-        }
+      tag = absorb_blend_shader(shader);
+      shader->register_shader(tag, *this);
     }
 }
 
@@ -201,31 +191,28 @@ void
 fastuidraw::PainterShaderRegistrar::
 register_shader(PainterBrushShader *shader)
 {
-  if (!shader || shader->registered_to() == this)
+  if (!shader || shader->registered_to(*this))
     {
       return;
     }
-  FASTUIDRAWassert(shader->registered_to() == nullptr);
-  if (shader->registered_to() == nullptr)
+
+  if (shader->parent())
     {
-      if (shader->parent())
-        {
-          register_shader(static_cast<PainterBrushShader*>(shader->parent().get()));
+      register_shader(static_cast<PainterBrushShader*>(shader->parent().get()));
 
-          /* activate the guard AFTER calling register_shader(),
-           * otherwise we would attempt to double-lock the mutex
-           */
-          Mutex::Guard m(mutex());
-          shader->set_group_of_sub_shader(compute_custom_brush_sub_shader_group(shader));
-        }
-      else
-        {
-          Mutex::Guard m(mutex());
-          PainterShader::Tag tag;
+      /* activate the guard AFTER calling register_shader(),
+       * otherwise we would attempt to double-lock the mutex
+       */
+      Mutex::Guard m(mutex());
+      shader->set_group_of_sub_shader(*this, compute_custom_brush_sub_shader_group(shader));
+    }
+  else
+    {
+      Mutex::Guard m(mutex());
+      PainterShader::Tag tag;
 
-          tag = absorb_custom_brush_shader(shader);
-          shader->register_shader(tag, this);
-        }
+      tag = absorb_custom_brush_shader(shader);
+      shader->register_shader(tag, *this);
     }
 }
 

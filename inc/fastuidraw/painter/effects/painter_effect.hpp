@@ -52,7 +52,7 @@ namespace fastuidraw
      * brush made from the passed \ref Image value. The
      * returned PainterData::brush_value value needs to be
      * valid until the \ref PainterEffectPass dtor is called
-     * or the next all to brush(). The passed image is
+     * or the next call to brush(). The passed image is
      * guaranteed to have Image::type() as value \ref
      * Image::bindless_texture2d or \ref Image::context_texture2d.
      * \param image the image to which the effect is applied

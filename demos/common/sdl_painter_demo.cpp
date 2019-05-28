@@ -146,18 +146,20 @@ namespace
   }
 
   void
-  print_glyph_shader_ids(const fastuidraw::PainterGlyphShader &sh)
+  print_glyph_shader_ids(const fastuidraw::PainterShaderRegistrar &rp,
+                         const fastuidraw::PainterGlyphShader &sh)
   {
     for(unsigned int i = 0; i < sh.shader_count(); ++i)
       {
         enum fastuidraw::glyph_type tp;
         tp = static_cast<enum fastuidraw::glyph_type>(i);
-        std::cout << "\t\t#" << i << ": " << sh.shader(tp)->tag() << "\n";
+        std::cout << "\t\t#" << i << ": " << sh.shader(tp)->tag(rp) << "\n";
       }
   }
 
   void
-  print_stroke_shader_ids(const fastuidraw::PainterStrokeShader &shader,
+  print_stroke_shader_ids(const fastuidraw::PainterShaderRegistrar &rp,
+                          const fastuidraw::PainterStrokeShader &shader,
                           const std::string &prefix = "\t\t")
   {
     using namespace fastuidraw;
@@ -181,7 +183,7 @@ namespace
 
             if (shader.shader(e_tp, e_sh))
               {
-                std::cout << shader.shader(e_tp, e_sh)->tag();
+                std::cout << shader.shader(e_tp, e_sh)->tag(rp);
               }
             else
               {
@@ -193,16 +195,17 @@ namespace
   }
 
   void
-  print_dashed_stroke_shader_ids(const fastuidraw::PainterDashedStrokeShaderSet &sh)
+  print_dashed_stroke_shader_ids(const fastuidraw::PainterShaderRegistrar &rp,
+                                 const fastuidraw::PainterDashedStrokeShaderSet &sh)
   {
     std::cout << "\t\tflat_caps:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::Painter::flat_caps), "\t\t\t");
+    print_stroke_shader_ids(rp, sh.shader(fastuidraw::Painter::flat_caps), "\t\t\t");
 
     std::cout << "\t\trounded_caps:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::Painter::rounded_caps), "\t\t\t");
+    print_stroke_shader_ids(rp, sh.shader(fastuidraw::Painter::rounded_caps), "\t\t\t");
 
     std::cout << "\t\tsquare_caps:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::Painter::square_caps), "\t\t\t");
+    print_stroke_shader_ids(rp, sh.shader(fastuidraw::Painter::square_caps), "\t\t\t");
   }
 
   GLuint
@@ -800,18 +803,20 @@ init_gl(int w, int h)
   if (m_print_painter_shader_ids.value())
     {
       const fastuidraw::PainterShaderSet &sh(m_painter->default_shaders());
+      const fastuidraw::PainterShaderRegistrar &rp(m_backend->painter_shader_registrar());
       std::cout << "Default shader IDs:\n";
 
       std::cout << "\tGlyph Shaders:\n";
-      print_glyph_shader_ids(sh.glyph_shader());
+      print_glyph_shader_ids(rp, sh.glyph_shader());
 
       std::cout << "\tSolid StrokeShaders:\n";
-      print_stroke_shader_ids(sh.stroke_shader());
+      print_stroke_shader_ids(rp, sh.stroke_shader());
 
       std::cout << "\tDashed Stroke Shader:\n";
-      print_dashed_stroke_shader_ids(sh.dashed_stroke_shader());
+      print_dashed_stroke_shader_ids(rp, sh.dashed_stroke_shader());
 
-      std::cout << "\tFill Shader:" << sh.fill_shader().item_shader()->tag() << "\n";
+      std::cout << "\tFill Shader:"
+                << sh.fill_shader().item_shader()->tag(rp) << "\n";
     }
 
   m_painter_params = m_backend->configuration_gl();

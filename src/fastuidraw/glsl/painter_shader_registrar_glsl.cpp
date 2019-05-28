@@ -227,11 +227,11 @@ namespace
     fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
   };
 
-  class PainterShaderRegistrarGLSLPrivate
+  class PainterShaderRegistrarGLSLPrivate:fastuidraw::noncopyable
   {
   public:
     explicit
-    PainterShaderRegistrarGLSLPrivate(void);
+    PainterShaderRegistrarGLSLPrivate(fastuidraw::glsl::PainterShaderRegistrarGLSL *p);
     ~PainterShaderRegistrarGLSLPrivate();
 
     template<typename T>
@@ -303,15 +303,17 @@ namespace
     fastuidraw::glsl::ShaderSource::MacroSet m_banded_rays_macros, m_restricted_rays_macros;;
 
     fastuidraw::glsl::varying_list m_clip_varyings;
+    fastuidraw::glsl::PainterShaderRegistrarGLSL *m_p;
   };
 }
 
 /////////////////////////////////////
 // PainterShaderRegistrarGLSLPrivate methods
 PainterShaderRegistrarGLSLPrivate::
-PainterShaderRegistrarGLSLPrivate(void):
+PainterShaderRegistrarGLSLPrivate(fastuidraw::glsl::PainterShaderRegistrarGLSL *p):
   m_next_blend_shader_ID(1),
-  m_next_custom_brush_shader_ID(1)
+  m_next_custom_brush_shader_ID(1),
+  m_p(p)
 {
   /* add varyings needed by fastuidraw_painter_main
    */
@@ -1036,15 +1038,15 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     {
       stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
                                make_c_array(m_blend_shaders[blend_type].m_shaders),
-                               blend_type);
+                               blend_type, *m_p);
 
       stream_uber_brush_vert_shader(params.vert_shader_use_switch(), vert,
                                     make_c_array(m_custom_brush_shaders.m_shaders),
-                                    uber_shader_varyings, brush_varying_datum);
+                                    uber_shader_varyings, brush_varying_datum, *m_p);
 
       stream_uber_brush_frag_shader(params.frag_shader_use_switch(), frag,
                                     make_c_array(m_custom_brush_shaders.m_shaders),
-                                    uber_shader_varyings, brush_varying_datum);
+                                    uber_shader_varyings, brush_varying_datum, *m_p);
     }
 }
 
@@ -1095,10 +1097,10 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
                           params, discard_macro_value);
 
   stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
-                          uber_shader_varyings, shader_varying_datum);
+                          uber_shader_varyings, shader_varying_datum, *m_p);
 
   stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
-                          uber_shader_varyings, shader_varying_datum);
+                          uber_shader_varyings, shader_varying_datum, *m_p);
 }
 
 template<typename T>
@@ -1127,7 +1129,7 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
   FASTUIDRAWassert(shaders.m_shaders_keyed_by_id[shader_id]);
 
   shader = shaders.m_shaders_keyed_by_id[shader_id];
-  FASTUIDRAWassert(shader_id >= shader->ID());
+  FASTUIDRAWassert(shader_id >= shader->ID(*m_p));
   item_shaders = c_array<const reference_counted_ptr<T> >(&shader, 1);
 
   uber_shader_varyings.add_varyings("shader",
@@ -1139,10 +1141,10 @@ construct_shader(enum fastuidraw::PainterBlendShader::shader_type blend_type,
                           params, discard_macro_value);
 
   stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
-                          uber_shader_varyings, shader_varying_datum);
+                          uber_shader_varyings, shader_varying_datum, *m_p);
 
   stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
-                          uber_shader_varyings, shader_varying_datum);
+                          uber_shader_varyings, shader_varying_datum, *m_p);
 }
 
 //////////////////////////////////////////////////////
@@ -1425,7 +1427,7 @@ uber_shader_params_get_dirty(uniforms_ubo_binding)
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 PainterShaderRegistrarGLSL(void)
 {
-  m_d = FASTUIDRAWnew PainterShaderRegistrarGLSLPrivate();
+  m_d = FASTUIDRAWnew PainterShaderRegistrarGLSLPrivate(this);
 }
 
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
@@ -1522,7 +1524,7 @@ uint32_t
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader)
 {
-  PainterShader::Tag tg(shader->parent()->tag());
+  PainterShader::Tag tg(shader->parent()->tag(*this));
   tg.m_ID += shader->sub_shader();
   return compute_item_shader_group(tg, shader);
 }
@@ -1554,7 +1556,7 @@ uint32_t
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 compute_item_coverage_sub_shader_group(const reference_counted_ptr<PainterItemCoverageShader> &shader)
 {
-  PainterShader::Tag tg(shader->parent()->tag());
+  PainterShader::Tag tg(shader->parent()->tag(*this));
   tg.m_ID += shader->sub_shader();
   return compute_item_coverage_shader_group(tg, shader);
 }
@@ -1589,7 +1591,7 @@ uint32_t
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader)
 {
-  PainterShader::Tag tg(shader->parent()->tag());
+  PainterShader::Tag tg(shader->parent()->tag(*this));
   tg.m_ID += shader->sub_shader();
   return compute_blend_shader_group(tg, shader);
 }
@@ -1625,7 +1627,7 @@ uint32_t
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 compute_custom_brush_sub_shader_group(const reference_counted_ptr<PainterBrushShader> &shader)
 {
-  PainterShader::Tag tg(shader->parent()->tag());
+  PainterShader::Tag tg(shader->parent()->tag(*this));
   tg.m_ID += shader->sub_shader();
   return compute_custom_brush_shader_group(tg, shader);
 }

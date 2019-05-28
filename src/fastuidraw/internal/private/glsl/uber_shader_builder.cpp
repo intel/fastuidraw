@@ -582,7 +582,8 @@ namespace
                 const std::string &return_type,
                 const std::string &uber_func_with_args,
                 const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
-                const std::string &shader_id);
+                const std::string &shader_id,
+                const fastuidraw::PainterShaderRegistrar &rp);
 
   private:
     static
@@ -748,7 +749,8 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             const std::string &return_type,
             const std::string &uber_func_with_args,
             const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
-            const std::string &shader_id)
+            const std::string &shader_id,
+            const fastuidraw::PainterShaderRegistrar &rp)
 {
   using namespace fastuidraw;
 
@@ -759,10 +761,10 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       std::ostringstream str;
 
       dst << "\n/////////////////////////////////////////\n"
-          << "// Start Shader #" << sh->ID() << " with "
+          << "// Start Shader #" << sh->ID(rp) << " with "
           << sh->number_sub_shaders() << " sub-shaers\n";
 
-      str << get_main_name(sh) << sh->ID();
+      str << get_main_name(sh) << sh->ID(rp);
       stream_varyings_helper.before_shader(dst, sh);
       stream_shader(dst, str.str(), "",
                     get_src, get_main_name,
@@ -790,7 +792,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       if (sh->number_sub_shaders() > 1)
         {
           unsigned int start, end;
-          start = sh->ID();
+          start = sh->ID(rp);
           end = start + sh->number_sub_shaders();
           if (has_sub_shaders)
             {
@@ -809,7 +811,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             {
               dst << "p = ";
             }
-          dst << get_main_name(sh) << sh->ID()
+          dst << get_main_name(sh) << sh->ID(rp)
               << "(" << shader_id << " - uint(" << start << ")" << shader_args << ");\n"
               << "    }\n";
           has_sub_shaders = true;
@@ -840,7 +842,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
         {
           if (use_switch)
             {
-              dst << tab << "case uint(" << sh->ID() << "):\n"
+              dst << tab << "case uint(" << sh->ID(rp) << "):\n"
                   << tab << "    {\n"
                   << tab << "        ";
             }
@@ -854,7 +856,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
                 {
                   dst << tab << "if";
                 }
-              dst << "(" << shader_id << " == uint(" << sh->ID() << "))\n"
+              dst << "(" << shader_id << " == uint(" << sh->ID(rp) << "))\n"
                   << tab << "{\n"
                   << tab << "    ";
             }
@@ -864,7 +866,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
               dst << "p = ";
             }
 
-          dst << get_main_name(sh) << sh->ID()
+          dst << get_main_name(sh) << sh->ID(rp)
               << "(uint(0)" << shader_args << ");\n";
 
           if (use_switch)
@@ -1242,7 +1244,8 @@ stream_uber_vert_shader(bool use_switch,
                         ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum)
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                          &PainterItemShaderGLSL::vertex_src,
@@ -1254,7 +1257,8 @@ stream_uber_vert_shader(bool use_switch,
                                                          "fastuidraw_run_vert_shader(in fastuidraw_header h, out int add_z, out vec2 brush_p, out vec3 clip_p)",
                                                          ", fastuidraw_attribute0, fastuidraw_attribute1, "
                                                          "fastuidraw_attribute2, h.item_shader_data_location, add_z, brush_p, clip_p",
-                                                         "h.item_shader");
+                                                         "h.item_shader",
+                                                         rp);
 }
 
 void
@@ -1262,7 +1266,8 @@ stream_uber_frag_shader(bool use_switch,
                         ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum)
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                          &PainterItemShaderGLSL::fragment_src,
@@ -1273,7 +1278,8 @@ stream_uber_frag_shader(bool use_switch,
                                                          "vec4",
                                                          "fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
                                                          ", frag_shader_data_location",
-                                                         "frag_shader");
+                                                         "frag_shader",
+                                                         rp);
 }
 
 void
@@ -1281,7 +1287,8 @@ stream_uber_vert_shader(bool use_switch,
                         ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemCoverageShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum)
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp)
 {
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::vertex_src,
@@ -1293,7 +1300,8 @@ stream_uber_vert_shader(bool use_switch,
                                                                  "fastuidraw_run_vert_shader(in fastuidraw_header h, out vec3 clip_p)",
                                                                  ", fastuidraw_attribute0, fastuidraw_attribute1, "
                                                                  "fastuidraw_attribute2, h.item_shader_data_location, clip_p",
-                                                                 "h.item_shader");
+                                                                 "h.item_shader",
+                                                                 rp);
 }
 
 void
@@ -1301,7 +1309,8 @@ stream_uber_frag_shader(bool use_switch,
                         ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemCoverageShaderGLSL> > item_shaders,
                         const UberShaderVaryings &declare_varyings,
-                        const AliasVaryingLocation &datum)
+                        const AliasVaryingLocation &datum,
+                        const PainterShaderRegistrar &rp)
 {
   UberShaderStreamer<PainterItemCoverageShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                                  &PainterItemCoverageShaderGLSL::fragment_src,
@@ -1312,14 +1321,16 @@ stream_uber_frag_shader(bool use_switch,
                                                                  "float",
                                                                  "fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
                                                                  ", frag_shader_data_location",
-                                                                 "frag_shader");
+                                                                 "frag_shader",
+                                                                 rp);
 }
 
 void
 stream_uber_blend_shader(bool use_switch,
                          ShaderSource &frag,
                          c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
-                         enum PainterBlendShader::shader_type tp)
+                         enum PainterBlendShader::shader_type tp,
+                         const PainterShaderRegistrar &rp)
 {
   std::string sub_func_args, func_name;
 
@@ -1363,7 +1374,7 @@ stream_uber_blend_shader(bool use_switch,
                                                           StreamVaryingsHelper<PainterBlendShaderGLSL>(),
                                                           StreamSurroundSrcHelper<PainterBlendShaderGLSL>(),
                                                           "void", func_name,
-                                                          sub_func_args, "blend_shader");
+                                                          sub_func_args, "blend_shader", rp);
 }
 
 void
@@ -1371,7 +1382,8 @@ stream_uber_brush_vert_shader(bool use_switch,
                               ShaderSource &vert,
                               c_array<const reference_counted_ptr<PainterBrushShaderGLSL> > brush_shaders,
                               const UberShaderVaryings &declare_varyings,
-                              const AliasVaryingLocation &datum)
+                              const AliasVaryingLocation &datum,
+                              const PainterShaderRegistrar &rp)
 {
   UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, vert, brush_shaders,
                                                           &PainterBrushShaderGLSL::vertex_src,
@@ -1382,7 +1394,8 @@ stream_uber_brush_vert_shader(bool use_switch,
                                                           "void",
                                                           "fastuidraw_run_brush_vert_shader(in fastuidraw_header h, in vec2 brush_p)",
                                                           ", h.brush_shader_data_location, brush_p",
-                                                          "h.brush_shader");
+                                                          "h.brush_shader",
+                                                          rp);
 }
 
 void
@@ -1390,7 +1403,8 @@ stream_uber_brush_frag_shader(bool use_switch,
                               ShaderSource &frag,
                               c_array<const reference_counted_ptr<PainterBrushShaderGLSL> > brush_shaders,
                               const UberShaderVaryings &declare_varyings,
-                              const AliasVaryingLocation &datum)
+                              const AliasVaryingLocation &datum,
+                              const PainterShaderRegistrar &rp)
 {
   UberShaderStreamer<PainterBrushShaderGLSL>::stream_uber(use_switch, frag, brush_shaders,
                                                           &PainterBrushShaderGLSL::fragment_src,
@@ -1401,7 +1415,8 @@ stream_uber_brush_frag_shader(bool use_switch,
                                                           "vec4",
                                                           "fastuidraw_run_brush_frag_shader(in uint frag_shader, in uint frag_shader_data_location)",
                                                           ", frag_shader_data_location",
-                                                          "frag_shader");
+                                                          "frag_shader",
+                                                          rp);
 }
 
 }}}

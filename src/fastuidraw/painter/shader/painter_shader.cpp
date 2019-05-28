@@ -19,22 +19,53 @@
 
 #include <vector>
 #include <fastuidraw/painter/shader/painter_shader.hpp>
+#include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
 
 namespace
 {
+  class PerRegistrar
+  {
+  public:
+    PerRegistrar(void):
+      m_registered(false)
+    {}
+
+    fastuidraw::PainterShader::Tag m_tag;
+    bool m_registered;
+  };
 
   class PainterShaderPrivate
   {
   public:
     PainterShaderPrivate(unsigned int num_sub_shaders):
-      m_registered_to(nullptr),
       m_number_sub_shaders(num_sub_shaders),
       m_sub_shader_ID(0)
     {
     }
 
-    fastuidraw::PainterShader::Tag m_tag;
-    const fastuidraw::PainterShaderRegistrar *m_registered_to;
+    const fastuidraw::PainterShader::Tag&
+    get_tag(const fastuidraw::PainterShaderRegistrar &sh)
+    {
+      unsigned int N(sh.unique_id());
+
+      FASTUIDRAWassert(m_tags.size() > N);
+      FASTUIDRAWassert(m_tags[N].m_registered);
+      return m_tags[N].m_tag;
+    }
+
+    PerRegistrar&
+    create_get(const fastuidraw::PainterShaderRegistrar &sh)
+    {
+      unsigned int N(sh.unique_id());
+
+      if (N >= m_tags.size())
+        {
+          m_tags.resize(N + 1);
+        }
+      return m_tags[N];
+    }
+
+    std::vector<PerRegistrar> m_tags;
 
     //for when shader has sub-shaders
     unsigned int m_number_sub_shaders;
@@ -87,32 +118,29 @@ sub_shader(void) const
 
 uint32_t
 fastuidraw::PainterShader::
-ID(void) const
+ID(const PainterShaderRegistrar &sh) const
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  FASTUIDRAWassert(d->m_registered_to != nullptr);
-  return d->m_tag.m_ID;
+  return d->get_tag(sh).m_ID;
 }
 
 uint32_t
 fastuidraw::PainterShader::
-group(void) const
+group(const PainterShaderRegistrar &sh) const
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  FASTUIDRAWassert(d->m_registered_to != nullptr);
-  return d->m_tag.m_group;
+  return d->get_tag(sh).m_group;
 }
 
 fastuidraw::PainterShader::Tag
 fastuidraw::PainterShader::
-tag(void) const
+tag(const PainterShaderRegistrar &sh) const
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  FASTUIDRAWassert(d->m_registered_to != nullptr);
-  return d->m_tag;
+  return d->get_tag(sh);
 }
 
 unsigned int
@@ -135,19 +163,32 @@ parent(void) const
 
 void
 fastuidraw::PainterShader::
-register_shader(Tag tg, const PainterShaderRegistrar *p)
+register_shader(Tag tg, const PainterShaderRegistrar &p)
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  FASTUIDRAWassert(d->m_registered_to == nullptr);
-  FASTUIDRAWassert(!d->m_parent);
-  d->m_tag = tg;
-  d->m_registered_to = p;
+
+  PerRegistrar &pr(d->create_get(p));
+
+  FASTUIDRAWassert(!pr.m_registered);
+  pr.m_tag = tg;
+  pr.m_registered = true;
+}
+
+bool
+fastuidraw::PainterShader::
+registered_to(const PainterShaderRegistrar &sh) const
+{
+  unsigned int N(sh.unique_id());
+  PainterShaderPrivate *d;
+
+  d = static_cast<PainterShaderPrivate*>(m_d);
+  return d->m_tags.size() > N && d->m_tags[N].m_registered;
 }
 
 void
 fastuidraw::PainterShader::
-set_group_of_sub_shader(uint32_t gr)
+set_group_of_sub_shader(const PainterShaderRegistrar &p, uint32_t gr)
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
@@ -156,23 +197,13 @@ set_group_of_sub_shader(uint32_t gr)
   PainterShaderPrivate *pd;
   pd = static_cast<PainterShaderPrivate*>(d->m_parent->m_d);
 
-  /* the parent must all-ready be registered.
-   */
-  FASTUIDRAWassert(pd->m_registered_to != nullptr);
+  PerRegistrar &dpr(d->create_get(p));
+  const Tag &pdtag(pd->get_tag(p));
 
-  //but this shader is not yet registered!
-  FASTUIDRAWassert(d->m_registered_to == nullptr);
+  /* this shader is not yet registered! */
+  FASTUIDRAWassert(!dpr.m_registered);
 
-  d->m_registered_to = pd->m_registered_to;
-  d->m_tag.m_ID = pd->m_tag.m_ID + d->m_sub_shader_ID;
-  d->m_tag.m_group = gr;
-}
-
-const fastuidraw::PainterShaderRegistrar*
-fastuidraw::PainterShader::
-registered_to(void) const
-{
-  PainterShaderPrivate *d;
-  d = static_cast<PainterShaderPrivate*>(m_d);
-  return d->m_registered_to;
+  dpr.m_tag.m_ID = pdtag.m_ID + d->m_sub_shader_ID;
+  dpr.m_tag.m_group = gr;
+  dpr.m_registered = true;
 }

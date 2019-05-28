@@ -125,53 +125,55 @@ namespace fastuidraw
 
     /*!
      * Returns the ID of the shader, the shader
-     * must be registered to a PainterShaderRegistrar
-     * to have an ID.
+     * must be registered to the passed \ref
+     * PainterShaderRegistrar to have an ID
+     * value for the passed registrar.
      */
     uint32_t
-    ID(void) const;
+    ID(const PainterShaderRegistrar&) const;
 
     /*!
      * Returns the shader group to which the shader belongs.
      * A different value in group() triggers a call to
-     * PainterDraw:draw_break() to note that
-     * the shader group changed. The shader must be
-     * registered in order to have a group value.
+     * PainterDraw:draw_break() to note that the shader
+     * group changed. The shader must be registered to the
+     * passed \ref PainterShaderRegistrar to have a value
+     * from the registrar.
      */
     uint32_t
-    group(void) const;
+    group(const PainterShaderRegistrar&) const;
 
     /*!
      * Returns the Tag of the shader which holds
      * the value for ID() in Tag::m_ID and group()
      * in Tag::m_group. The shader must be registered
-     * to have a Tag value.
+     * to the passed \ref PainterShaderRegistrar to
+     * have a Tag value from the registrar.
      */
     Tag
-    tag(void) const;
+    tag(const PainterShaderRegistrar&) const;
 
     /*!
-     * Returns the PainterShaderRegistrar to which the shader
-     * is registed. If not yet registered, returns nullptr.
+     * Returns true if this shader has been registered
+     * the the passed \ref PainterShaderRegistrar.
      */
-    const PainterShaderRegistrar*
-    registered_to(void) const;
+    bool
+    registered_to(const PainterShaderRegistrar&) const;
 
   private:
     friend class PainterShaderRegistrar;
 
     /*!
      * Called by a PainterShaderRegistrar to register the shader to it.
-     * A PainterShader may only be registered once.
      */
     void
-    register_shader(Tag tg, const PainterShaderRegistrar *p);
+    register_shader(Tag tg, const PainterShaderRegistrar &p);
 
     /*!
      * Called by PainterShaderRegistrar to set the group for a shader.
      */
     void
-    set_group_of_sub_shader(uint32_t group);
+    set_group_of_sub_shader(const PainterShaderRegistrar &p, uint32_t group);
 
     void *m_d;
   };

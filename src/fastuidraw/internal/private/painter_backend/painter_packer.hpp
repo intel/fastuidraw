@@ -138,6 +138,7 @@ namespace fastuidraw
     PainterPacker(PainterBrushShader *default_brush_shader,
                   vecN<unsigned int, num_stats> &stats,
                   reference_counted_ptr<PainterBackend> backend,
+                  PainterShaderRegistrar &registrar,
                   const PainterEngine::ConfigurationBase &config);
 
     virtual
@@ -441,6 +442,7 @@ namespace fastuidraw
 
     PainterBrushShader *m_default_brush_shader;
     reference_counted_ptr<PainterBackend> m_backend;
+    PainterShaderRegistrar &m_registrar;
     unsigned int m_header_size;
 
     PainterBlendShader *m_blend_shader;

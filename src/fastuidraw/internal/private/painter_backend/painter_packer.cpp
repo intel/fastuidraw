@@ -291,7 +291,8 @@ class fastuidraw::PainterPacker::per_draw_command
 {
 public:
   explicit
-  per_draw_command(const reference_counted_ptr<PainterDraw> &r);
+  per_draw_command(PainterShaderRegistrar &rp,
+                   const reference_counted_ptr<PainterDraw> &r);
 
   unsigned int
   attribute_room(void) const
@@ -383,16 +384,19 @@ private:
 
   unsigned int m_store_blocks_written;
   PainterShaderGroupPrivate m_prev_state;
+  PainterShaderRegistrar &m_registrar;
 };
 
 //////////////////////////////////////////
 // fastuidraw::PainterPacker::per_draw_command methods
 fastuidraw::PainterPacker::per_draw_command::
-per_draw_command(const reference_counted_ptr<PainterDraw> &r):
+per_draw_command(PainterShaderRegistrar &rp,
+                 const reference_counted_ptr<PainterDraw> &r):
   m_draw_command(r),
   m_attributes_written(0),
   m_indices_written(0),
-  m_store_blocks_written(0)
+  m_store_blocks_written(0),
+  m_registrar(rp)
 {
   m_prev_state.m_item_group = 0;
   m_prev_state.m_brush_group = 0;
@@ -544,13 +548,13 @@ pack_header(enum PainterSurface::render_type_t render_type,
     {
       if (blend_shader)
         {
-          blend = blend_shader->tag();
+          blend = blend_shader->tag(m_registrar);
           current.m_blend_shader_type = blend_shader->type();
         }
 
       if (brush_shader)
         {
-          brush = brush_shader->tag();
+          brush = brush_shader->tag(m_registrar);
         }
     }
   else
@@ -565,7 +569,7 @@ pack_header(enum PainterSurface::render_type_t render_type,
         .func_dst(BlendMode::ONE);
     }
 
-  current.m_item_group = item_shader->group();
+  current.m_item_group = item_shader->group(m_registrar);
   current.m_brush_group = brush.m_group;
   current.m_blend_group = blend.m_group;
   current.m_blend_mode = blend_mode;
@@ -576,7 +580,7 @@ pack_header(enum PainterSurface::render_type_t render_type,
   header.m_item_shader_data_location = loc.m_item_shader_data_loc;
   header.m_blend_shader_data_location = loc.m_blend_shader_data_loc;
   header.m_brush_adjust_location = loc.m_brush_adjust_data_loc;
-  header.m_item_shader = item_shader->ID();
+  header.m_item_shader = item_shader->ID(m_registrar);
   header.m_brush_shader = brush.m_ID;
   header.m_blend_shader = blend.m_ID;
   header.m_z = z;
@@ -641,9 +645,11 @@ fastuidraw::PainterPacker::
 PainterPacker(PainterBrushShader *default_brush_shader,
               vecN<unsigned int, num_stats> &stats,
               reference_counted_ptr<PainterBackend> backend,
+              PainterShaderRegistrar &registrar,
               const PainterEngine::ConfigurationBase &config):
   m_default_brush_shader(default_brush_shader),
   m_backend(backend),
+  m_registrar(registrar),
   m_blend_shader(nullptr),
   m_number_commands(0),
   m_clear_color_buffer(false),
@@ -676,7 +682,7 @@ start_new_command(void)
   reference_counted_ptr<PainterDraw> r;
   r = m_backend->map_draw();
   ++m_number_commands;
-  m_accumulated_draws.push_back(per_draw_command(r));
+  m_accumulated_draws.push_back(per_draw_command(m_registrar, r));
 }
 
 template<typename T>
