@@ -33,7 +33,7 @@ ScratchRenderer(void):
     "}\n";
 
   const char *frag_src =
-    "out TYPE v;\n"
+    "out highp TYPE v;\n"
     "void main(void)\n"
     "{\n"
     "\tv = VALUE;\n"

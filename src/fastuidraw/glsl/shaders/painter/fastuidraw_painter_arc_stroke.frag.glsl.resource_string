@@ -76,7 +76,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       fastuidraw_stroking_distance_fwidth = fwidth(fastuidraw_arc_shader_stroking_distance_real);
       if (fastuidraw_arc_stroking_arc_radius > -0.5)
         {
-          if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) == 0)
+          if ((fastuidraw_arc_stroking_dash_bits & fastuidraw_stroke_distance_constant) == 0u)
             {
               fastuidraw_stroking_distance += raw_theta * fastuidraw_arc_stroking_arc_radius;
               fastuidraw_stroking_distance_fwidth += raw_thetaw * fastuidraw_arc_stroking_arc_radius;
