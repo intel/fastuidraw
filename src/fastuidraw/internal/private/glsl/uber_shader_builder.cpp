@@ -18,6 +18,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <typeinfo>
 
 #include <private/glsl/uber_shader_builder.hpp>
 #include <private/util_private.hpp>
