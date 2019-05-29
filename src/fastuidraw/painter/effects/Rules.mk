@@ -5,8 +5,7 @@ d		:= $(dir)
 # End standard header
 
 FASTUIDRAW_SOURCES += $(call filelist, \
-	painter_effect.cpp \
-	painter_effect_color_modulate.cpp)
+	painter_effect_brush.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

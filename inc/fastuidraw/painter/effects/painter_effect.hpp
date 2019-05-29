@@ -32,105 +32,78 @@ namespace fastuidraw
  */
 
   /*!
-   * \brief
-   * A \ref PainterEffectPass represents the interface to
-   * define a single pass of a \ref PainterEffect. A pass is
-   * essentially a mutable brush changed by what image to
-   * which it will be applied. A single PainterEffectPass
-   * is to be used by only one thread at a time.
+   * A PainterEffectParams represents the parameters for a
+   * \ref PainterEffect. A \ref PainterEffect derived object
+   * will use a \ref PainterEffectParams derived object for
+   * its parameters. A user of \ref PainterEffect will
+   * use the correct \ref PainterEffectParams derived object
+   * when calling \ref PainterEffect::brush(). A \ref
+   * PainterEffectParams is passed by non-constant reference
+   * to \ref PainterEffect::brush(). A typical implementation
+   * of \ref PainterEffect and \ref PainterEffectParams is
+   * that the call to \ref PainterEffect::brush() will modify
+   * the contents of the passed \ref PainterEffectParams
+   * object so that it backs the correct value for the return
+   * value of type \ref PainterData::brush_value. The callers
+   * of \ref PainterEffect::brush() must guarantee that a fixed
+   * \ref PainterEffectParams is not used simutaneosly by
+   * multiple threads.
    */
-  class PainterEffectPass:
-    public reference_counted<PainterEffectPass>::concurrent
+  class PainterEffectParams:noncopyable
   {
   public:
     virtual
-    ~PainterEffectPass()
+    ~PainterEffectParams()
     {}
-
-    /*!
-     * To be implemented by a derived class to return the
-     * brush made from the passed \ref Image value. The
-     * returned PainterData::brush_value value needs to be
-     * valid until the \ref PainterEffectPass dtor is called
-     * or the next call to brush(). The passed image is
-     * guaranteed to have Image::type() as value \ref
-     * Image::bindless_texture2d or \ref Image::context_texture2d.
-     * \param image the image to which the effect is applied
-     * \param brush_rect the brush coordinates of the rect
-     *                   drawn
-     */
-    virtual
-    PainterData::brush_value
-    brush(const reference_counted_ptr<const Image> &image,
-	  const Rect &brush_rect) = 0;
   };
 
   /*!
    * \brief
    * A \ref PainterEffect represents the interface to
    * define and effect to apply to image data. At its
-   * core, it is made up of a sequence of passes. A
-   * derived class is expected to expand on PainterEffect
-   * to allow to specify properties of an effect (for
-   * example blur properties for a blur effect) and
-   * to reimplment copy().
+   * core, it is made up of a sequence of passes.
    */
   class PainterEffect:
     public reference_counted<PainterEffect>::concurrent
   {
   public:
-    /*!
-     * Ctor; initializes as having no passes.
-     */
-    PainterEffect(void);
-
     virtual
-    ~PainterEffect();
+    ~PainterEffect()
+    {}
 
     /*!
-     * Returns the passes of this \ref PainterEffect
-     */
-    c_array<const reference_counted_ptr<PainterEffectPass> >
-    passes(void) const;
-
-    /*!
-     * To be implemented by a derived class to create a deep copy
-     * of this \ref PainterEffect object.
+     * To be implemented by a derived class to return the
+     * number of passes the \ref PainterEffect has.
      */
     virtual
-    reference_counted_ptr<PainterEffect>
-    copy(void) const = 0;
-
-  protected:
-    /*!
-     * Add a pass to the effect. The passed \ref PainterEffectPass
-     * is to be only used by this \ref PainterEffect object.
-     */
-    void
-    add_pass(const reference_counted_ptr<PainterEffectPass> &effect);
+    unsigned int
+    number_passes(void) const = 0;
 
     /*!
-     * Provided as a conveniance to add several passes.
-     * Equivalent to
-     * \code
-     * for (; begin != end; ++begin)
-     *  {
-     *    add_pass(*iter);
-     *  }
-     * \endcode
+     * To be implemented by a derived class to return the
+     * brush made from the passed \ref Image value. The
+     * returned PainterData::brush_value value needs to be
+     * valid until the \ref PainterEffectParams dtor is called
+     * or the next call to brush() {called on from \ref
+     * PainterEffect} passing the same \ref PainterEffectParams.
+     * The passed image is guaranteed to have Image::type() as
+     * value \ref Image::bindless_texture2d or \ref
+     * Image::context_texture2d. The method brush() is to
+     * be thread safe with respect to the \ref PainterEffect
+     * object, but NOT with respect to the \ref PainterEffectParams
+     * object.
+     * \param pass the effect pass
+     * \param image the image to which the effect is applied
+     * \param brush_rect the brush coordinates of the rect
+     *                   drawn
+     * \param params the parameters of the effect
      */
-    template<typename iterator>
-    void
-    add_passes(iterator begin, iterator end)
-    {
-      for (; begin != end; ++begin)
-        {
-          add_pass(*begin);
-        }
-    }
-
-  private:
-    void *m_d;
+    virtual
+    PainterData::brush_value
+    brush(unsigned pass,
+          const reference_counted_ptr<const Image> &image,
+	  const Rect &brush_rect,
+          PainterEffectParams &params) const = 0;
   };
 /*! @} */
 }

@@ -748,24 +748,12 @@ namespace fastuidraw
      * begin_layer() must match a save() from after a begin_layer().
      * It is acceptable to layer any number of begin_layer() calls
      * as well.
-     * \param effect FX to apply
+     * \param effect effect to apply
+     * \param effect_params effect parameters for the effect
      */
     void
-    begin_layer(const reference_counted_ptr<PainterEffect> &effect);
-
-    /*!
-     * Begin an FX layer. This marks first rendering into an
-     * offscreen buffer and then blitting the buffer with the
-     * passed FX applied. The buffer will be blitted with the
-     * blend_shader(), and blend_mode() at the time of the call
-     * to begin_layer(). All restore() commands called after a
-     * begin_layer() must match a save() from after a begin_layer().
-     * It is acceptable to layer any number of begin_layer() calls
-     * as well.
-     * \param fx_passes FX passes to apply
-     */
-    void
-    begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > fx_passes);
+    begin_layer(const reference_counted_ptr<const PainterEffect> &effect,
+                PainterEffectParams &effect_params);
 
     /*!
      * Begin a transparency layer. This marks first

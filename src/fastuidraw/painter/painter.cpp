@@ -26,7 +26,7 @@
 #include <fastuidraw/text/glyph_generate_params.hpp>
 #include <fastuidraw/painter/backend/painter_header.hpp>
 #include <fastuidraw/painter/attribute_data/stroking_attribute_writer.hpp>
-#include <fastuidraw/painter/effects/painter_effect_color_modulate.hpp>
+#include <fastuidraw/painter/effects/painter_effect_brush.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include <private/util_private.hpp>
@@ -702,7 +702,9 @@ namespace
   {
   public:
     void
-    blit_rect(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass> &fx_pass,
+    blit_rect(int pass,
+              const fastuidraw::reference_counted_ptr<const fastuidraw::PainterEffect> &fx,
+              fastuidraw::PainterEffectParams &effect_params,
               fastuidraw::vec2 viewport_dims,
               fastuidraw::Painter *p);
 
@@ -1516,6 +1518,7 @@ namespace
     RoundedRectWorkRoom m_rounded_rect;
     GenericLayeredWorkRoom m_generic_layered;
     ComputeClipIntersectRectWorkRoom m_compute_clip_intersect_rect;
+    fastuidraw::PainterEffectBrushParams m_fx_brush_params;
   };
 
   class EffectsStackEntry
@@ -1900,7 +1903,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine> m_backend_factory;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterEngine::PerformanceHints m_hints;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectColorModulate> m_color_modulate_fx;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectBrush> m_brush_fx;
     fastuidraw::PainterShaderSet m_default_shaders;
     fastuidraw::PainterBrushShader *m_default_brush_shader;
     ExtendedPool m_pool;
@@ -2815,7 +2818,9 @@ BufferRect(const fastuidraw::Rect &normalized_rect,
 // EffectsLayer methods
 void
 EffectsLayer::
-blit_rect(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass> &fx_pass,
+blit_rect(int pass,
+          const fastuidraw::reference_counted_ptr<const fastuidraw::PainterEffect> &fx,
+          fastuidraw::PainterEffectParams &effect_params,
           fastuidraw::vec2 dims, fastuidraw::Painter *p)
 {
   using namespace fastuidraw;
@@ -2833,7 +2838,7 @@ blit_rect(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEffectPass>
   p->transformation(float_orthogonal_projection_params(0, dims.x(), 0, dims.y()));
   p->translate(-m_brush_translate);
 
-  p->fill_rect(PainterData(fx_pass->brush(m_image, brush_rect)),
+  p->fill_rect(PainterData(fx->brush(pass, m_image, brush_rect, effect_params)),
                brush_rect,
                false);
 
@@ -3180,7 +3185,7 @@ PainterPrivate(const fastuidraw::reference_counted_ptr<fastuidraw::PainterEngine
    */
   m_default_shaders = m_backend_factory->default_shaders();
   m_default_brush_shader = m_default_shaders.brush_shaders().standard_brush().get();
-  m_color_modulate_fx = FASTUIDRAWnew fastuidraw::PainterEffectColorModulate();
+  m_brush_fx = FASTUIDRAWnew fastuidraw::PainterEffectBrush();
   m_root_packer = FASTUIDRAWnew fastuidraw::PainterPacker(m_default_brush_shader, m_stats, m_backend,
                                                           m_backend_factory->painter_shader_registrar(),
                                                           m_backend_factory->configuration_base());
@@ -5996,20 +6001,19 @@ begin_layer(const vec4 &color_modulate)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_color_modulate_fx->color(color_modulate);
-  begin_layer(d->m_color_modulate_fx);
+
+  d->m_work_room.m_fx_brush_params
+    .color(color_modulate)
+    .no_gradient()
+    .no_transformation()
+    .no_repeat_window();
+  begin_layer(d->m_brush_fx, d->m_work_room.m_fx_brush_params);
 }
 
 void
 fastuidraw::Painter::
-begin_layer(const reference_counted_ptr<PainterEffect> &effect)
-{
-  begin_layer(effect->passes());
-}
-
-void
-fastuidraw::Painter::
-begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
+begin_layer(const reference_counted_ptr<const PainterEffect> &effect,
+            PainterEffectParams &effect_params)
 {
   PainterPrivate *d;
   Rect clip_region_rect;
@@ -6035,10 +6039,12 @@ begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
   BlendMode old_blend_mode(d->packer()->blend_mode());
   BlendMode copy_blend_mode(d->m_default_shaders.blend_shaders().blend_mode(blend_porter_duff_src));
 
-  for (auto ibegin = reverse_iterator(passes.end()),
-         iend = reverse_iterator(passes.begin()),
-         i = ibegin;
-       i != iend; ++i)
+  /* We must walk the passes in -REVERSE- order because the first element rendered
+   * is the top of d->m_effects_layer_stack which is a STACK. We want the pass 0
+   * to be at the top of the stack, thus we want the render passes in -reverse-
+   * order.
+   */
+  for (int pass = effect->number_passes() - 1; pass >= 0; --pass)
     {
       /* get the EffectsLayer that gives the PainterPacker and what to blit
        * when the layer is done
@@ -6048,9 +6054,10 @@ begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
       R = d->m_effects_layer_factory.fetch(d->m_effects_layer_stack.size(), clip_region_rect, d);
 
       /* Set the blend mode to copy for those rects that fed to the next
-       * effect; the last blit has the blend mode set to what it was before.
+       * effect; only the last blit has the blend mode set to what it was
+       * before.
        */
-      if (i != ibegin)
+      if (pass != 0)
         {
           d->packer()->blend_shader(copy_blend, copy_blend_mode);
         }
@@ -6064,7 +6071,8 @@ begin_layer(c_array<const reference_counted_ptr<PainterEffectPass> > passes)
        * commands executed before the current packer(), regardless in what
        * order we add them.
        */
-      R.blit_rect(*i, d->m_viewport_dimensions, this);
+      R.blit_rect(pass, effect, effect_params,
+                  d->m_viewport_dimensions, this);
 
       /* after issuing the blit command, then add R to m_effects_layer_stack */
       d->m_effects_layer_stack.push_back(R);
