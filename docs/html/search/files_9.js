@@ -23,7 +23,7 @@ var searchData=
   ['painter_5fdraw_2ehpp',['painter_draw.hpp',['../d6/d63/painter__draw_8hpp.html',1,'']]],
   ['painter_5fdraw_5fbreak_5faction_2ehpp',['painter_draw_break_action.hpp',['../d8/d48/painter__draw__break__action_8hpp.html',1,'']]],
   ['painter_5feffect_2ehpp',['painter_effect.hpp',['../dc/d5d/painter__effect_8hpp.html',1,'']]],
-  ['painter_5feffect_5fcolor_5fmodulate_2ehpp',['painter_effect_color_modulate.hpp',['../d6/da9/painter__effect__color__modulate_8hpp.html',1,'']]],
+  ['painter_5feffect_5fbrush_2ehpp',['painter_effect_brush.hpp',['../d1/d98/painter__effect__brush_8hpp.html',1,'']]],
   ['painter_5fengine_2ehpp',['painter_engine.hpp',['../de/d65/painter__engine_8hpp.html',1,'']]],
   ['painter_5fengine_5fgl_2ehpp',['painter_engine_gl.hpp',['../d3/d61/painter__engine__gl_8hpp.html',1,'']]],
   ['painter_5fenums_2ehpp',['painter_enums.hpp',['../d5/d08/painter__enums_8hpp.html',1,'']]],

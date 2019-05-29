@@ -1,7 +1,7 @@
 <map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/painter_brush.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/painter/painter_brush.hpp">
-<area shape="rect" id="node2" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="71,354,242,410"/>
-<area shape="rect" id="node3" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="65,109,248,180"/>
-<area shape="rect" id="node4" href="$dc/d5d/painter__effect_8hpp.html" title="file painter_effect.hpp " alt="" coords="273,228,443,299"/>
-<area shape="rect" id="node6" href="$df/dae/painter__packed__value__pool_8hpp.html" title="file painter_packed_value_pool.hpp " alt="" coords="65,228,248,299"/>
-<area shape="rect" id="node5" href="$d6/da9/painter__effect__color__modulate_8hpp.html" title="file painter_effect_color_modulate.hpp " alt="" coords="267,347,449,417"/>
+<area shape="rect" id="node2" href="$d1/d98/painter__effect__brush_8hpp.html" title="file painter_effect_brush.hpp " alt="" coords="5,347,176,417"/>
+<area shape="rect" id="node3" href="$d0/d77/painter_8hpp.html" title="file painter.hpp " alt="" coords="268,354,439,410"/>
+<area shape="rect" id="node4" href="$df/d9d/painter__data_8hpp.html" title="file painter_data.hpp " alt="" coords="165,109,347,180"/>
+<area shape="rect" id="node5" href="$dc/d5d/painter__effect_8hpp.html" title="file painter_effect.hpp " alt="" coords="67,228,237,299"/>
+<area shape="rect" id="node6" href="$df/dae/painter__packed__value__pool_8hpp.html" title="file painter_packed_value_pool.hpp " alt="" coords="262,228,445,299"/>
 </map>

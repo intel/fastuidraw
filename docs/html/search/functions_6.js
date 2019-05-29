@@ -41,6 +41,6 @@ var searchData=
   ['gpu_5fdirty_5fstate',['gpu_dirty_state',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a8c42f00c255ac2b3fa22b21ead8b101d',1,'fastuidraw::gpu_dirty_state']]],
   ['gradient_5fbrush',['gradient_brush',['../d9/de8/classfastuidraw_1_1_painter_brush_shader_set.html#a04e624e1b5e51f45363bb260d837a1f9',1,'fastuidraw::PainterBrushShaderSet::gradient_brush(void) const'],['../d9/de8/classfastuidraw_1_1_painter_brush_shader_set.html#a634326a9d559ad2a3e01bc9ed20d6e85',1,'fastuidraw::PainterBrushShaderSet::gradient_brush(const reference_counted_ptr&lt; const PainterGradientBrushShader &gt; &amp;sh)']]],
   ['gradient_5ftype',['gradient_type',['../d9/d57/classfastuidraw_1_1_painter_brush.html#abf00775859e48df9faa4c4adee4ce5a4',1,'fastuidraw::PainterBrush']]],
-  ['group',['group',['../de/d74/classfastuidraw_1_1_painter_shader.html#aa35c64ecee89e6c35b6f99ded7aa8138',1,'fastuidraw::PainterShader']]],
+  ['group',['group',['../de/d74/classfastuidraw_1_1_painter_shader.html#a02885eb8ee8db42cd58d23430516afc4',1,'fastuidraw::PainterShader']]],
   ['guard',['Guard',['../d7/d0a/classfastuidraw_1_1_mutex_1_1_guard.html#a065b47269b3e97b96a3027ca12f6238c',1,'fastuidraw::Mutex::Guard']]]
 ];

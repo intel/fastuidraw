@@ -111,10 +111,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3781d372804bbb6ed96914068bd37f76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f6d497cb900883f81795305ff1d5a74"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2f6d497cb900883f81795305ff1d5a74">begin_coverage_buffer</a> (const <a class="el" href="../../d6/d1f/classfastuidraw_1_1_painter_1_1_normalized_coord_rect.html">NormalizedCoordRect</a> &amp;normalized_rect, float additional_pixel_slack=0.0f)</td></tr>
 <tr class="separator:a2f6d497cb900883f81795305ff1d5a74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f95b28a790b90e7998e61418b60571f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d3/dee/classfastuidraw_1_1_painter_effect.html">PainterEffect</a> &gt; &amp;effect)</td></tr>
-<tr class="separator:a3f95b28a790b90e7998e61418b60571f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9db4a0b793d5ea035add70fba5ac3e76"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a9db4a0b793d5ea035add70fba5ac3e76">begin_layer</a> (<a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d7/ddc/classfastuidraw_1_1_painter_effect_pass.html">PainterEffectPass</a> &gt; &gt; fx_passes)</td></tr>
-<tr class="separator:a9db4a0b793d5ea035add70fba5ac3e76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8152e2a76a2d83882e3169814bae381b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer</a> (const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d3/dee/classfastuidraw_1_1_painter_effect.html">PainterEffect</a> &gt; &amp;effect, <a class="el" href="../../da/d20/classfastuidraw_1_1_painter_effect_params.html">PainterEffectParams</a> &amp;effect_params)</td></tr>
+<tr class="separator:a8152e2a76a2d83882e3169814bae381b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f377f904169dbccc015e4cab7711888"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5f377f904169dbccc015e4cab7711888">begin_layer</a> (const <a class="el" href="../../da/d46/group___utility.html#gabd4692a3df88468cfe902d9cec76e94c">vec4</a> &amp;color_modulate)</td></tr>
 <tr class="separator:a5f377f904169dbccc015e4cab7711888"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1087c857f2000abe8994c1481cd4b592"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a1087c857f2000abe8994c1481cd4b592">begin_layer</a> (float alpha)</td></tr>
@@ -764,8 +762,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a3f95b28a790b90e7998e61418b60571f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3f95b28a790b90e7998e61418b60571f">&#9670;&nbsp;</a></span>begin_layer() <span class="overload">[1/4]</span></h2>
+<a id="a8152e2a76a2d83882e3169814bae381b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8152e2a76a2d83882e3169814bae381b">&#9670;&nbsp;</a></span>begin_layer() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -773,39 +771,26 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void fastuidraw::Painter::begin_layer </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d3/dee/classfastuidraw_1_1_painter_effect.html">PainterEffect</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>effect</em></td><td>)</td>
-          <td></td>
+          <td class="paramtype">const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; const <a class="el" href="../../d3/dee/classfastuidraw_1_1_painter_effect.html">PainterEffect</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>effect</em>, </td>
         </tr>
-      </table>
-</div><div class="memdoc">
-<p>Begin an FX layer. This marks first rendering into an offscreen buffer and then blitting the buffer with the passed FX applied. The buffer will be blitted with the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5fb5a026053b1c29a1a99df7ba59060d">blend_shader()</a>, and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae9c09de4c4e2486cc7052aa8dca972b7">blend_mode()</a> at the time of the call to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>. All <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4fdbf10e92a753872576bfd8fd61b49e">restore()</a> commands called after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a> must match a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a> from after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>. It is acceptable to layer any number of <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a> calls as well. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">effect</td><td>FX to apply </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a9db4a0b793d5ea035add70fba5ac3e76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9db4a0b793d5ea035add70fba5ac3e76">&#9670;&nbsp;</a></span>begin_layer() <span class="overload">[2/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
         <tr>
-          <td class="memname">void fastuidraw::Painter::begin_layer </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../de/df7/classfastuidraw_1_1c__array.html">c_array</a>&lt; const <a class="el" href="../../de/d73/classfastuidraw_1_1reference__counted__ptr.html">reference_counted_ptr</a>&lt; <a class="el" href="../../d7/ddc/classfastuidraw_1_1_painter_effect_pass.html">PainterEffectPass</a> &gt; &gt;&#160;</td>
-          <td class="paramname"><em>fx_passes</em></td><td>)</td>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="../../da/d20/classfastuidraw_1_1_painter_effect_params.html">PainterEffectParams</a> &amp;&#160;</td>
+          <td class="paramname"><em>effect_params</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Begin an FX layer. This marks first rendering into an offscreen buffer and then blitting the buffer with the passed FX applied. The buffer will be blitted with the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5fb5a026053b1c29a1a99df7ba59060d">blend_shader()</a>, and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae9c09de4c4e2486cc7052aa8dca972b7">blend_mode()</a> at the time of the call to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>. All <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4fdbf10e92a753872576bfd8fd61b49e">restore()</a> commands called after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a> must match a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a> from after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>. It is acceptable to layer any number of <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a> calls as well. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Begin an FX layer. This marks first rendering into an offscreen buffer and then blitting the buffer with the passed FX applied. The buffer will be blitted with the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5fb5a026053b1c29a1a99df7ba59060d">blend_shader()</a>, and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae9c09de4c4e2486cc7052aa8dca972b7">blend_mode()</a> at the time of the call to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a>. All <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4fdbf10e92a753872576bfd8fd61b49e">restore()</a> commands called after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a> must match a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a> from after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a>. It is acceptable to layer any number of <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a> calls as well. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">fx_passes</td><td>FX passes to apply </td></tr>
+    <tr><td class="paramname">effect</td><td>effect to apply </td></tr>
+    <tr><td class="paramname">effect_params</td><td>effect parameters for the effect </td></tr>
   </table>
   </dd>
 </dl>
@@ -813,7 +798,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="a5f377f904169dbccc015e4cab7711888"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f377f904169dbccc015e4cab7711888">&#9670;&nbsp;</a></span>begin_layer() <span class="overload">[3/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f377f904169dbccc015e4cab7711888">&#9670;&nbsp;</a></span>begin_layer() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -827,7 +812,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Begin a transparency layer. This marks first rendering into an offscreen buffer and then blitting the buffer. The buffer will be blitted with the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5fb5a026053b1c29a1a99df7ba59060d">blend_shader()</a>, and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae9c09de4c4e2486cc7052aa8dca972b7">blend_mode()</a> at the time of the call to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>. All <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4fdbf10e92a753872576bfd8fd61b49e">restore()</a> commands called after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a> must match a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a> from after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>. It is acceptable to layer any number of <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a> calls as well. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Begin a transparency layer. This marks first rendering into an offscreen buffer and then blitting the buffer. The buffer will be blitted with the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5fb5a026053b1c29a1a99df7ba59060d">blend_shader()</a>, and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae9c09de4c4e2486cc7052aa8dca972b7">blend_mode()</a> at the time of the call to <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a>. All <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4fdbf10e92a753872576bfd8fd61b49e">restore()</a> commands called after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a> must match a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a> from after a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a>. It is acceptable to layer any number of <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a> calls as well. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">color_modulate</td><td>color value by which to modulate the layer when it is to be blitted </td></tr>
   </table>
@@ -837,7 +822,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <a id="a1087c857f2000abe8994c1481cd4b592"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1087c857f2000abe8994c1481cd4b592">&#9670;&nbsp;</a></span>begin_layer() <span class="overload">[4/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1087c857f2000abe8994c1481cd4b592">&#9670;&nbsp;</a></span>begin_layer() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -859,14 +844,14 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer</a>(<a class="code" href="../../da/d46/group___utility.html#gabd4692a3df88468cfe902d9cec76e94c">vec4</a>(1.0f, 1.0f, 1.0f, alpha));</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
+<p>Provided as a conveniance, equivalent to </p><div class="fragment"><div class="line"><a class="code" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer</a>(<a class="code" href="../../da/d46/group___utility.html#gabd4692a3df88468cfe902d9cec76e94c">vec4</a>(1.0f, 1.0f, 1.0f, alpha));</div></div><!-- fragment --> <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">alpha</td><td>alpha value for color modulation. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00794">794</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00782">782</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2057,7 +2042,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01637">1637</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01625">1625</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2490,7 +2475,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00942">942</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00930">930</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2636,7 +2621,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00987">987</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l00975">975</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2824,7 +2809,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01044">1044</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01032">1032</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -2970,7 +2955,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01093">1093</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01081">1081</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3158,7 +3143,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01145">1145</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01133">1133</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3304,7 +3289,7 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns what <a class="el" href="../../d0/d68/classfastuidraw_1_1_glyph_renderer.html">GlyphRenderer</a> value used </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01191">1191</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01179">1179</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3504,7 +3489,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01546">1546</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01534">1534</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -3976,7 +3961,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01488">1488</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01476">1476</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4035,7 +4020,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01505">1505</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01493">1493</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4178,7 +4163,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01584">1584</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01572">1572</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4321,7 +4306,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01622">1622</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01610">1610</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -4340,7 +4325,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Flushes the rendering and flushes the rendering commands to the 3D API and shift to using a the passed surface; the surface's viewport dimensions MUST match the current surface's viewport dimensions, i.e. the value of <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html#aed3879dc1058773d35e15d627e4ce851">PainterSurface::viewport()</a>.m_dimensions <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#addbf4dac586f65e47f8811f228e29016">surface()</a> and the passed <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html" title="PainterSurface represents an interface to specify a buffer to which a PainterBackend renders content...">PainterSurface</a> must match. It is not possible if the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>/end_layer() pair or if it is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer()</a>/end_coverage_buffer() pair. Returns <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38eaeba40caac170221f231a4247637c0b8f">routine_success</a> if flush was executed and <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38ea07012bc3a0da9650c25fbfacdb05742a">routine_fail</a> if not. </p>
+<p>Flushes the rendering and flushes the rendering commands to the 3D API and shift to using a the passed surface; the surface's viewport dimensions MUST match the current surface's viewport dimensions, i.e. the value of <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html#aed3879dc1058773d35e15d627e4ce851">PainterSurface::viewport()</a>.m_dimensions <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#addbf4dac586f65e47f8811f228e29016">surface()</a> and the passed <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html" title="PainterSurface represents an interface to specify a buffer to which a PainterBackend renders content...">PainterSurface</a> must match. It is not possible if the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a>/end_layer() pair or if it is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer()</a>/end_coverage_buffer() pair. Returns <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38eaeba40caac170221f231a4247637c0b8f">routine_success</a> if flush was executed and <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38ea07012bc3a0da9650c25fbfacdb05742a">routine_fail</a> if not. </p>
 
 </div>
 </div>
@@ -4359,7 +4344,7 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Flushes the rendering and flushes the rendering commands to the 3D API and maintain using the current <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html" title="PainterSurface represents an interface to specify a buffer to which a PainterBackend renders content...">PainterSurface</a>. It is not possible to flush if the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a>/end_layer() pair or if it is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer()</a>/end_coverage_buffer() pair. Returns <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38eaeba40caac170221f231a4247637c0b8f">routine_success</a> if flush was executed and <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38ea07012bc3a0da9650c25fbfacdb05742a">routine_fail</a> if not. </p>
+<p>Flushes the rendering and flushes the rendering commands to the 3D API and maintain using the current <a class="el" href="../../d5/d60/classfastuidraw_1_1_painter_surface.html" title="PainterSurface represents an interface to specify a buffer to which a PainterBackend renders content...">PainterSurface</a>. It is not possible to flush if the <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html" title="Painter implements a canvas rendering interface. ">Painter</a> is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a>/end_layer() pair or if it is within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer()</a>/end_coverage_buffer() pair. Returns <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38eaeba40caac170221f231a4247637c0b8f">routine_success</a> if flush was executed and <a class="el" href="../../d4/d4c/namespacefastuidraw.html#a63b46c36c27af874b3949e0b6b23c38ea07012bc3a0da9650c25fbfacdb05742a">routine_fail</a> if not. </p>
 
 </div>
 </div>
@@ -4615,7 +4600,7 @@ Additional Inherited Members</h2></td></tr>
 <li>clip state (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a4fb127a3ef0fbd14b8037ae02fb4a3f5">clip_in_rect()</a>, <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#acece68c57594e798589ad83427f67990">clip_out_path()</a>, <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a200b263724410137a868ecf0fcde1e29">clip_in_path()</a>)</li>
 <li>curve flatness requirement (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae50dfb64424da8958c2903d2ac06b08d">curve_flatness(float)</a>)</li>
 <li>blend shader (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a5fb5a026053b1c29a1a99df7ba59060d">blend_shader()</a>)</li>
-<li>blend mode (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae9c09de4c4e2486cc7052aa8dca972b7">blend_mode()</a>) NOTE: it is an error (that is silently ignored) to end a transparency layer (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a3f95b28a790b90e7998e61418b60571f">begin_layer()</a> and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#af08dfa29049292fb7e175f015124a422">end_layer()</a>) within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair that was not started within that same <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair. In addition, it is also an error to not end a layer within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair that was started in the that same <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair. The same rules apply to coverage buffers (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer()</a> and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a7a4983d7d49203f64d12721da9865e0a">end_coverage_buffer()</a>). </li>
+<li>blend mode (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#ae9c09de4c4e2486cc7052aa8dca972b7">blend_mode()</a>) NOTE: it is an error (that is silently ignored) to end a transparency layer (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a8152e2a76a2d83882e3169814bae381b">begin_layer()</a> and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#af08dfa29049292fb7e175f015124a422">end_layer()</a>) within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair that was not started within that same <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair. In addition, it is also an error to not end a layer within a <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair that was started in the that same <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a2c980236887e6f85f5145677c30c904e">save()</a>/restore() pair. The same rules apply to coverage buffers (see <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a008b8a5d1ed07fd902c42902e72b3c8e">begin_coverage_buffer()</a> and <a class="el" href="../../da/de0/classfastuidraw_1_1_painter.html#a7a4983d7d49203f64d12721da9865e0a">end_coverage_buffer()</a>). </li>
 </ul>
 
 </div>
@@ -4980,7 +4965,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01368">1368</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01356">1356</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
@@ -5193,7 +5178,7 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01307">1307</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d77/painter_8hpp_source.html#l01295">1295</a> of file <a class="el" href="../../d0/d77/painter_8hpp_source.html">painter.hpp</a>.</p>
 
 </div>
 </div>
