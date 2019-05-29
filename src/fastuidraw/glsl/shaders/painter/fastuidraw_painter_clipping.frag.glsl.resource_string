@@ -4,7 +4,7 @@
  *
  * Copyright 2019 by Intel.
  *
- * Contact: kevin.rogovin@intel.com
+ * Contact: kevin.rogovin@gmail.com
  *
  * This Source Code Form is subject to the
  * terms of the Mozilla Public License, v. 2.0.
@@ -12,7 +12,7 @@
  * this file, You can obtain one at
  * http://mozilla.org/MPL/2.0/.
  *
- * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ * \author Kevin Rogovin <kevin.rogovin@gmail.com>
  *
  */
 #if defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE) || (!defined(FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE) && defined(FASTUIDRAW_RENDER_TO_DEFERRED_COVERAGE_BUFFER))
