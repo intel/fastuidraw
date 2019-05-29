@@ -160,7 +160,7 @@ The class \ref fastuidraw::PainterAttributeData represents a collection
 of attribute and indices to draw.
 
 If the attribute and/or index data needs to be dynamic (but the CPU cost
-should be low), the class \ref fastuidraw::PainterAttributeDataFiller
+should be low), the class \ref fastuidraw::PainterAttributeWriter
 can be used. One example of its use is \ref fastuidraw::GlyphRun which
 uses it to select what sub-range of indices to feed to draw only a portion
 of text.
