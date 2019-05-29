@@ -1,0 +1,145 @@
+About the Build System
+======================
+
+FastUIDraw's build system is inspired/based off of the build
+system found in WRATH. FastUIDraw's uses GNU make to perform
+building. It makes quite heavy use of GNU make features. The
+make file series avoids recursive make as well.
+
+To add a new source directory for FastUIDraw add to the parent's
+Rules.mk file:
+
+dir := $(d)/NewDirectory
+include $(dir)/Rules.mk
+
+and create a new Rules.mk in the new source directory:
+
+# Begin standard header
+sp 		:= $(sp).x
+dirstack_$(sp)	:= $(d)
+d		:= $(dir)
+# End standard header
+
+## Make Commands here
+
+# Begin standard footer
+d		:= $(dirstack_$(sp))
+sp		:= $(basename $(sp))
+# End standard footer
+
+The build system defines the make-function filelist which
+uses the symbol d to pre-prend the path of where the
+Rules.mk is location. The following make variables are
+for adding source files to building FastUIDraw:
+
+FASTUIDRAW_SOURCES is the list of source files for the cor library (i.e.
+                   libFastUIDraw_debug.so and libFastUIdraw_release.so)
+                   whose symbols are public to the .so
+
+FASTUIDRAW_PRIVATE_SOURCES is the list of source files for the core library
+                           whose symbols are private in the .so (i.e. not
+                           callable by an application linking against the
+                           library).
+
+FASTUIDRAW_RESOURCE_STRING is the list of files that become static resources
+                           from which to fetch GLSL sources (see the details
+                           at glsl::ShaderSource::from_resource). Each of the
+                           files must have the extension .resource_string.glsl.
+                           The filename (without the path) becomes the name
+                           of the resource. These resources are available to
+                           an application that links against the core library
+                           directly or indirectly. These resources are used
+                           internally to create the GLSL shaders for rendering.
+
+FASTUIDRAW_GL_SOURCES is the list of source files for the GL and GLES backend
+                      (i.e. libFastUIDrawGL_debug.so, libFastUIdrawGLES_debug.so
+                      libFastUIDrawGL_release.so, libFastUIdrawGLES_release.so)
+                      whose symbols are public to the .so
+
+FASTUIDRAW_PRIVATE_GL_SOURCES is the list of source files for the GL and GLES
+                              backend whose symbols are private in the .so (i.e.
+                              not callable by an application linking against
+                              the library).
+
+FASTUIDRAW_GL_RESOURCE_STRING is the list of files that become static resources
+                              from which to fetch GLSL sources (see the details
+                              at glsl::ShaderSource::from_resource). Each of the
+                              files must have the extension .resource_string.glsl.
+                              The filename (without the path) becomes the name
+                              of the resource. These resources are available to
+                              an application that links against the GL/GLES backed
+                              library directly or indirectly. These resources are
+                              used internally to create the GLSL shaders for
+                              rendering.
+
+
+Code Structures and Conventions
+===============================
+
+The FastUIDraw public -interface- cannot use the standard C++ template library.
+However, the implementatin can use it (and it does quite heavily).
+
+Most public classes implement the PIMP pattern where there only member variable
+declared in the header is "void *m_d". The implementations of these classes
+will allocate (via FASTUIDRAWnew) that which m_d points to get the data. The
+motitivation for the PIMPL pattern is to allow for large changes to implementation
+without impacting the inteface.
+
+FastUIDraw makes heavy use of refernce counting via the class reference_counted_ptr<>.
+In contrast to std::shared_ptr<>, the reference count is part of the class. To that
+end for a type T to support reference counting it must inherit from
+reference_counter<T>::concurrent or reference_counter<T>::non_concurrent. The
+former uses atomic operations to perform the reference counting where as the latter
+is just an integer. The former is thread safe where as the latter is not.
+
+All FastUIDraw C++ objects MUST be allocated via the maco FASTUIDRAWnew and MUST be
+deleted with FASTUIDRAWdelete. These macros map to a custom new/delete. In release
+builds, these custom new/delete just call malloc and free. In debug builds, they
+also add tracking when (source and file) an object is allocated and deleted. Lack
+of deallocation will print a message of the unallocated object's file and line number
+of creation at program close. Deletion of an object that is not tracked will print a
+file and line number of the errant deletion. Related to FASTUIDRAWnew and
+FASTUIDRAWdelete are FASTUIDRAWmalloc, FASTUIDRAWcalloc, FASTUIDRAWrealloc and
+FASTUIDRAWfree that also perform tracking under debug. To change the memory allocator
+used by each of these macro edit src/fastuidraw/util/fastuidraw_memory.cpp and
+change the implementation of the functions malloc_implement(), calloc_implement(),
+realloc_implement() and free_implement().
+
+When implementing a class in the FastUIDraw, one must:
+ - use the PIMPL pattern
+ - define the backing class of the m_d in the source file of the class in
+   an anonymous namespace.
+
+Ideally, also a class should have no friends as well.
+
+The style convention is the GNU C++ style except that blocks for
+if , else, and for MUST be enclosed in brackets.
+
+return_value
+scope::
+function_name(arguments)
+{
+  if ()
+    {
+    }
+  else
+    {
+    }
+
+  for ()
+    {
+    }
+
+  switch (type)
+    {
+    case Value:
+      statements;
+      break;
+    }
+}
+
+C++ implementation files may use using namespace within a function scope,
+but never globally in a file.
+
+All public classes and their public and protected functions MUST have a
+doxytag describing what the function does in the header.
