@@ -81,33 +81,29 @@ TODO.
 
 13. Painter effects interface where similar to begin_layer() for transparency,
     we allow for the rect passed to go through a sequence of effects.
-
-14. Change PainterBrush to be more dynamic. Instead of a fixed pipeline of
-    effects, allow for PainterBrush to have effects added in a pipeline.
-    Exactly what to do for transformation and repeat-window on the pipeline
-    is a little hazy though. Should we allow a pipeline to change the transformation
-    and/or repeat window passed down the subsequence elements or not?
-    Pipeline elements will probably take as input the the previous color value
-    of the brush and do whatever they want with them. Each unique pipeline
     sequence will be a unique painter-brush shader.
 
-15. Possibly: clip_in, clip_out by convex polygon.
+14. Possibly: clip_in, clip_out by convex polygon.
 
-16. Anti-alias clipping. The basic idea is to have an additional buffer that holds
+15. Anti-alias clipping. The basic idea is to have an additional buffer that holds
     the anti-aliasing coverage to apply along edges. Path renderers will draw to this
     buffer to give anti-alias clip-out (and this clip-in) and clip_in_rect will draw
     the rect edges as well.
 
-17. Possibly: replace if/else linear chain in uber-shader to log2 nested if-else chain.
+16. Possibly: replace if/else linear chain in uber-shader to log2 nested if-else chain.
     Not 100% clear if the nested would actually be faster or not.
 
-18. Implement clip_out/clip_in by image alpha. One way to achieve this is to start a
+17. Implement clip_out/clip_in by image alpha. One way to achieve this is to start a
     transparency layer and at the end of the layer, use the Porter-Duff mode DST_OVER,
     that would then mask out the image buffer (this is for clip-out). For clip-in,
     SRC_OVER would work.
 
-19. Add to Path interface ability to mark an edge of the path as do not anti-alias edge.
+18. Add to Path interface ability to mark an edge of the path as do not anti-alias edge.
 
-20. Add to Path interface ability to mark a contours caps as to NOT be anti-aliased. The
+19. Add to Path interface ability to mark a contours caps as to NOT be anti-aliased. The
     purpose is for merging multiple paths into a single path for stroking (the big use
     case being stroking a rounded rect).
+
+20. Consider changing each utilitization of std:: containers to pass an allocator
+    that uses fastuidraw::memory::malloc_implement() and friends so that changing
+    the memory allocator globally in a build of FastUIDraw is possible.
