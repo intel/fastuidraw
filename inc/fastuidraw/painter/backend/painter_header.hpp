@@ -66,12 +66,12 @@ namespace fastuidraw
         brush_shader_offset, /*!< offset to \ref m_brush_shader */
         blend_shader_offset, /*!< offset to \ref m_blend_shader */
         z_offset, /*!< offset to \ref m_z */
-        offset_to_deferred_coverage_x_offset, /*!< offset to \ref m_offset_to_deferred_coverage.x() */
-        offset_to_deferred_coverage_y_offset, /*!< offset to \ref m_offset_to_deferred_coverage.y() */
-        deferred_coverage_min_x_offset, /*!< offset to \ref m_deferred_coverage_min.x() */
-        deferred_coverage_min_y_offset, /*!< offset to \ref m_deferred_coverage_min.y() */
-        deferred_coverage_max_x_offset, /*!< offset to \ref m_deferred_coverage_max.x() */
-        deferred_coverage_max_y_offset, /*!< offset to \ref m_deferred_coverage_max.y() */
+        offset_to_deferred_coverage_x_offset, /*!< offset to \ref m_offset_to_deferred_coverage .x() */
+        offset_to_deferred_coverage_y_offset, /*!< offset to \ref m_offset_to_deferred_coverage .y() */
+        deferred_coverage_min_x_offset, /*!< offset to \ref m_deferred_coverage_min .x() */
+        deferred_coverage_min_y_offset, /*!< offset to \ref m_deferred_coverage_min .y() */
+        deferred_coverage_max_x_offset, /*!< offset to \ref m_deferred_coverage_max .x() */
+        deferred_coverage_max_y_offset, /*!< offset to \ref m_deferred_coverage_max .y() */
 
         /*!
          * Offset to \ref m_brush_adjust_location
