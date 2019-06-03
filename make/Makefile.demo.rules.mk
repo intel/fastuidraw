@@ -69,6 +69,7 @@ $(1): $(1)-$(2)
 .PHONY: $(1)
 $(1)-$(2)-$(3): libFastUIDraw$(2)_$(3) $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS)
 	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(DEMO_$(3)_LIBS_$(2)) $(DEMO_COMMON_LIBS)
+DEMO_EXES += $(1)-$(2)-$(3)
 
 demos-$(2)-$(3)-static: $(1)-$(2)-$(3)-static
 .PHONY: demos-$(2)-$(3)-static

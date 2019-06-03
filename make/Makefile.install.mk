@@ -112,9 +112,9 @@ install-docs: docs
 	-find docs/doxy/html -type f -printf '%P\n' | xargs -I '{}' install -m 666 docs/doxy/html/'{}' $(INSTALL_LOCATION_VALUE)/share/doc/fastuidraw/html/'{}'
 TARGETLIST+=install-docs
 
-install-demos: $(DEMO_TARGETLIST)
+install-demos: $(DEMO_EXES)
 	-install -d $(INSTALL_LOCATION_VALUE)/bin
-	-install -t $(INSTALL_LOCATION_VALUE)/bin $(DEMO_TARGETLIST)
+	-install -t $(INSTALL_LOCATION_VALUE)/bin $(DEMO_EXES)
 TARGETLIST+=install-demos
 
 uninstall:
