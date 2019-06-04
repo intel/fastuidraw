@@ -735,6 +735,15 @@ configure_from_context(bool choose_optimal_rendering_quality,
                                              ctx,
                                              !NVIDIA_detected);
 
+  /*
+   * However, NVIDIA drivers are good at sampling from bindless
+   * surfaces that were rendered too where as many other GL drivers
+   * do not reliably source from a bindless texture that was
+   * renderer to. So if NVIDIA is detected, we let sourcing from
+   * bindless surfaces, otherwise not.
+   */
+  d->m_allow_bindless_texture_from_surface = NVIDIA_detected;
+
   if (ctx.has_extension("GL_ARB_bindless_texture")
       || ctx.has_extension("GL_NV_bindless_texture"))
     {
