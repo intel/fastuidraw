@@ -11,7 +11,6 @@ glsl_sources = \
 	src/fastuidraw/glsl/shaders/fastuidraw_align.vert.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/fastuidraw_banded_rays.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/fastuidraw_restricted_rays.glsl.resource_string \
-	src/fastuidraw/glsl/shaders/painter/fastuidraw_painter_context_texture.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/fastuidraw_atlases.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/painter/fastuidraw_painter_uniforms.glsl.resource_string \
 	src/fastuidraw/glsl/shaders/painter/fastuidraw_painter_globals.vert.glsl.resource_string \
