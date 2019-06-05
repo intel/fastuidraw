@@ -92,6 +92,7 @@ namespace
       m_data_blocks_per_store_buffer(-1),
       m_glyph_data_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
       m_glyph_data_backing_log2_dims(-1, -1),
+      m_glyph_data_backing_use_unpack(true),
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
@@ -130,6 +131,7 @@ namespace
     int m_data_blocks_per_store_buffer;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_glyph_data_backing;
     fastuidraw::ivec2 m_glyph_data_backing_log2_dims;
+    bool m_glyph_data_backing_use_unpack;
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
@@ -337,8 +339,7 @@ PainterShaderRegistrarGLSLPrivate(fastuidraw::glsl::PainterShaderRegistrarGLSL *
     .add_source("fastuidraw_align.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_texture_fetch.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_context_texture.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource);
 
   m_frag_shader_utils
     .add_source("fastuidraw_bit_utils.glsl.resource_string", ShaderSource::from_resource)
@@ -356,8 +357,7 @@ PainterShaderRegistrarGLSLPrivate(fastuidraw::glsl::PainterShaderRegistrarGLSL *
     .add_source("fastuidraw_blend_util.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_read_texels_from_data.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_texture_fetch.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_context_texture.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", ShaderSource::from_resource);
 }
 
 PainterShaderRegistrarGLSLPrivate::
@@ -893,6 +893,12 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
       FASTUIDRAWassert(!"Invalid data_store_backing() value");
     }
 
+  if (params.glyph_data_backing_use_unpack())
+    {
+      vert.add_macro("FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK");
+      frag.add_macro("FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK");
+    }
+
   switch(params.glyph_data_backing())
     {
     case PainterShaderRegistrarGLSL::glyph_data_texture_array:
@@ -1363,6 +1369,8 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, int, data_blocks_per_store_buffer)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, fastuidraw::ivec2, glyph_data_backing_log2_dims)
+setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, glyph_data_backing_use_unpack)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate,
                  enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t, colorstop_atlas_backing)

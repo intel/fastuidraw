@@ -416,6 +416,21 @@ namespace fastuidraw
         ivec2
         texture_2d_array_store_log2_dims(void) const;
 
+	/*!
+	 * If false, the shader will have two sources for the data of the
+	 * glyph atlas: one formatted as an array of uint32_t and the other
+	 * formatted as an array of fp16s.
+	 */
+	bool
+	use_unpack(void) const;
+
+        /*!
+         * Set the value returned by use_unpack(void) const.
+         * Default value is false.
+         */
+        GlyphAtlasParams&
+        use_unpack(bool);
+
         /*!
          * Query the GL context to decide what is the optimal settings
          * to back the GlyphAtlasBackingStoreBase returned by

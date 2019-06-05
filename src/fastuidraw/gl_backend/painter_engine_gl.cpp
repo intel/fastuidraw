@@ -36,6 +36,7 @@
 #include <private/gl_backend/painter_surface_gl_private.hpp>
 #include <private/gl_backend/painter_shader_registrar_gl.hpp>
 #include <private/gl_backend/binding_points.hpp>
+#include <private/gl_backend/texture_view.hpp>
 
 namespace
 {
@@ -82,12 +83,14 @@ namespace
     GlyphAtlasParamsPrivate(void):
       m_number_floats(1024 * 1024),
       m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
-      m_log2_dims_store(-1, -1)
+      m_log2_dims_store(-1, -1),
+      m_use_unpack(true)
     {}
 
     unsigned int m_number_floats;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_type;
     fastuidraw::ivec2 m_log2_dims_store;
+    bool m_use_unpack;
   };
 
   class ConfigurationGLPrivate
@@ -251,6 +254,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterEngineGL::ConfigurationG
     .data_blocks_per_store_buffer(params.data_blocks_per_store_buffer())
     .glyph_data_backing(params.glyph_atlas_params().glyph_data_backing_store_type())
     .glyph_data_backing_log2_dims(params.glyph_atlas_params().texture_2d_array_store_log2_dims())
+    .glyph_data_backing_use_unpack(params.glyph_atlas_params().use_unpack())
     .colorstop_atlas_backing(colorstop_tp)
     .use_uvec2_for_bindless_handle(ctx.has_extension("GL_ARB_bindless_texture"));
 
@@ -602,6 +606,10 @@ setget_implement(fastuidraw::gl::PainterEngineGL::GlyphAtlasParams,
                  GlyphAtlasParamsPrivate,
                  unsigned int, number_floats);
 
+setget_implement(fastuidraw::gl::PainterEngineGL::GlyphAtlasParams,
+                 GlyphAtlasParamsPrivate,
+                 bool, use_unpack);
+
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterEngineGL::ConfigurationGL methods
 fastuidraw::gl::PainterEngineGL::ConfigurationGL::
@@ -843,6 +851,39 @@ adjust_for_context(const ContextProperties &ctx)
               d->m_glyph_atlas_params.use_texture_2d_array_store();
             }
         }
+    }
+
+  bool has_unpack;
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      has_unpack = ctx.version() >= ivec2(4, 2)
+	|| ctx.has_extension("GL_ARB_shading_language_packing");
+    }
+  #else
+    {
+      has_unpack = true;
+    }
+  #endif
+
+  d->m_glyph_atlas_params.use_unpack(d->m_glyph_atlas_params.use_unpack() && has_unpack);
+  if (d->m_glyph_atlas_params.glyph_data_backing_store_type() == glyph_data_texture_array
+      && detail::compute_texture_view_support() == detail::texture_view_not_supported
+      && !d->m_glyph_atlas_params.use_unpack())
+    {
+      if (!has_unpack)
+	{
+	  /* Only happens in GLES 3.3, GLES 3.3 does not have unpack unpackHalf2x16()
+	   * and does not have GL_ARB_texture_view either. However, it does always have
+	   * texture buffer support which allows an alias into the glyph-store.
+	   */
+	  d->m_glyph_atlas_params.use_unpack(false);
+	  d->m_glyph_atlas_params.use_texture_buffer_store();
+	}
+      else
+	{
+	  /* Force using unpack since texture view is not supported */
+	  d->m_glyph_atlas_params.use_unpack(true);
+	}
     }
 
   /* Query GL what is good size for data store buffer. Size is dependent

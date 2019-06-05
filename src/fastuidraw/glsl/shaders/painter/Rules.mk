@@ -26,7 +26,6 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_painter_main.frag.glsl.resource_string \
 	fastuidraw_painter_main_deferred_coverage.frag.glsl.resource_string \
 	fastuidraw_painter_deferred_coverage_buffer.frag.glsl.resource_string \
-	fastuidraw_painter_context_texture.glsl.resource_string \
 	fastuidraw_painter_stroke_util.vert.glsl.resource_string \
 	fastuidraw_painter_stroke_util.frag.glsl.resource_string \
 	fastuidraw_painter_stroke_util.constants.glsl.resource_string \

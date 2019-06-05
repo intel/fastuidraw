@@ -127,18 +127,21 @@
   #define FASTUIDRAW_GLYPH_DATA_COORD(v) ivec3(FASTUIDRAW_GLYPH_DATA_X(v), FASTUIDRAW_GLYPH_DATA_Y(v), FASTUIDRAW_GLYPH_DATA_LAYER(v))
   #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphDataStore, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).r)
 
-  /* TODO: have macro system checking for texture-view; for when texture-view is
-   * not supported, then fall back to using unpackHalf2x16 OR require from C++
-   * code that to use 2d-texture-array requires that texture-view is supported.
-   */
-  #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).rg)
-
+  #ifdef FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK
+    #define fastuidraw_fetch_glyph_data_fp16x2(X) unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
+  #else
+    #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).rg)
+  #endif
 #else
 
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_BINDING) uniform usamplerBuffer fastuidraw_glyphDataStore;
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING) uniform samplerBuffer fastuidraw_glyphDataStore_fp16x2;
   #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphDataStore, int(X)).r)
-  #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, int(X)).rg)
+  #ifdef FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK
+    #define fastuidraw_fetch_glyph_data_fp16x2(X) unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
+  #else
+    #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, int(X)).rg)
+  #endif
 
 #endif
 ////////////////////////////////////////////////////

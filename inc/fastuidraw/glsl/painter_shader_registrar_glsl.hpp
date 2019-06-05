@@ -470,6 +470,21 @@ namespace fastuidraw
         UberShaderParams&
         glyph_data_backing_log2_dims(ivec2);
 
+	/*!
+	 * If false, the shader will have two sources for the data of the
+	 * glyph atlas: one formatted as an array of uint32_t and the other
+	 * formatted as an array of fp16s.
+	 */
+	bool
+	glyph_data_backing_use_unpack(void) const;
+
+        /*!
+         * Set the value returned by glyph_data_backing_use_unpack(void) const.
+         * Default value is false.
+         */
+        UberShaderParams&
+        glyph_data_backing_use_unpack(bool);
+
         /*!
          * Specifies how the bakcing store to the color stop atlas
          * (ColorStopAtlas::backing_store()) is accessed from the

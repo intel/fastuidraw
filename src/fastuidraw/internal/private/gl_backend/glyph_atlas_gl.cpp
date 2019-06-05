@@ -90,7 +90,7 @@ namespace
   {
   public:
     explicit
-    StoreGL_TextureBuffer(unsigned int number);
+    StoreGL_TextureBuffer(unsigned int number, bool use_unpack);
 
     ~StoreGL_TextureBuffer();
 
@@ -119,13 +119,14 @@ namespace
     BufferGL m_backing_store;
     mutable GLuint m_texture, m_texture_fp16;
     mutable bool m_tbo_dirty;
+    bool m_use_unpack;
   };
 
   class StoreGL_Texture:public StoreGL
   {
   public:
     explicit
-    StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number);
+    StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number, bool use_unpack);
 
     ~StoreGL_Texture();
 
@@ -164,18 +165,20 @@ namespace
     int m_texels_per_layer;
     TextureGL m_backing_store;
     mutable GLuint m_texture_fp16;
+    bool m_use_unpack;
   };
 }
 
 ///////////////////////////////////////////////
 // StoreGL_Texture methods
 StoreGL_Texture::
-StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels):
+StoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels, bool use_unpack):
   StoreGL(number_texels, GL_TEXTURE_2D_ARRAY, log2_wh, true),
   m_layer_dims(1 << log2_wh.x(), 1 << log2_wh.y()),
   m_texels_per_layer(m_layer_dims.x() * m_layer_dims.y()),
   m_backing_store(texture_size(m_layer_dims, number_texels), true),
-  m_texture_fp16(0)
+  m_texture_fp16(0),
+  m_use_unpack(use_unpack)
 {
 }
 
@@ -220,7 +223,7 @@ StoreGL_Texture::
 flush(void)
 {
   m_backing_store.flush();
-  if (m_texture_fp16 == 0)
+  if (m_texture_fp16 == 0 && !m_use_unpack)
     {
       fastuidraw_glGenTextures(1, &m_texture_fp16);
       FASTUIDRAWassert(m_texture_fp16 != 0);
@@ -298,13 +301,14 @@ set_values(unsigned int location,
 ///////////////////////////////////////////////
 // StoreGL_TextureBuffer methods
 StoreGL_TextureBuffer::
-StoreGL_TextureBuffer(unsigned int number):
+StoreGL_TextureBuffer(unsigned int number, bool use_unpack):
   StoreGL(number, GL_TEXTURE_BUFFER,
           fastuidraw::ivec2(-1, -1), true),
   m_backing_store(number * sizeof(float), true),
   m_texture(0),
   m_texture_fp16(0),
-  m_tbo_dirty(true)
+  m_tbo_dirty(true),
+  m_use_unpack(use_unpack)
 {
 }
 
@@ -313,9 +317,11 @@ StoreGL_TextureBuffer::
 {
   if (m_texture)
     {
-      FASTUIDRAWassert(m_texture_fp16);
       fastuidraw_glDeleteTextures(1, &m_texture);
-      fastuidraw_glDeleteTextures(1, &m_texture_fp16);
+      if (m_texture_fp16)
+	{
+	  fastuidraw_glDeleteTextures(1, &m_texture_fp16);
+	}
     }
 }
 
@@ -352,8 +358,11 @@ gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const
       fastuidraw_glGenTextures(1, &m_texture);
       FASTUIDRAWassert(m_texture != 0);
 
-      fastuidraw_glGenTextures(1, &m_texture_fp16);
-      FASTUIDRAWassert(m_texture_fp16 != 0);
+      if (!m_use_unpack)
+	{
+	  fastuidraw_glGenTextures(1, &m_texture_fp16);
+	  FASTUIDRAWassert(m_texture_fp16 != 0);
+	}
     }
 
   if (m_tbo_dirty)
@@ -365,9 +374,12 @@ gl_backing(enum fastuidraw::gl::detail::GlyphAtlasGL::backing_fmt_t fmt) const
       fastuidraw_glBindTexture(GL_TEXTURE_BUFFER, m_texture);
       fastuidraw::gl::detail::tex_buffer(fastuidraw::gl::detail::compute_tex_buffer_support(),
                                          GL_TEXTURE_BUFFER, GL_R32UI, bo);
-      fastuidraw_glBindTexture(GL_TEXTURE_BUFFER, m_texture_fp16);
-      fastuidraw::gl::detail::tex_buffer(fastuidraw::gl::detail::compute_tex_buffer_support(),
-                                         GL_TEXTURE_BUFFER, GL_RG16F, bo);
+      if (!m_use_unpack)
+	{
+	  fastuidraw_glBindTexture(GL_TEXTURE_BUFFER, m_texture_fp16);
+	  fastuidraw::gl::detail::tex_buffer(fastuidraw::gl::detail::compute_tex_buffer_support(),
+					     GL_TEXTURE_BUFFER, GL_RG16F, bo);
+	}
       m_tbo_dirty = false;
     }
 
@@ -430,7 +442,7 @@ create(const fastuidraw::gl::PainterEngineGL::GlyphAtlasParams &P)
   switch(P.glyph_data_backing_store_type())
     {
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
-      p = FASTUIDRAWnew StoreGL_TextureBuffer(number);
+      p = FASTUIDRAWnew StoreGL_TextureBuffer(number, P.use_unpack());
       break;
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
@@ -439,7 +451,7 @@ create(const fastuidraw::gl::PainterEngineGL::GlyphAtlasParams &P)
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
       p = FASTUIDRAWnew StoreGL_Texture(P.texture_2d_array_store_log2_dims(),
-                                        number);
+                                        number, P.use_unpack());
       break;
 
     default:
