@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <fastuidraw/path_dash_effect.hpp>
 #include <private/util_private.hpp>
+#include <cmath>
 
 namespace
 {
@@ -192,7 +193,7 @@ find_iterator(float &f, int &N) const
        */
       float ff(f / c), fN, r;
 
-      r = ::modf(ff, &fN);
+      r = std::modf(ff, &fN);
       if (r < 0.0f)
         {
           r += 1.0f;
