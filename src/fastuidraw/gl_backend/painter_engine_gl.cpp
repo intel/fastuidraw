@@ -854,7 +854,7 @@ adjust_for_context(const ContextProperties &ctx)
     }
 
   bool has_unpack;
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifndef FASTUIDRAW_GL_USE_GLES
     {
       has_unpack = ctx.version() >= ivec2(4, 2)
 	|| ctx.has_extension("GL_ARB_shading_language_packing");
@@ -872,7 +872,7 @@ adjust_for_context(const ContextProperties &ctx)
     {
       if (!has_unpack)
 	{
-	  /* Only happens in GLES 3.3, GLES 3.3 does not have unpack unpackHalf2x16()
+	  /* Only happens in GL 3.3, GL 3.3 does not have unpack unpackHalf2x16()
 	   * and does not have GL_ARB_texture_view either. However, it does always have
 	   * texture buffer support which allows an alias into the glyph-store.
 	   */
