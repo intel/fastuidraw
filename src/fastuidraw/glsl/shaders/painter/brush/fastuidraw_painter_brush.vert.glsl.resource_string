@@ -28,8 +28,8 @@ fastuidraw_gl_vert_brush_main(in uint sub_shader, inout uint shader_data_block, 
   shader_data_block += FASTUIDRAW_LOCAL(fastuidraw_read_brush_header_size)();
 
   /* unpack the colr values and multiply by alpha */
-  color_rg = unpackHalf2x16(header.red_green);
-  color_ba = unpackHalf2x16(header.blue_alpha);
+  color_rg = fastuidraw_unpackHalf2x16(header.red_green);
+  color_ba = fastuidraw_unpackHalf2x16(header.blue_alpha);
   fastuidraw_brush_color_x = color_rg.x * color_ba.y;
   fastuidraw_brush_color_y = color_rg.y * color_ba.y;
   fastuidraw_brush_color_z = color_ba.x * color_ba.y;

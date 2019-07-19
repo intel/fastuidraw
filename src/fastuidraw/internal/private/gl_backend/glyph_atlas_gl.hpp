@@ -45,25 +45,6 @@ namespace detail
   {
   public:
     /*!
-     * Format enumeration to specify format to
-     * view the data backing as
-     */
-    enum backing_fmt_t
-      {
-        /*!
-         * Specifies to view the data as an array
-         * of uint32_t values (i.e. GL_R32UI).
-         */
-        backing_uint32_fmt,
-
-        /*!
-         * Specifes to view the data as an array
-         * of fp16-x2 values (i.e. GL_RG16F).
-         */
-        backing_fp16x2_fmt,
-      };
-
-    /*!
      * Ctor.
      * \param P parameters for constrution
      */
@@ -88,7 +69,7 @@ namespace detail
      * If backed by a buffer returns the name of a GL buffer object.
      */
     GLuint
-    data_backing(enum backing_fmt_t fmt) const;
+    data_backing(void) const;
 
     /*!
      * Returns the binding point to which to bind the objected returned

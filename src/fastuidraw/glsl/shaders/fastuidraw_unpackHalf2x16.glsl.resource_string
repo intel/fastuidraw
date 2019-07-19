@@ -1,0 +1,39 @@
+float
+fastuidraw_fp16_from_fp32(uint u)
+{
+  uint sign = (u & 0x8000u) << 16u;
+  uint exponent = (u & 0x7C00u) >> 10u;
+  uint mantissa = u & 0x03FFu;
+
+  if (exponent == 31u)
+    {
+      return uintBitsToFloat(sign | 0x7F800000u | mantissa);
+    }
+
+  // rely on bit-magic to get to fp32
+
+  //bias exponent from fp16 to fp32
+  exponent += (127u - 15u);
+
+  // shift exponent to fp32
+  exponent = exponent << 23u;
+
+  //shift matissa from fp16's 10-bits to fp32's 23-bits
+  mantissa = mantissa << 13u;
+
+  return uintBitsToFloat(sign | exponent | mantissa);  
+}
+
+
+#ifdef FASTUIDRAW_GL_HAS_UNPACKFP16
+#define fastuidraw_unpackHalf2x16(u) unpackHalf2x16(u)
+#else
+vec2
+fastuidraw_unpackHalf2x16(uint u)
+{
+  uint y = (u >> 16u);
+  uint x = (u & 0xFFFFu);
+  return vec2(fastuidraw_fp16_from_fp32(x),
+	      fastuidraw_fp16_from_fp32(y));
+}
+#endif

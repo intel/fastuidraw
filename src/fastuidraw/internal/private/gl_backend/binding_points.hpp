@@ -32,7 +32,6 @@ namespace fastuidraw { namespace gl { namespace detail {
     int m_image_atlas_color_tiles_linear_binding;
     int m_image_atlas_index_tiles_binding;
     int m_glyph_atlas_store_binding;
-    int m_glyph_atlas_store_binding_fp16;
     int m_data_store_buffer_binding;
     int m_context_texture_binding;
     int m_coverage_buffer_texture_binding;

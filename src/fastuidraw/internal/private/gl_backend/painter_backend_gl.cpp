@@ -851,7 +851,6 @@ PainterBackendGL(const fastuidraw::gl::PainterEngineGL *f):
   m_binding_points.m_image_atlas_color_tiles_linear_binding = m_reg_gl->uber_shader_builder_params().image_atlas_color_tiles_linear_binding();
   m_binding_points.m_image_atlas_index_tiles_binding = m_reg_gl->uber_shader_builder_params().image_atlas_index_tiles_binding();
   m_binding_points.m_glyph_atlas_store_binding = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding();
-  m_binding_points.m_glyph_atlas_store_binding_fp16 = m_reg_gl->uber_shader_builder_params().glyph_atlas_store_binding_fp16x2();
   m_binding_points.m_data_store_buffer_binding = m_reg_gl->uber_shader_builder_params().data_store_buffer_binding();
   m_binding_points.m_color_interlock_image_buffer_binding = m_reg_gl->uber_shader_builder_params().color_interlock_image_buffer_binding();
   m_binding_points.m_context_texture_binding = m_reg_gl->uber_shader_builder_params().context_texture_binding();
@@ -1079,11 +1078,7 @@ set_gl_state(RenderTargetState prev_state,
         {
           fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding);
           fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding, 0);
-          fastuidraw_glBindTexture(m_glyph_atlas->data_binding_point(), m_glyph_atlas->data_backing(GlyphAtlasGL::backing_uint32_fmt));
-
-          fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding_fp16);
-          fastuidraw_glBindSampler(m_binding_points.m_glyph_atlas_store_binding_fp16, 0);
-          fastuidraw_glBindTexture(m_glyph_atlas->data_binding_point(), m_glyph_atlas->data_backing(GlyphAtlasGL::backing_fp16x2_fmt));
+          fastuidraw_glBindTexture(m_glyph_atlas->data_binding_point(), m_glyph_atlas->data_backing());
         }
 
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_colorstop_atlas_binding);
@@ -1139,7 +1134,7 @@ set_gl_state(RenderTargetState prev_state,
         {
           fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
                                       m_binding_points.m_glyph_atlas_store_binding,
-                                      m_glyph_atlas->data_backing(GlyphAtlasGL::backing_uint32_fmt));
+                                      m_glyph_atlas->data_backing());
         }
     }
 

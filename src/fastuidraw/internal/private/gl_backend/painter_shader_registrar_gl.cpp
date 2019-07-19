@@ -361,6 +361,15 @@ configure_source_front_matter(void)
                                      ShaderSource::from_string);
     }
 
+  if (m_params.use_glsl_unpack_fp16())
+    {
+      m_front_matter_frag.add_macro("FASTUIDRAW_GL_HAS_UNPACKFP16");
+      m_front_matter_vert.add_macro("FASTUIDRAW_GL_HAS_UNPACKFP16");
+    }
+
+  m_front_matter_frag.add_source("fastuidraw_unpackHalf2x16.glsl.resource_string", ShaderSource::from_resource);
+  m_front_matter_vert.add_source("fastuidraw_unpackHalf2x16.glsl.resource_string", ShaderSource::from_resource);
+
   std::string glsl_version;
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -449,11 +458,15 @@ configure_source_front_matter(void)
           glsl_version = "330";
 
           /* We need this extension for unpackHalf2x16() */
-          m_front_matter_vert.specify_extension("GL_ARB_shading_language_packing",
-                                                ShaderSource::require_extension);
-          m_front_matter_frag.specify_extension("GL_ARB_shading_language_packing",
-                                                ShaderSource::require_extension);
-          if (m_uber_shader_builder_params.assign_layout_to_varyings())
+	  if (m_params.use_glsl_unpack_fp16())
+	    {
+	      m_front_matter_vert.specify_extension("GL_ARB_shading_language_packing",
+						    ShaderSource::require_extension);
+	      m_front_matter_frag.specify_extension("GL_ARB_shading_language_packing",
+						    ShaderSource::require_extension);
+	    }
+
+	  if (m_uber_shader_builder_params.assign_layout_to_varyings())
             {
               m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects",
                                                     ShaderSource::require_extension);
