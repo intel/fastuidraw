@@ -490,6 +490,10 @@ default_font(void)
     {
       return "C:/Windows/Fonts/arial.ttf";
     }
+  #elif defined(__APPLE__)
+    {
+      return "/Library/Fonts/Arial.ttf";
+    }
   #else
     {
       return "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
@@ -503,6 +507,10 @@ default_font_path(void)
   #ifdef _WIN32
     {
       return "C:/Windows/Fonts";
+    }
+  #elif defined(__APPLE__)
+    {
+      return "/Library/Fonts/";
     }
   #else
     {

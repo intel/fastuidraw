@@ -8,15 +8,42 @@
 # this file, You can obtain one at
 # http://mozilla.org/MPL/2.0/.
 
+## Detect MINGW
+MINGW_BUILD = 0
+UNAME = $(shell uname -s)
+UNAMER= $(shell uname -r)
+ifeq ($(findstring MINGW,$(UNAME)),MINGW)
+  MINGW_BUILD = 1
+  ifeq ($(findstring 1.0, $(UNAMER)), 1.0)
+	MINGW_MODE = MINGW
+  else ifeq ($(findstring MINGW64,$(UNAME)),MINGW64)
+	MINGW_MODE = MINGW64
+  else ifeq ($(findstring MINGW32,$(UNAME)),MINGW32)
+	MINGW_MODE = MINGW32
+  endif
+endif
+
+## Detect Darwin (i.e. MacOS)
+DARWIN_BUILD = 0
+ifeq ($(UNAME),Darwin)
+  DARWIN_BUILD = 1
+endif
+
 # Compiler choice
 CXX ?= g++
 CC ?= gcc
+
+ECHO=$(shell which echo)
 
 # Lex choice
 LEX ?= flex
 
 # if demos will use font-config, only affects demos and not libs
-DEMOS_HAVE_FONT_CONFIG ?= 1
+ifeq ($(DARWIN_BUILD),0)
+  DEMOS_HAVE_FONT_CONFIG ?= 1
+else
+  DEMOS_HAVE_FONT_CONFIG ?= 0
+endif
 
 #Init TARGETLIST
 TARGETLIST := all

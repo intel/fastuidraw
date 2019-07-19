@@ -1,5 +1,5 @@
 
-INSTALL_LOCATION_VALUE=$(shell echo $(INSTALL_LOCATION))
+INSTALL_LOCATION_VALUE=$(shell $(ECHO) $(INSTALL_LOCATION))
 
 OTHER_API_GL = GLES
 OTHER_API_GLES = GL
@@ -7,21 +7,21 @@ OTHER_TYPE_release = debug
 OTHER_TYPE_debug = release
 
 fastuidraw-config.nodir: fastuidraw-config.in
-	@echo Generating $@
+	@$(ECHO) Generating $@
 	@cp $< $@
-	@sed -i 's!@FASTUIDRAW_DEPS_LIBS@!$(FASTUIDRAW_DEPS_LIBS)!g' $@
-	@sed -i 's!@FASTUIDRAW_DEPS_STATIC_LIBS@!$(FASTUIDRAW_DEPS_STATIC_LIBS)!g' $@
-	@sed -i 's!@FASTUIDRAW_release_CFLAGS@!$(FASTUIDRAW_release_CFLAGS)!g' $@
-	@sed -i 's!@FASTUIDRAW_debug_CFLAGS@!$(FASTUIDRAW_debug_CFLAGS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GLES_CFLAGS@!$(FASTUIDRAW_GLES_CFLAGS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GL_CFLAGS@!$(FASTUIDRAW_GL_CFLAGS)!g' $@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_DEPS_LIBS@!$(FASTUIDRAW_DEPS_LIBS)!g' $@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_DEPS_STATIC_LIBS@!$(FASTUIDRAW_DEPS_STATIC_LIBS)!g' $@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_release_CFLAGS@!$(FASTUIDRAW_release_CFLAGS)!g' $@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_debug_CFLAGS@!$(FASTUIDRAW_debug_CFLAGS)!g' $@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_GLES_CFLAGS@!$(FASTUIDRAW_GLES_CFLAGS)!g' $@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_GL_CFLAGS@!$(FASTUIDRAW_GL_CFLAGS)!g' $@
 	@chmod a+x $@
 CLEAN_FILES+=fastuidraw-config.nodir
 
 fastuidraw-config: fastuidraw-config.nodir
-	@echo Generating $@
+	@$(ECHO) Generating $@
 	@cp $< $@
-	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $@
+	@$(SED_INPLACE_REPLACE) 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $@
 	@chmod a+x $@
 # added to .PHONY to force regeneration so that if an environmental
 # variable (BUILD_GL, BUILD_GLES, INSTALL_LOCATION) changes, we can
@@ -38,24 +38,24 @@ TARGETLIST+=fastuidraw-config
 define pkgconfrulesapi
 $(eval ifeq ($(3),1)
 N$(2)-$(1).pc: n.pc.in fastuidraw-$(1).pc
-	@echo Generating $$@
+	@$(ECHO) Generating $$@
 	@cp $$< $$@
-	@sed -i 's!@TYPE@!$(1)!g' $$@
-	@sed -i 's!@API@!$(2)!g' $$@
-	@sed -i 's!@OTHER_API@!$$(OTHER_API_$(2))!g' $$@
-	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
-	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
-	@sed -i 's!@N_ADDITIONAL_LIBS@!!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@TYPE@!$(1)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@API@!$(2)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@OTHER_API@!$$(OTHER_API_$(2))!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@N_ADDITIONAL_LIBS@!!g' $$@
 
 fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in N$(2)-$(1).pc
-	@echo Generating $$@
+	@$(ECHO) Generating $$@
 	@cp $$< $$@
-	@sed -i 's!@TYPE@!$(1)!g' $$@
-	@sed -i 's!@API@!$(2)!g' $$@
-	@sed -i 's!@OTHER_API@!$$(OTHER_API_$(2))!g' $$@
-	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
-	@sed -i 's!@FASTUIDRAW_BACKEND_CFLAGS@!$$(FASTUIDRAW_$(2)_CFLAGS)!g' $$@
-	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@TYPE@!$(1)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@API@!$(2)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@OTHER_API@!$$(OTHER_API_$(2))!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_BACKEND_CFLAGS@!$$(FASTUIDRAW_$(2)_CFLAGS)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 
 .PHONY:fastuidraw$(2)-$(1).pc N$(2)-$(1).pc
 .SECONDARY: fastuidraw$(2)-$(1).pc N$(2)-$(1).pc
@@ -69,12 +69,12 @@ endef
 # $1: release or debug
 define pkgconfrules
 $(eval fastuidraw-$(1).pc: fastuidraw.pc.in
-	@echo Generating $$@
+	@$(ECHO) Generating $$@
 	@cp $$< $$@
-	@sed -i 's!@TYPE@!$(1)!g' $$@
-	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
-	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
-	@sed -i 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(1)_BASE_CFLAGS)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@TYPE@!$(1)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
+	@$(SED_INPLACE_REPLACE) 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(1)_BASE_CFLAGS)!g' $$@
 .PHONY:fastuidraw-$(1).pc
 .SECONDARY: fastuidraw-$(1).pc
 CLEAN_FILES+=fastuidraw-$(1).pc

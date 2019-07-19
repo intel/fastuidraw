@@ -34,7 +34,7 @@ glsl_processed_sources = $(patsubst %.glsl.resource_string, docs/doxy/glsl/%.gls
 docs/doxy/glsl/%.glsl.hpp: %.glsl.resource_string
 	@mkdir -p $(dir $@)
 	@sed 's/$(notdir $<)/$(notdir $@)/g' $< >> $@
-	@echo "Creating $@ from $<"
+	@$(ECHO) "Creating $@ from $<"
 
 docs: docs/doxy/html/index.html
 .PHONY: docs
