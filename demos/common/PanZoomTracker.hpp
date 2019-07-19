@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_PANZOOMTRACKER_HPP
+#define FASTUIDRAW_DEMO_PANZOOMTRACKER_HPP
 
 #include <SDL.h>
 #include "ScaleTranslate.hpp"
@@ -104,3 +105,5 @@ public:
    */
   fastuidraw::vec2 m_scale_event, m_translate_event;
 };
+
+#endif

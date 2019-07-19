@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_CELL_HPP
+#define FASTUIDRAW_DEMO_CELL_HPP
 
 #include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
@@ -104,3 +105,5 @@ private:
   CellSharedState *m_shared_state;
   bool m_timer_based_animation;
 };
+
+#endif

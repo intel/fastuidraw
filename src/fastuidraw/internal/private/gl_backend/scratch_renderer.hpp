@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_SCRATCH_RENDERER_HPP
+#define FASTUIDRAW_SCRATCH_RENDERER_HPP
 
 #include <list>
 #include <vector>
@@ -61,3 +62,5 @@ private:
 };
 
 }}}
+
+#endif

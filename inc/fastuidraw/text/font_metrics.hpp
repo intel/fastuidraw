@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_FONT_METRICS_HPP
+#define FASTUIDRAW_FONT_METRICS_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -126,3 +127,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

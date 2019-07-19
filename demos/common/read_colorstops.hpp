@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_READ_COLORSTOPS_HPP
+#define FASTUIDRAW_DEMO_READ_COLORSTOPS_HPP
 
 #include <istream>
 #include <fastuidraw/colorstop.hpp>
@@ -14,3 +15,5 @@ and the value red, green, blue and alpha are integers in the range [0,255]
  */
 void
 read_colorstops(fastuidraw::ColorStopArray &seq, std::istream &input);
+
+#endif

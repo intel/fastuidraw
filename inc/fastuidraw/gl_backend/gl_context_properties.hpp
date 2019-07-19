@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GL_CONTEXT_PROPERTIES_HPP
+#define FASTUIDRAW_GL_CONTEXT_PROPERTIES_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -101,3 +102,5 @@ namespace fastuidraw
 /*! @} */
   }
 }
+
+#endif

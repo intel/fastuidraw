@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_GLYPH_SHADER_HPP
+#define FASTUIDRAW_PAINTER_GLYPH_SHADER_HPP
 
 #include <fastuidraw/text/glyph.hpp>
 #include <fastuidraw/painter/shader/painter_item_shader.hpp>
@@ -93,3 +94,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

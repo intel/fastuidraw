@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SURFACE_GL_PRIVATE_HPP
+#define FASTUIDRAW_PAINTER_SURFACE_GL_PRIVATE_HPP
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_engine_gl.hpp>
@@ -82,3 +83,5 @@ private:
 };
 
 }}}
+
+#endif

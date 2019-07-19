@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_PACKER_HPP
+#define FASTUIDRAW_PAINTER_PACKER_HPP
 
 #include <vector>
 #include <list>
@@ -466,3 +467,5 @@ namespace fastuidraw
 /*! @} */
 
 }
+
+#endif

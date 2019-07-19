@@ -17,7 +17,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_FONT_PROPERTIES_HPP
+#define FASTUIDRAW_FONT_PROPERTIES_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -186,3 +187,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

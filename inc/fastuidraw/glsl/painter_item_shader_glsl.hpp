@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_ITEM_SHADER_GLSL_HPP
+#define FASTUIDRAW_PAINTER_ITEM_SHADER_GLSL_HPP
 
 #include <fastuidraw/painter/shader/painter_item_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
@@ -535,3 +536,5 @@ namespace fastuidraw
 
   }
 }
+
+#endif

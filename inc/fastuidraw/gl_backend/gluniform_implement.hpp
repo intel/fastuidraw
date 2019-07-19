@@ -20,7 +20,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLUNIFORM_IMPLEMENT_HPP
+#define FASTUIDRAW_GLUNIFORM_IMPLEMENT_HPP
 
 #include <fastuidraw/gl_backend/gl_header.hpp>
 
@@ -180,3 +181,5 @@ MACRO_IMPLEMENT_GL_UNIFORM_MATRIX_IMPL(f, GLfloat)
 
 }
 }
+
+#endif

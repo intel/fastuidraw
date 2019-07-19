@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_RANDOM_HPP
+#define FASTUIDRAW_DEMO_RANDOM_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 
@@ -16,3 +17,5 @@ random_value(fastuidraw::vecN<float, N> pmin, fastuidraw::vecN<float, N> pmax)
     }
   return return_value;
 }
+
+#endif

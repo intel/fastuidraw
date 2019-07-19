@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_ATLAS_GL_HPP
+#define FASTUIDRAW_GLYPH_ATLAS_GL_HPP
 
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
@@ -92,3 +93,5 @@ namespace detail
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

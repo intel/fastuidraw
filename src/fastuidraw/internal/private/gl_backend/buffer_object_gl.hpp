@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_BUFFER_OBJECT_GL_HPP
+#define FASTUIDRAW_BUFFER_OBJECT_GL_HPP
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
@@ -216,3 +217,5 @@ private:
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

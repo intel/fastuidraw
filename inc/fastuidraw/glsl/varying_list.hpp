@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_VARYING_LIST_HPP
+#define FASTUIDRAW_VARYING_LIST_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
@@ -203,3 +204,5 @@ namespace fastuidraw
 
   }
 }
+
+#endif

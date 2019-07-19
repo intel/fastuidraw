@@ -17,7 +17,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_RECT_ATLAS_HPP
+#define FASTUIDRAW_RECT_ATLAS_HPP
 
 #include <list>
 #include <map>
@@ -348,3 +349,5 @@ private:
 } //namespace detail
 
 } //namespace fastuidraw
+
+#endif

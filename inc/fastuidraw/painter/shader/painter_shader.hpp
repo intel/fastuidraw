@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SHADER_HPP
+#define FASTUIDRAW_PAINTER_SHADER_HPP
 #include <fastuidraw/util/reference_counted.hpp>
 
 namespace fastuidraw
@@ -180,3 +181,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

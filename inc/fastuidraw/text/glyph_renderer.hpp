@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_RENDERER_HPP
+#define FASTUIDRAW_GLYPH_RENDERER_HPP
 
 namespace fastuidraw
 {
@@ -150,3 +151,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

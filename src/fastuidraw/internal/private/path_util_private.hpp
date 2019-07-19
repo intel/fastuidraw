@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PATH_UTIL_PRIVATE_HPP
+#define FASTUIDRAW_PATH_UTIL_PRIVATE_HPP
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/tessellated_path.hpp>
@@ -93,3 +94,5 @@ namespace fastuidraw
     }
   }
 }
+
+#endif

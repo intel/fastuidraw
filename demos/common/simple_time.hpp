@@ -19,7 +19,8 @@
 
 
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_SIMPLE_TIME_HPP
+#define FASTUIDRAW_DEMO_SIMPLE_TIME_HPP
 
 #include <chrono>
 
@@ -83,3 +84,5 @@ private:
 
   std::chrono::time_point<std::chrono::steady_clock> m_start_time;
 };
+
+#endif

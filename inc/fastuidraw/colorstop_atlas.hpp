@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_COLORSTOP_ATLAS_HPP
+#define FASTUIDRAW_COLORSTOP_ATLAS_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/colorstop.hpp>
@@ -236,3 +237,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

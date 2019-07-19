@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_BRUSH_HPP
+#define FASTUIDRAW_PAINTER_BRUSH_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -900,3 +901,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

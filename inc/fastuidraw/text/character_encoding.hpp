@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_CHARACTER_ENCODING_HPP
+#define FASTUIDRAW_CHARACTER_ENCODING_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -135,3 +136,5 @@ namespace fastuidraw
   }
 
 }
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_COLORSTOP_HPP
+#define FASTUIDRAW_COLORSTOP_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -202,3 +203,5 @@ class ColorStopAtlas;
 
 /*! @} */
 }
+
+#endif

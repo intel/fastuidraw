@@ -17,7 +17,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_VECN_HPP
+#define FASTUIDRAW_VECN_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/math.hpp>
@@ -1488,3 +1489,5 @@ pack_vec4(const vec4 &v)
 /*! @} */
 
 } //namespace
+
+#endif

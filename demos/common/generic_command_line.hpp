@@ -30,7 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /** \file generic_command_line.hpp */
-#pragma once
+#ifndef FASTUIDRAW_DEMO_GENERIC_COMMAND_LINE_HPP
+#define FASTUIDRAW_DEMO_GENERIC_COMMAND_LINE_HPP
 
 #include <iostream>
 #include <vector>
@@ -657,3 +658,5 @@ private:
   bool m_set_by_command_line, m_print_at_set;
   enumerated_type<T> m_value;
 };
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_STROKE_SHADER_HPP
+#define FASTUIDRAW_PAINTER_STROKE_SHADER_HPP
 
 #include <fastuidraw/path_enums.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -231,3 +232,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

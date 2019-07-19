@@ -18,7 +18,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_C_ARRAY_HPP
+#define FASTUIDRAW_C_ARRAY_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -494,3 +495,5 @@ pack_as_fp16(float x, float y)
 /*! @} */
 
 } //namespace
+
+#endif

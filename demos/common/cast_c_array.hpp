@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_CAST_C_ARRAY_HPP
+#define FASTUIDRAW_DEMO_CAST_C_ARRAY_HPP
 
 #include <vector>
 #include <fastuidraw/util/c_array.hpp>
@@ -29,3 +30,5 @@ cast_c_array(std::vector<T> &p)
     fastuidraw::c_array<T>() :
     fastuidraw::c_array<T>(&p[0], p.size());
 }
+
+#endif

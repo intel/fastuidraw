@@ -17,7 +17,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_OPENGL_TRAIT_HPP
+#define FASTUIDRAW_OPENGL_TRAIT_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
@@ -315,3 +316,5 @@ VertexAttribIPointer(GLint index, const opengl_trait_value &v)
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

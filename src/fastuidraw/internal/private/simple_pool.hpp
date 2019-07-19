@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_SIMPLE_POOL_HPP
+#define FASTUIDRAW_SIMPLE_POOL_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -137,3 +138,5 @@ private:
 };
 
 }}
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PACK_TEXELS_HPP
+#define FASTUIDRAW_PACK_TEXELS_HPP
 
 #include <vector>
 
@@ -38,3 +39,5 @@ namespace fastuidraw
                 std::vector<uint32_t> *out_packed_texels);
   }
 }
+
+#endif

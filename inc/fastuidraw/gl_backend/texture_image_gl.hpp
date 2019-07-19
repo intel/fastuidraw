@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_TEXTURE_IMAGE_GL_HPP
+#define FASTUIDRAW_TEXTURE_IMAGE_GL_HPP
 
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/image_atlas.hpp>
@@ -145,3 +146,5 @@ namespace gl
 
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

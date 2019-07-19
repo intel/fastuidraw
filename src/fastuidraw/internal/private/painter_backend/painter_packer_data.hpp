@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_PACKER_DATA_HPP
+#define FASTUIDRAW_PAINTER_PACKER_DATA_HPP
 
 #include <fastuidraw/painter/shader_data/painter_data.hpp>
 #include <fastuidraw/painter/backend/painter_brush_adjust.hpp>
@@ -71,3 +72,5 @@ namespace fastuidraw
 /*! @} */
 
 }
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_DEPENDENCY_LIST_HPP
+#define FASTUIDRAW_DEPENDENCY_LIST_HPP
 
 #include <string>
 #include <algorithm>
@@ -400,3 +401,5 @@ compute_varyings(const varying_list &combine_with) const
 }
 
 }}}
+
+#endif

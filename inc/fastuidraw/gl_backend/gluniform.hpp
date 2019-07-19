@@ -18,7 +18,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLUNIFORM_HPP
+#define FASTUIDRAW_GLUNIFORM_HPP
 
 #include <fastuidraw/gl_backend/gl_header.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -327,3 +328,5 @@ ProgramUniform(GLuint program, int location, c_array<const T> v)
 
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

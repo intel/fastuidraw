@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_ATTRIBUTE_PACKER_HPP
+#define FASTUIDRAW_GLYPH_ATTRIBUTE_PACKER_HPP
 
 #include <fastuidraw/text/glyph.hpp>
 
@@ -148,3 +149,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

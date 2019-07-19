@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PARTITIONED_TESSELLATED_PATH_HPP
+#define FASTUIDRAW_PARTITIONED_TESSELLATED_PATH_HPP
 
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -319,3 +320,5 @@ namespace fastuidraw  {
 
 /*! @} */
 }
+
+#endif

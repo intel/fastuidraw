@@ -4,7 +4,8 @@
 
 #include "bounding_box.hpp"
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_GENERIC_HIERARCHY_HPP
+#define FASTUIDRAW_DEMO_GENERIC_HIERARCHY_HPP
 
 class GenericHierarchy:fastuidraw::noncopyable
 {
@@ -31,3 +32,5 @@ public:
 private:
   void *m_root;
 };
+
+#endif

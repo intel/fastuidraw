@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_STRING_ARRAY_HPP
+#define FASTUIDRAW_STRING_ARRAY_HPP
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -122,3 +123,5 @@ namespace fastuidraw
   };
 }
 /*! @} */
+
+#endif

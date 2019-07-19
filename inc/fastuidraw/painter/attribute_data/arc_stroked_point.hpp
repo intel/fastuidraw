@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_ARC_STROKED_POINT_HPP
+#define FASTUIDRAW_ARC_STROKED_POINT_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -586,3 +587,5 @@ namespace ArcStrokedPointPacking
 /*! @} */
 
 }
+
+#endif

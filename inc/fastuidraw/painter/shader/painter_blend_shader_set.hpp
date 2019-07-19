@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_BLEND_SHADER_SET_HPP
+#define FASTUIDRAW_PAINTER_BLEND_SHADER_SET_HPP
 
 #include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -105,3 +106,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

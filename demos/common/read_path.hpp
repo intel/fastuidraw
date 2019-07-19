@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_READ_PATH_HPP
+#define FASTUIDRAW_DEMO_READ_PATH_HPP
 
 #include <string>
 #include <fastuidraw/path.hpp>
@@ -18,3 +19,5 @@
 void
 read_path(fastuidraw::Path &path, const std::string &source,
           std::string *dst_cpp_code = nullptr);
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SHADER_REGISTRAR_GLSL_HPP
+#define FASTUIDRAW_PAINTER_SHADER_REGISTRAR_GLSL_HPP
 
 #include <fastuidraw/painter/backend/painter_shader_registrar.hpp>
 #include <fastuidraw/painter/backend/painter_engine.hpp>
@@ -1118,3 +1119,5 @@ namespace fastuidraw
 
   }
 }
+
+#endif

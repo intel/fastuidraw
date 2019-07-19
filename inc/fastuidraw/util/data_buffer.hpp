@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_DATA_BUFFER_HPP
+#define FASTUIDRAW_DATA_BUFFER_HPP
 
 #include <fastuidraw/util/data_buffer_base.hpp>
 
@@ -110,3 +111,5 @@ namespace fastuidraw {
 
 /*! @} */
 } //namespace fastuidraw
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_IMAGELOADER_HPP
+#define FASTUIDRAW_DEMO_IMAGELOADER_HPP
 
 #include <SDL_image.h>
 #include <vector>
@@ -78,3 +79,5 @@ public:
     fastuidraw::ImageSourceCArray(dimensions(), data(), fastuidraw::Image::rgba_format)
   {}
 };
+
+#endif

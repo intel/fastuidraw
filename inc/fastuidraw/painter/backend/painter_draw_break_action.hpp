@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_DRAW_BREAK_ACTION_HPP
+#define FASTUIDRAW_PAINTER_DRAW_BREAK_ACTION_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/gpu_dirty_state.hpp>
@@ -56,3 +57,5 @@ class PainterBackend;
   };
 /*! @} */
 }
+
+#endif

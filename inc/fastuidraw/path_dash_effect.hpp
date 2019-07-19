@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PATH_DASH_EFFECT_HPP
+#define FASTUIDRAW_PATH_DASH_EFFECT_HPP
 
 #include <fastuidraw/path_effect.hpp>
 
@@ -94,3 +95,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

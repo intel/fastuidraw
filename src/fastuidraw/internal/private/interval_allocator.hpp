@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_INTERVAL_ALLOCATOR_HPP
+#define FASTUIDRAW_INTERVAL_ALLOCATOR_HPP
 
 #include <map>
 #include <set>
@@ -176,3 +177,5 @@ namespace fastuidraw
   };
 
 }
+
+#endif

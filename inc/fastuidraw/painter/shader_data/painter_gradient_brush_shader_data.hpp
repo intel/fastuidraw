@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_GRADIENT_BRUSH_SHADER_DATA_HPP
+#define FASTUIDRAW_PAINTER_GRADIENT_BRUSH_SHADER_DATA_HPP
 
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -384,3 +385,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

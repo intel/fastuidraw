@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_FREETYPE_FACE_HPP
+#define FASTUIDRAW_FREETYPE_FACE_HPP
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -207,3 +208,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

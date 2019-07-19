@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_ARRAY2D_HPP
+#define FASTUIDRAW_ARRAY2D_HPP
 
 #include <algorithm>
 #include <vector>
@@ -118,3 +119,5 @@ public:
 } //namespace
 
 /*! @} */
+
+#endif

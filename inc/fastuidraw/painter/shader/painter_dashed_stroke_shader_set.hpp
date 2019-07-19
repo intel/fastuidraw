@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_DASHED_STROKE_SHADER_SET_HPP
+#define FASTUIDRAW_PAINTER_DASHED_STROKE_SHADER_SET_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/matrix.hpp>
@@ -91,3 +92,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

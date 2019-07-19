@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_DATA_VALUE_HPP
+#define FASTUIDRAW_PAINTER_DATA_VALUE_HPP
 
 #include <fastuidraw/painter/shader_data/painter_packed_value.hpp>
 
@@ -109,3 +110,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

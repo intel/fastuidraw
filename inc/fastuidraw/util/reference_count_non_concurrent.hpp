@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_REFERENCE_COUNT_NON_CONCURRENT_HPP
+#define FASTUIDRAW_REFERENCE_COUNT_NON_CONCURRENT_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -71,3 +72,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

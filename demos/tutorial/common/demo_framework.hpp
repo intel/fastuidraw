@@ -15,7 +15,8 @@
  * \author Kevin Rogovin <kevin.rogovin@gmail.com>
  */
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_DEMO_FRAMEWORK_HPP
+#define FASTUIDRAW_DEMO_DEMO_FRAMEWORK_HPP
 
 //! [ExampleFramework]
 
@@ -124,3 +125,5 @@ private:
 };
 
 //! [ExampleFramework]
+
+#endif

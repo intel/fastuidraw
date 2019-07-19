@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_STROKE_PARAMS_HPP
+#define FASTUIDRAW_PAINTER_STROKE_PARAMS_HPP
 
 #include <fastuidraw/painter/shader_data/painter_shader_data.hpp>
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
@@ -177,3 +178,5 @@ namespace fastuidraw
 /*! @} */
 
 } //namespace fastuidraw
+
+#endif

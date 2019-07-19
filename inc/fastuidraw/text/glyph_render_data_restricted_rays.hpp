@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_RENDER_DATA_RESTRICTED_RAYS_HPP
+#define FASTUIDRAW_GLYPH_RENDER_DATA_RESTRICTED_RAYS_HPP
 
 #include <fastuidraw/util/rect.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
@@ -457,3 +458,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_TEXTURE_VIEW_HPP
+#define FASTUIDRAW_TEXTURE_VIEW_HPP
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 
@@ -43,3 +44,5 @@ texture_view(enum texture_view_support_t md,
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

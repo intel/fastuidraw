@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_REFERENCE_COUNTED_HPP
+#define FASTUIDRAW_REFERENCE_COUNTED_HPP
 
 
 #include <fastuidraw/util/util.hpp>
@@ -514,3 +515,5 @@ namespace fastuidraw
 /*! @} */
 
 } //namespace fastuidraw
+
+#endif

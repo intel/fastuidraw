@@ -47,7 +47,8 @@
  * Silicon Graphics, Inc.
  */
 
-#pragma once
+#ifndef FASTUIDRAW_GLU_TESS_HPP
+#define FASTUIDRAW_GLU_TESS_HPP
 
 #include <climits>
 
@@ -312,3 +313,5 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DAT
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA, fastuidraw_glu_tess_function_emit_monotone_data, EmitMonotone);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA, fastuidraw_glu_tess_function_boundary_corner_point_data, BoundaryCornerPoint);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY_DATA, fastuidraw_glu_tess_function_emit_boundary_data, EmitBoundary);
+
+#endif

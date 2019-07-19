@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_EFFECT_BRUSH_HPP
+#define FASTUIDRAW_PAINTER_EFFECT_BRUSH_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/painter/effects/painter_effect.hpp>
@@ -354,3 +355,5 @@ namespace fastuidraw
 
 /*! @} */
 };
+
+#endif

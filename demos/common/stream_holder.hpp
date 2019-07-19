@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_STREAM_HOLDER_HPP
+#define FASTUIDRAW_DEMO_STREAM_HOLDER_HPP
 
 #include <ostream>
 #include <string>
@@ -20,3 +21,5 @@ private:
   std::ostream *m_stream;
   bool m_delete_stream;
 };
+
+#endif

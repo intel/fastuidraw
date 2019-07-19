@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SURFACE_GL_HPP
+#define FASTUIDRAW_PAINTER_SURFACE_GL_HPP
 
 #include <fastuidraw/painter/backend/painter_surface.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
@@ -162,3 +163,5 @@ namespace fastuidraw
 /*! @} */
   }
 }
+
+#endif

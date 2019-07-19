@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_ATTRIBUTE_HPP
+#define FASTUIDRAW_PAINTER_ATTRIBUTE_HPP
 
 
 #include <fastuidraw/util/vecN.hpp>
@@ -67,3 +68,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

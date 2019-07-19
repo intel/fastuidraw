@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_BINDING_POINTS_HPP
+#define FASTUIDRAW_BINDING_POINTS_HPP
 
 namespace fastuidraw { namespace gl { namespace detail {
   class BindingPoints
@@ -39,3 +40,5 @@ namespace fastuidraw { namespace gl { namespace detail {
     int m_color_interlock_image_buffer_binding;
   };
 }}}
+
+#endif

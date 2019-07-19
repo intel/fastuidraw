@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_BEZIER_UTIL_HPP
+#define FASTUIDRAW_BEZIER_UTIL_HPP
 
 #include <cmath>
 #include <fastuidraw/util/util.hpp>
@@ -298,3 +299,5 @@ namespace fastuidraw
 
   }
 }
+
+#endif

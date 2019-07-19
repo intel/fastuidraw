@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_CLIP_HPP
+#define FASTUIDRAW_CLIP_HPP
 
 #include <vector>
 #include <fastuidraw/util/vecN.hpp>
@@ -108,3 +109,5 @@ namespace fastuidraw
     }
   }
 }
+
+#endif

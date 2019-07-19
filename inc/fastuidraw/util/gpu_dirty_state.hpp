@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_GPU_DIRTY_STATE_HPP
+#define FASTUIDRAW_GPU_DIRTY_STATE_HPP
 
 #include <stdint.h>
 
@@ -158,3 +159,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_STATIC_RESOURCE_HPP
+#define FASTUIDRAW_STATIC_RESOURCE_HPP
 
 #include <fastuidraw/util/c_array.hpp>
 
@@ -75,3 +76,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

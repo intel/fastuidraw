@@ -20,7 +20,8 @@
 /* Private functions needed for macros in fastuidraw_memory.hpp
  */
 
-#pragma once
+#ifndef FASTUIDRAW_FASTUIDRAW_MEMORY_PRIVATE_HPP
+#define FASTUIDRAW_FASTUIDRAW_MEMORY_PRIVATE_HPP
 
 #include <cstddef>
 
@@ -96,3 +97,5 @@ namespace memory
 } //namespace memory
 
 } //namespace fastuidraw
+
+#endif

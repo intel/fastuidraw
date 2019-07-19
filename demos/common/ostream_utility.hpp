@@ -19,7 +19,8 @@
 
 
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_OSTREAM_UTILITY_HPP
+#define FASTUIDRAW_DEMO_OSTREAM_UTILITY_HPP
 
 
 #include <iostream>
@@ -379,3 +380,5 @@ operator<<(std::ostream &str, const fastuidraw::matrixNxM<N, M, T> &matrix)
 
 
 /*! @} */
+
+#endif

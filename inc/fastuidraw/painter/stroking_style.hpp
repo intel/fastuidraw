@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_STROKING_STYLE_HPP
+#define FASTUIDRAW_STROKING_STYLE_HPP
 
 #include <fastuidraw/painter/painter_enums.hpp>
 
@@ -75,3 +76,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

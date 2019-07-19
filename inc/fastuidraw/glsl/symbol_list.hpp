@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_SYMBOL_LIST_HPP
+#define FASTUIDRAW_SYMBOL_LIST_HPP
 
 #include <fastuidraw/glsl/varying_list.hpp>
 #include <fastuidraw/glsl/shareable_value_list.hpp>
@@ -71,3 +72,5 @@ namespace fastuidraw
 /*! @} */
   }
 }
+
+#endif

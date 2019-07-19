@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_BRUSH_ADJUST_HPP
+#define FASTUIDRAW_PAINTER_BRUSH_ADJUST_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -98,3 +99,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

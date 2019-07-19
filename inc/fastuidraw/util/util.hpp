@@ -18,7 +18,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_UTIL_HPP
+#define FASTUIDRAW_UTIL_HPP
 
 #include <stdint.h>
 #include <stddef.h>
@@ -642,3 +643,5 @@ namespace fastuidraw
 
 }
 /*! @} */
+
+#endif

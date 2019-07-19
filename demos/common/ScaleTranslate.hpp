@@ -20,7 +20,8 @@
 
 
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_SCALETRANSLATE_HPP
+#define FASTUIDRAW_DEMO_SCALETRANSLATE_HPP
 
 #include <cstdlib>
 #include <fastuidraw/util/util.hpp>
@@ -243,3 +244,5 @@ operator*(const ScaleTranslate<T> &a, const ScaleTranslate<T> &b)
 }
 
 /*! @} */
+
+#endif

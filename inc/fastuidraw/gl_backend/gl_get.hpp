@@ -18,7 +18,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GL_GET_HPP
+#define FASTUIDRAW_GL_GET_HPP
 
 
 #include <fastuidraw/gl_backend/gl_header.hpp>
@@ -109,3 +110,5 @@ context_get(GLenum value)
 
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

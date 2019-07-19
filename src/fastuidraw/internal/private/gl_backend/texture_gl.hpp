@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_TEXTURE_GL_HPP
+#define FASTUIDRAW_TEXTURE_GL_HPP
 
 #include <list>
 #include <vector>
@@ -765,3 +766,5 @@ clear_texture_2d(GLuint texture, GLint level, GLenum internal_format,
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

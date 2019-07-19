@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_CLIP_EQUATIONS_HPP
+#define FASTUIDRAW_PAINTER_CLIP_EQUATIONS_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -105,3 +106,5 @@ namespace fastuidraw
 /*! @} */
 
 } //namespace fastuidraw
+
+#endif

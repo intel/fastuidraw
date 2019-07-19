@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_COLORSTOP_ATLAS_GL_HPP
+#define FASTUIDRAW_COLORSTOP_ATLAS_GL_HPP
 
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
@@ -75,3 +76,5 @@ namespace detail
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif
