@@ -17,7 +17,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_FASTUIDRAW_MEMORY_HPP
+#define FASTUIDRAW_FASTUIDRAW_MEMORY_HPP
 
 /*!\addtogroup Utility
  * @{
@@ -93,3 +94,5 @@
   fastuidraw::memory::free_implement(ptr, __FILE__, __LINE__)
 
 /*! @} */
+
+#endif

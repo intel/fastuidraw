@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PATH_EFFECT_HPP
+#define FASTUIDRAW_PATH_EFFECT_HPP
 
 #include <fastuidraw/tessellated_path.hpp>
 
@@ -248,3 +249,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

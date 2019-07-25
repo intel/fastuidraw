@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_CACHE_HPP
+#define FASTUIDRAW_GLYPH_CACHE_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
@@ -257,3 +258,5 @@ namespace fastuidraw
   };
 /*! @} */
 } //namespace fastuidraw
+
+#endif

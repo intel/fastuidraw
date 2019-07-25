@@ -18,7 +18,8 @@
 
 
 
-#pragma once
+#ifndef FASTUIDRAW_IMAGE_ATLAS_HPP
+#define FASTUIDRAW_IMAGE_ATLAS_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -391,3 +392,5 @@ namespace fastuidraw
 /*! @} */
 
 } //namespace
+
+#endif

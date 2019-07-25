@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_ITEM_MATRIX_HPP
+#define FASTUIDRAW_PAINTER_ITEM_MATRIX_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -128,3 +129,5 @@ namespace fastuidraw
 /*! @} */
 
 } //namespace
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_RECT_HPP
+#define FASTUIDRAW_RECT_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/math.hpp>
@@ -339,3 +340,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

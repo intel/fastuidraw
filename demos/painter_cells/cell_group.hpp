@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_CELL_GROUP_HPP
+#define FASTUIDRAW_DEMO_CELL_GROUP_HPP
 
 #include "ostream_utility.hpp"
 #include "PainterWidget.hpp"
@@ -28,3 +29,5 @@ protected:
   pre_paint(void);
 
 };
+
+#endif

@@ -18,7 +18,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_SDL_DEMO_HPP
+#define FASTUIDRAW_DEMO_SDL_DEMO_HPP
 
 #include <iostream>
 #include <iomanip>
@@ -166,3 +167,5 @@ private:
   SDL_Window *m_window;
   SDL_GLContext m_ctx;
 };
+
+#endif

@@ -18,7 +18,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_MATRIX_HPP
+#define FASTUIDRAW_MATRIX_HPP
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -818,3 +819,5 @@ typedef orthogonal_projection_params<float> float_orthogonal_projection_params;
 
 /*! @} */
 } //namespace
+
+#endif

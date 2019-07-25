@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_VAO_POOL_HPP
+#define FASTUIDRAW_PAINTER_VAO_POOL_HPP
 
 #include <vector>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
@@ -131,3 +132,5 @@ private:
 };
 
 }}}
+
+#endif

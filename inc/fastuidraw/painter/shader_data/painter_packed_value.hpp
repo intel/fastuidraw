@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_PACKED_VALUE_HPP
+#define FASTUIDRAW_PAINTER_PACKED_VALUE_HPP
 
 
 #include <fastuidraw/util/util.hpp>
@@ -204,3 +205,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

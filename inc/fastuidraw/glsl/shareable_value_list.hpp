@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_SHAREABLE_VALUE_LIST_HPP
+#define FASTUIDRAW_SHAREABLE_VALUE_LIST_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
@@ -145,3 +146,5 @@ namespace fastuidraw
 /*! @} */
   }
 }
+
+#endif

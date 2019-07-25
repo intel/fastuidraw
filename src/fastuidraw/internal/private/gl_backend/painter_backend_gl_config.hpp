@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_BACKEND_GL_CONFIG_HPP
+#define FASTUIDRAW_PAINTER_BACKEND_GL_CONFIG_HPP
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
@@ -58,3 +59,5 @@ compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t
                       bool allow_gl_clip_distance = true);
 
 }}}
+
+#endif

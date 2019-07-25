@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_ENUMS_HPP
+#define FASTUIDRAW_PAINTER_ENUMS_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -925,3 +926,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

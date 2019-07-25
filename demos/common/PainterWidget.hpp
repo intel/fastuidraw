@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_PAINTERWIDGET_HPP
+#define FASTUIDRAW_DEMO_PAINTERWIDGET_HPP
 
 #include <list>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -74,3 +75,5 @@ private:
   std::list<PainterWidget*>::iterator m_iterator_loc;
   std::list<PainterWidget*> m_children;
 };
+
+#endif

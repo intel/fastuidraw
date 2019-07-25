@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_CUSTOM_BRUSH_HPP
+#define FASTUIDRAW_PAINTER_CUSTOM_BRUSH_HPP
 
 #include <fastuidraw/painter/shader_data/painter_data_value.hpp>
 #include <fastuidraw/painter/shader_data/painter_brush_shader_data.hpp>
@@ -72,3 +73,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

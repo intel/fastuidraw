@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_STROKING_DATA_SELECTOR_COMMON_HPP
+#define FASTUIDRAW_PAINTER_STROKING_DATA_SELECTOR_COMMON_HPP
 
 #include <cmath>
 #include <fastuidraw/painter/shader/painter_stroke_shader.hpp>
@@ -115,3 +116,5 @@ namespace fastuidraw
     };
   }
 }
+
+#endif

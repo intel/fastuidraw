@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_RENDER_DATA_TEXELS_HPP
+#define FASTUIDRAW_GLYPH_RENDER_DATA_TEXELS_HPP
 
 #include <fastuidraw/text/glyph_render_data.hpp>
 
@@ -108,3 +109,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

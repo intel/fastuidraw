@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_FONT_HPP
+#define FASTUIDRAW_FONT_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/c_array.hpp>
@@ -190,3 +191,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

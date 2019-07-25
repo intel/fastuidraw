@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SHADER_REGISTRAR_HPP
+#define FASTUIDRAW_PAINTER_SHADER_REGISTRAR_HPP
 
 #include <fastuidraw/painter/shader/painter_shader_set.hpp>
 #include <fastuidraw/util/mutex.hpp>
@@ -300,3 +301,5 @@ namespace fastuidraw
 /*! @} */
 
 }
+
+#endif

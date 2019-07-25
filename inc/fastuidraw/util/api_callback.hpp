@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_API_CALLBACK_HPP
+#define FASTUIDRAW_API_CALLBACK_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -214,3 +215,5 @@ namespace fastuidraw
     void *m_d;
   };
 }
+
+#endif

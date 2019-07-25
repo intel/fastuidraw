@@ -18,7 +18,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GL_PROGRAM_HPP
+#define FASTUIDRAW_GL_PROGRAM_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -1731,3 +1732,5 @@ private:
 
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

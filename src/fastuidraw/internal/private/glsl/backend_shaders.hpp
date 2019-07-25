@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_BACKEND_SHADERS_HPP
+#define FASTUIDRAW_BACKEND_SHADERS_HPP
 
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
@@ -176,3 +177,5 @@ private:
 };
 
 }}}
+
+#endif

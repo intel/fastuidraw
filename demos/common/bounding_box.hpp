@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_BOUNDING_BOX_HPP
+#define FASTUIDRAW_DEMO_BOUNDING_BOX_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 
@@ -171,3 +172,5 @@ private:
   pt_type m_min, m_max;
   bool m_empty;
 };
+
+#endif

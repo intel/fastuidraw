@@ -92,7 +92,6 @@ namespace
       m_data_blocks_per_store_buffer(-1),
       m_glyph_data_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo),
       m_glyph_data_backing_log2_dims(-1, -1),
-      m_glyph_data_backing_use_unpack(true),
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
@@ -105,7 +104,6 @@ namespace
       m_image_atlas_color_tiles_linear_binding(-1),
       m_image_atlas_index_tiles_binding(-1),
       m_glyph_atlas_store_binding(-1),
-      m_glyph_atlas_store_binding_fp16x2(-1),
       m_data_store_buffer_binding(-1),
       m_context_texture_binding(-1),
       m_coverage_buffer_texture_binding(-1),
@@ -131,7 +129,6 @@ namespace
     int m_data_blocks_per_store_buffer;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_backing_t m_glyph_data_backing;
     fastuidraw::ivec2 m_glyph_data_backing_log2_dims;
-    bool m_glyph_data_backing_use_unpack;
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
@@ -144,7 +141,6 @@ namespace
     int m_image_atlas_color_tiles_linear_binding;
     int m_image_atlas_index_tiles_binding;
     int m_glyph_atlas_store_binding;
-    int m_glyph_atlas_store_binding_fp16x2;
     int m_data_store_buffer_binding;
     int m_context_texture_binding;
     int m_coverage_buffer_texture_binding;
@@ -893,12 +889,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
       FASTUIDRAWassert(!"Invalid data_store_backing() value");
     }
 
-  if (params.glyph_data_backing_use_unpack())
-    {
-      vert.add_macro("FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK");
-      frag.add_macro("FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK");
-    }
-
   switch(params.glyph_data_backing())
     {
     case PainterShaderRegistrarGLSL::glyph_data_texture_array:
@@ -940,7 +930,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", params.image_atlas_color_tiles_nearest_binding())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", params.image_atlas_index_tiles_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
-    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_CONTEXT_TEXTURE_BINDING", params.context_texture_binding())
@@ -992,7 +981,6 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", params.image_atlas_color_tiles_nearest_binding())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", params.image_atlas_index_tiles_binding())
     .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_BINDING", params.glyph_atlas_store_binding())
-    .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING", params.glyph_atlas_store_binding_fp16x2())
     .add_macro("FASTUIDRAW_PAINTER_STORE_BINDING", params.data_store_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", params.color_interlock_image_buffer_binding())
     .add_macro("FASTUIDRAW_PAINTER_CONTEXT_TEXTURE_BINDING", params.context_texture_binding())
@@ -1271,11 +1259,9 @@ recompute_binding_points(void)
     case PainterShaderRegistrarGLSL::glyph_data_tbo:
     case PainterShaderRegistrarGLSL::glyph_data_texture_array:
       m_glyph_atlas_store_binding = m_num_texture_units++;
-      m_glyph_atlas_store_binding_fp16x2 = m_num_texture_units++;
       break;
     case PainterShaderRegistrarGLSL::glyph_data_ssbo:
       m_glyph_atlas_store_binding = m_num_ssbo_units++;
-      m_glyph_atlas_store_binding_fp16x2 = -1;
       break;
     }
 
@@ -1370,8 +1356,6 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, fastuidraw::ivec2, glyph_data_backing_log2_dims)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, bool, glyph_data_backing_use_unpack)
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate,
                  enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t, colorstop_atlas_backing)
 
@@ -1423,7 +1407,6 @@ uber_shader_params_get_dirty(image_atlas_color_tiles_nearest_binding)
 uber_shader_params_get_dirty(image_atlas_color_tiles_linear_binding)
 uber_shader_params_get_dirty(image_atlas_index_tiles_binding)
 uber_shader_params_get_dirty(glyph_atlas_store_binding)
-uber_shader_params_get_dirty(glyph_atlas_store_binding_fp16x2)
 uber_shader_params_get_dirty(data_store_buffer_binding)
 uber_shader_params_get_dirty(context_texture_binding)
 uber_shader_params_get_dirty(coverage_buffer_texture_binding)

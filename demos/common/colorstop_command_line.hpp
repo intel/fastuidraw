@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_COLORSTOP_COMMAND_LINE_HPP
+#define FASTUIDRAW_DEMO_COLORSTOP_COMMAND_LINE_HPP
 
 #include <string>
 #include <map>
@@ -56,3 +57,5 @@ private:
   hoard m_values;
   std::string m_add, m_add2, m_disc;
 };
+
+#endif

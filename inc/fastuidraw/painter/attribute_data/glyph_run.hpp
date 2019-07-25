@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_RUN_HPP
+#define FASTUIDRAW_GLYPH_RUN_HPP
 
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
@@ -220,3 +221,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

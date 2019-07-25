@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_UTIL_PRIVATE_MATH_HPP
+#define FASTUIDRAW_UTIL_PRIVATE_MATH_HPP
 
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/math.hpp>
@@ -29,3 +30,5 @@ namespace fastuidraw
     compute_singular_values(const float2x2 &matrix);
   }
 }
+
+#endif

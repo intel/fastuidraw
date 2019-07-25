@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_ITEM_SHADER_HPP
+#define FASTUIDRAW_PAINTER_ITEM_SHADER_HPP
 #include <fastuidraw/painter/shader/painter_shader.hpp>
 #include <fastuidraw/painter/shader/painter_item_coverage_shader.hpp>
 
@@ -114,3 +115,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_PACKED_VALUE_POOL_PRIVATE_HPP
+#define FASTUIDRAW_PAINTER_PACKED_VALUE_POOL_PRIVATE_HPP
 
 #include <vector>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -474,3 +475,5 @@ namespace fastuidraw
     };
   }
 }
+
+#endif

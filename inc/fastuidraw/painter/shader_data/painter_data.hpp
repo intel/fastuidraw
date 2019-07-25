@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_DATA_HPP
+#define FASTUIDRAW_PAINTER_DATA_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/shader_data/painter_data_value.hpp>
@@ -321,3 +322,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

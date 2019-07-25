@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_POINT_ATTRIBUTE_DATA_MERGER_HPP
+#define FASTUIDRAW_POINT_ATTRIBUTE_DATA_MERGER_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/painter/attribute_data/painter_attribute_data.hpp>
@@ -200,3 +201,5 @@ fill_data_helper_idx(unsigned int incr_idx,
 
 
 }}
+
+#endif

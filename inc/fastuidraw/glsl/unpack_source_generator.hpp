@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_UNPACK_SOURCE_GENERATOR_HPP
+#define FASTUIDRAW_UNPACK_SOURCE_GENERATOR_HPP
 
 #include <fastuidraw/glsl/shader_source.hpp>
 
@@ -293,3 +294,5 @@ namespace fastuidraw
 
   }
 }
+
+#endif

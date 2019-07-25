@@ -54,7 +54,7 @@ Building requirements
  - perl
  - up to date GL (and GLES) headers
    - You need
-      - for GL, from https://www.opengl.org/registry/: GL/glcorearb.h
+      - for GL, from https://www.opengl.org/registry/: GL/glcorearb.h, KHR/khrplatform.h
       - for GLES, from https://www.khronos.org/registry/gles/: GLES2/gl2.h, GLES2/gl2ext.h, GLES3/gl3.h, GLES3/gl31.h, GLES3/gl32.h, KHR/khrplatform.h
    - The expected place of those headers is set by setting the
      environmental variable GL_INCLUDEPATH; if the value is not set,
@@ -70,6 +70,14 @@ Building
   "make targets" to see all build targets and the list of environmental
   variables that control what is built and how. On MS-Windows, the helper
   library NEGL is NOT built by default and on other platforms it is.
+
+  MacOS build is possible, but is NOT done with the GL headers that
+  are included in MacOS. Instead copy the needed Khronos headers
+  to /usr/local/include with the tree intact, i.e. copy GL/glcorearb.h
+  from the Khronos registry to /usr/local/include/GL/glcorearb.h and
+  copy KHR/khrplatform.h to /usr/local/include/KHR/khrplatform.h.
+  Then the build process will work (the build system defaults
+  GL_INCLUDEPATH to /usr/local/include on OS-X). Yes, this is a hack.
 
 Running Demos
 =============

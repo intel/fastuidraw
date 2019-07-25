@@ -1,5 +1,5 @@
-FASTUIDRAW_GL_CFLAGS =
-FASTUIDRAW_GLES_CFLAGS = -DFASTUIDRAW_GL_USE_GLES
+FASTUIDRAW_GL_CFLAGS = -I$(GL_INCLUDEPATH)
+FASTUIDRAW_GLES_CFLAGS = -DFASTUIDRAW_GL_USE_GLES -I$(GL_INCLUDEPATH)
 
 FASTUIDRAW_GL_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, build/string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_GL_RESOURCE_STRING) )
 CLEAN_FILES += $(FASTUIDRAW_GL_STRING_RESOURCES_SRCS)
@@ -60,10 +60,10 @@ INSTALL_EXES += libFastUIDraw$(1)_$(2).dll libN$(1)_$(2).dll
 else
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).so
 libFastUIDraw$(1)_$(2).so: libFastUIDraw_$(2).so libN$(1)_$(2).so $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS)
-	$(CXX) -shared -Wl,-soname,libFastUIDraw$(1)_$(2).so -o libFastUIDraw$(1)_$(2).so $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) -L. -lN$(1)_$(2) -lFastUIDraw_$(2)
+	$(CXX) -shared -Wl,$$(SONAME),libFastUIDraw$(1)_$(2).so -o libFastUIDraw$(1)_$(2).so $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) -L. -lN$(1)_$(2) -lFastUIDraw_$(2)
 libN$(1)_$(2): libN$(1)_$(2).so
 libN$(1)_$(2).so: $$(NGL_$(1)_$(2)_OBJ) libFastUIDraw_$(2)
-	$(CXX) -shared -Wl,-soname,libN$(1)_$(2).so -o libN$(1)_$(2).so $$(NGL_$(1)_$(2)_OBJ) -L. -lFastUIDraw_$(2)
+	$(CXX) -shared -Wl,$$(SONAME),libN$(1)_$(2).so -o libN$(1)_$(2).so $$(NGL_$(1)_$(2)_OBJ) -L. -lFastUIDraw_$(2)
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).so libN$(1)_$(2).so
 endif
 

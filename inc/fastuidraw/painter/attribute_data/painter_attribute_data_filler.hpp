@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_ATTRIBUTE_DATA_FILLER_HPP
+#define FASTUIDRAW_PAINTER_ATTRIBUTE_DATA_FILLER_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
@@ -93,3 +94,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

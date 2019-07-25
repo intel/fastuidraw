@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SHADER_REGISTRAR_GL_HPP
+#define FASTUIDRAW_PAINTER_SHADER_REGISTRAR_GL_HPP
 
 #include <vector>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
@@ -228,3 +229,5 @@ private:
 };
 
 }}}
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_METRICS_HPP
+#define FASTUIDRAW_GLYPH_METRICS_HPP
 
 #include <stdint.h>
 
@@ -129,3 +130,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SURFACE_HPP
+#define FASTUIDRAW_PAINTER_SURFACE_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -336,3 +337,5 @@ namespace fastuidraw
 /*! @} */
 
 }
+
+#endif

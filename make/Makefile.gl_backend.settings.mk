@@ -11,7 +11,9 @@ ENVIRONMENTALDESCRIPTIONS += "BUILD_GLES: if set to 1 build GLES backend to Fast
 
 ###################################################
 ## Location in file system of GL (or GLES3) headers
-ifeq ($(MINGW_BUILD),0)
+ifeq ($(DARWIN_BUILD),1)
+  GL_DEFAULT_INCLUDEPATH = /usr/local/include
+else ifeq ($(MINGW_BUILD),0)
   GL_DEFAULT_INCLUDEPATH = /usr/include
 else ifeq ($(MINGW_MODE),MINGW64)
   GL_DEFAULT_INCLUDEPATH = /mingw64/include

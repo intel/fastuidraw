@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_COMMAND_LINE_LIST_HPP
+#define FASTUIDRAW_DEMO_COMMAND_LINE_LIST_HPP
 
 #include <set>
 #include "generic_command_line.hpp"
@@ -55,3 +56,5 @@ public:
 private:
   std::string m_name, m_description;
 };
+
+#endif

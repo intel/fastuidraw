@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_ATTRIBUTE_HPP
+#define FASTUIDRAW_GLYPH_ATTRIBUTE_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -159,3 +160,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

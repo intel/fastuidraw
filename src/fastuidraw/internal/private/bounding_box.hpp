@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_BOUNDING_BOX_HPP
+#define FASTUIDRAW_BOUNDING_BOX_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/rect.hpp>
@@ -302,3 +303,5 @@ namespace fastuidraw
     bool m_empty;
   };
 }
+
+#endif

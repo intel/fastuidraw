@@ -17,7 +17,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_SHADER_SOURCE_HPP
+#define FASTUIDRAW_SHADER_SOURCE_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -453,3 +454,5 @@ private:
 
 } //namespace glsl
 } //namespace fastuidraw
+
+#endif

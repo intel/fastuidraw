@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_REFERENCE_COUNT_ATOMIC_HPP
+#define FASTUIDRAW_REFERENCE_COUNT_ATOMIC_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -63,3 +64,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

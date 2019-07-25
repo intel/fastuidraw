@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_IMAGE_HPP
+#define FASTUIDRAW_IMAGE_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -343,3 +344,5 @@ class ImageAtlas;
 /*! @} */
 
 } //namespace
+
+#endif

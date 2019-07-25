@@ -67,17 +67,7 @@ fastuidraw_banded_rays_load_band(in uint loc, out fastuidraw_banded_rays_band ba
 vec2
 fastuidraw_banded_rays_load_point(in uint loc)
 {
-  #if !defined(fastuidraw_fetch_glyph_data_fp16x2)
-    {
-      uint raw;
-      raw = fastuidraw_fetch_glyph_data(loc);
-      return unpackHalf2x16(raw);
-    }
-  #else
-    {
-      return fastuidraw_fetch_glyph_data_fp16x2(loc);
-    }
-  #endif
+  return fastuidraw_fetch_glyph_data_fp16x2(loc);
 }
 
 void

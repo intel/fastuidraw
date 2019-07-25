@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_FONT_DATABASE_HPP
+#define FASTUIDRAW_FONT_DATABASE_HPP
 
 #include <fastuidraw/text/glyph_source.hpp>
 
@@ -418,3 +419,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

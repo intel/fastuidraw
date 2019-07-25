@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_TABLE_HPP
+#define FASTUIDRAW_DEMO_TABLE_HPP
 
 #include <fastuidraw/text/font_database.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
@@ -89,3 +90,5 @@ private:
   int m_thousandths_degrees_rotation;
   float m_rotation_radians;
 };
+
+#endif

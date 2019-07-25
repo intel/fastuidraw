@@ -17,7 +17,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_GL_BINDING_HPP
+#define FASTUIDRAW_GL_BINDING_HPP
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/api_callback.hpp>
@@ -140,3 +141,5 @@ message(c_string message, c_string src_file, int src_line);
 
 /*! @} */
 }
+
+#endif

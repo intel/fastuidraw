@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_RENDER_DATA_HPP
+#define FASTUIDRAW_GLYPH_RENDER_DATA_HPP
 
 #include <stdint.h>
 
@@ -104,3 +105,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

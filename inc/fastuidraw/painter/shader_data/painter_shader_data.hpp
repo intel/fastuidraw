@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_SHADER_DATA_HPP
+#define FASTUIDRAW_PAINTER_SHADER_DATA_HPP
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -104,3 +105,5 @@ namespace fastuidraw
 /*! @} */
 
 } //namespace fastuidraw
+
+#endif

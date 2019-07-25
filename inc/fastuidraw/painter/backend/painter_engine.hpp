@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_ENGINE_HPP
+#define FASTUIDRAW_PAINTER_ENGINE_HPP
 
 #include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/util/rect.hpp>
@@ -335,3 +336,5 @@ namespace fastuidraw
 /*! @} */
 
 }
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_IMAGE_GL_HPP
+#define FASTUIDRAW_IMAGE_GL_HPP
 
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
@@ -88,3 +89,5 @@ namespace detail
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

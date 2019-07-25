@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_FONT_FREETYPE_HPP
+#define FASTUIDRAW_FONT_FREETYPE_HPP
 
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/text/freetype_lib.hpp>
@@ -159,3 +160,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_DASHED_STROKE_PARAMS_HPP
+#define FASTUIDRAW_PAINTER_DASHED_STROKE_PARAMS_HPP
 
 #include <fastuidraw/painter/shader_data/painter_stroke_params.hpp>
 #include <fastuidraw/painter/shader_data/painter_shader_data.hpp>
@@ -229,3 +230,5 @@ namespace fastuidraw
 /*! @} */
 
 } //namespace fastuidraw
+
+#endif

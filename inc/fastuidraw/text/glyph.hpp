@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_HPP
+#define FASTUIDRAW_GLYPH_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -227,3 +228,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

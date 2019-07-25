@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_ROUNDED_RECT_HPP
+#define FASTUIDRAW_ROUNDED_RECT_HPP
 
 #include <fastuidraw/util/rect.hpp>
 
@@ -126,3 +127,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_FREETYPE_LIB_HPP
+#define FASTUIDRAW_FREETYPE_LIB_HPP
 
 
 #include <ft2build.h>
@@ -86,3 +87,5 @@ namespace fastuidraw
   };
 /*! @} */
 };
+
+#endif

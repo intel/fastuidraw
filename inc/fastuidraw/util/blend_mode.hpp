@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_BLEND_MODE_HPP
+#define FASTUIDRAW_BLEND_MODE_HPP
 
 #include <stdint.h>
 
@@ -516,3 +517,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

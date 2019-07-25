@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_BINDLESS_HPP
+#define FASTUIDRAW_BINDLESS_HPP
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 
@@ -60,3 +61,5 @@ bindless(void);
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

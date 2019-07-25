@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_GENERATE_PARAMS_HPP
+#define FASTUIDRAW_GLYPH_GENERATE_PARAMS_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -171,3 +172,5 @@ namespace fastuidraw
     banded_rays_average_number_curves_thresh(float v);
   }
 }
+
+#endif

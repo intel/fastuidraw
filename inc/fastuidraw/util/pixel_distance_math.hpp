@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PIXEL_DISTANCE_MATH_HPP
+#define FASTUIDRAW_PIXEL_DISTANCE_MATH_HPP
 
 #include <fastuidraw/util/matrix.hpp>
 
@@ -45,3 +46,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

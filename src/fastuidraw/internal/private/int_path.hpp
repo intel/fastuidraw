@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_INT_PATH_HPP
+#define FASTUIDRAW_INT_PATH_HPP
 
 #include <vector>
 
@@ -458,3 +459,5 @@ namespace fastuidraw
 
   } //namespace fastuidraw
 } //namespace detail
+
+#endif

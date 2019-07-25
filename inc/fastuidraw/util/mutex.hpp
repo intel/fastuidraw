@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_MUTEX_HPP
+#define FASTUIDRAW_MUTEX_HPP
 
 #include <fastuidraw/util/util.hpp>
 
@@ -93,3 +94,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

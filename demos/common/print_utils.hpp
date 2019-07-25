@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_PRINT_UTILS_HPP
+#define FASTUIDRAW_DEMO_PRINT_UTILS_HPP
 
 #include <iostream>
 #include <stdint.h>
@@ -74,3 +75,5 @@ operator<<(std::ostream &str, const PrintBytes &obj)
     }
   return str;
 }
+
+#endif

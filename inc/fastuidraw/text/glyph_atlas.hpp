@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_GLYPH_ATLAS_HPP
+#define FASTUIDRAW_GLYPH_ATLAS_HPP
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -190,3 +191,5 @@ namespace fastuidraw
   };
 /*! @} */
 } //namespace fastuidraw
+
+#endif

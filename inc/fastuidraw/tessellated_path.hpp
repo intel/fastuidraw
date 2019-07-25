@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_TESSELLATED_PATH_HPP
+#define FASTUIDRAW_TESSELLATED_PATH_HPP
 
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
@@ -952,3 +953,5 @@ private:
 /*! @} */
 
 }
+
+#endif

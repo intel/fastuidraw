@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_DEMO_SIMPLE_TIME_CIRCULAR_ARRAY_HPP
+#define FASTUIDRAW_DEMO_SIMPLE_TIME_CIRCULAR_ARRAY_HPP
 
 #include "simple_time.hpp"
 #include <fastuidraw/util/vecN.hpp>
@@ -88,3 +89,5 @@ private:
   int m_current, m_total;
   fastuidraw::vecN<simple_time, N + 1u> m_times;
 };
+
+#endif

@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_BLEND_SHADER_GLSL_HPP
+#define FASTUIDRAW_PAINTER_BLEND_SHADER_GLSL_HPP
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/blend_mode.hpp>
@@ -200,3 +201,5 @@ namespace fastuidraw
 
   }
 }
+
+#endif

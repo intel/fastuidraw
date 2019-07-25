@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_UTIL_PRIVATE_OSTREAM_HPP
+#define FASTUIDRAW_UTIL_PRIVATE_OSTREAM_HPP
 
 #include <vector>
 #include <iostream>
@@ -225,3 +226,5 @@ operator<<(fastuidraw::glsl::ShaderSource &src, const T &obj)
   src.add_source(str.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
   return src;
 }
+
+#endif

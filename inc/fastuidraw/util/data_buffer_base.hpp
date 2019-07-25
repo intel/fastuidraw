@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_DATA_BUFFER_BASE_HPP
+#define FASTUIDRAW_DATA_BUFFER_BASE_HPP
 
 #include <stdint.h>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -72,3 +73,5 @@ namespace fastuidraw
 
 /*! @} */
 } //namespace fastuidraw
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_UBER_SHADER_BUILDER_HPP
+#define FASTUIDRAW_UBER_SHADER_BUILDER_HPP
 
 #include <vector>
 #include <string>
@@ -213,3 +214,5 @@ stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
 
 
 }}}
+
+#endif

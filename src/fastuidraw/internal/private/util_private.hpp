@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_UTIL_PRIVATE_HPP
+#define FASTUIDRAW_UTIL_PRIVATE_HPP
 
 #include <iostream>
 #include <vector>
@@ -194,3 +195,5 @@ namespace fastuidraw
     std::cerr << "Warning: [" << __FILE__ << ", "  \
               << __LINE__ << "] " << #X << "\n";    \
   } while(0)
+
+#endif

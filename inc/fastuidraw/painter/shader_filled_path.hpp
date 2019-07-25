@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_SHADER_FILLED_PATH_HPP
+#define FASTUIDRAW_SHADER_FILLED_PATH_HPP
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -146,3 +147,5 @@ private:
 /*! @} */
 
 } //namespace f
+
+#endif

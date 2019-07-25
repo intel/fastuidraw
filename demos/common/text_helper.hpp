@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FASTUIDRAW_DEMO_TEXT_HELPER_HPP
+#define FASTUIDRAW_DEMO_TEXT_HELPER_HPP
 
 #include <vector>
 #include <set>
@@ -120,3 +121,5 @@ default_font(void);
 
 fastuidraw::c_string
 default_font_path(void);
+
+#endif

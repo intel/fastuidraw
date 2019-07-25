@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_GRADIENT_BRUSH_SHADER_HPP
+#define FASTUIDRAW_PAINTER_GRADIENT_BRUSH_SHADER_HPP
 
 #include <fastuidraw/painter/shader_data/painter_gradient_brush_shader_data.hpp>
 #include <fastuidraw/painter/painter_custom_brush.hpp>
@@ -201,3 +202,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

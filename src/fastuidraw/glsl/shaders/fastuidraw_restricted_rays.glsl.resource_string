@@ -193,18 +193,7 @@ fastuidaw_restricted_rays_compute_box(in vec2 p,
 vec2
 fastuidraw_restricted_rays_unpack_point(in uint ptr)
 {
-  #if !defined(fastuidraw_fetch_glyph_data_fp16x2)
-    {
-      uint pt_packed;
-
-      pt_packed = fastuidraw_fetch_glyph_data(ptr);
-      return unpackHalf2x16(pt_packed);
-    }
-  #else
-    {
-      return fastuidraw_fetch_glyph_data_fp16x2(ptr);
-    }
-  #endif
+  return fastuidraw_fetch_glyph_data_fp16x2(ptr);
 }
 
 void

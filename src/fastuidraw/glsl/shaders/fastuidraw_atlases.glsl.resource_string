@@ -109,7 +109,7 @@
     uint fastuidraw_glyphDataStore_data[];
   };
   #define fastuidraw_fetch_glyph_data(X) (fastuidraw_glyphDataStore_data[int(X)])
-  #define fastuidraw_fetch_glyph_data_fp16x2(X) unpackHalf2x16(fastuidraw_glyphDataStore_data[int(X)])
+  #define fastuidraw_fetch_glyph_data_fp16x2(X) fastuidraw_unpackHalf2x16(fastuidraw_glyphDataStore_data[int(X)])
 
 #elif defined(FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY)
 
@@ -125,23 +125,15 @@
   #define FASTUIDRAW_GLYPH_DATA_Y(T) FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_DATA_WIDTH_LOG2, FASTUIDRAW_GLYPH_DATA_HEIGHT_LOG2, T)
   #define FASTUIDRAW_GLYPH_DATA_X(T) FASTUIDRAW_EXTRACT_BITS(0, FASTUIDRAW_GLYPH_DATA_WIDTH_LOG2, T)
   #define FASTUIDRAW_GLYPH_DATA_COORD(v) ivec3(FASTUIDRAW_GLYPH_DATA_X(v), FASTUIDRAW_GLYPH_DATA_Y(v), FASTUIDRAW_GLYPH_DATA_LAYER(v))
-  #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphDataStore, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).r)
 
-  #ifdef FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK
-    #define fastuidraw_fetch_glyph_data_fp16x2(X) unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
-  #else
-    #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).rg)
-  #endif
+  #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphDataStore, FASTUIDRAW_GLYPH_DATA_COORD(X), 0).r)
+  #define fastuidraw_fetch_glyph_data_fp16x2(X) fastuidraw_unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
 #else
 
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_BINDING) uniform usamplerBuffer fastuidraw_glyphDataStore;
-  FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_DATA_STORE_FP16X2_BINDING) uniform samplerBuffer fastuidraw_glyphDataStore_fp16x2;
+
   #define fastuidraw_fetch_glyph_data(X) (texelFetch(fastuidraw_glyphDataStore, int(X)).r)
-  #ifdef FASTUIDRAW_GLYPH_ATLAS_USE_UNPACK
-    #define fastuidraw_fetch_glyph_data_fp16x2(X) unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
-  #else
-    #define fastuidraw_fetch_glyph_data_fp16x2(X) (texelFetch(fastuidraw_glyphDataStore_fp16x2, int(X)).rg)
-  #endif
+  #define fastuidraw_fetch_glyph_data_fp16x2(X) fastuidraw_unpackHalf2x16(fastuidraw_fetch_glyph_data(X))
 
 #endif
 ////////////////////////////////////////////////////

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PAINTER_IMAGE_BRUSH_SHADER_DATA_HPP
+#define FASTUIDRAW_PAINTER_IMAGE_BRUSH_SHADER_DATA_HPP
 
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -214,3 +215,5 @@ namespace fastuidraw
 
 /*! @} */
 }
+
+#endif

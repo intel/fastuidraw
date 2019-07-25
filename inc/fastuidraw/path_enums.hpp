@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_PATH_ENUMS_HPP
+#define FASTUIDRAW_PATH_ENUMS_HPP
 
 namespace fastuidraw  {
 
@@ -98,3 +99,5 @@ public:
 /*! @} */
 
 }
+
+#endif

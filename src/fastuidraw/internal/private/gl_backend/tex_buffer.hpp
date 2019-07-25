@@ -17,7 +17,8 @@
  */
 
 
-#pragma once
+#ifndef FASTUIDRAW_TEX_BUFFER_HPP
+#define FASTUIDRAW_TEX_BUFFER_HPP
 
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
@@ -48,3 +49,5 @@ tex_buffer(enum tex_buffer_support_t md, GLenum target, GLenum format, GLuint bo
 } //namespace detail
 } //namespace gl
 } //namespace fastuidraw
+
+#endif

@@ -16,7 +16,8 @@
  *
  */
 
-#pragma once
+#ifndef FASTUIDRAW_STROKING_ATTRIBUTE_WRITER_HPP
+#define FASTUIDRAW_STROKING_ATTRIBUTE_WRITER_HPP
 
 #include <fastuidraw/path_effect.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -121,3 +122,5 @@ namespace fastuidraw
   };
 /*! @} */
 }
+
+#endif

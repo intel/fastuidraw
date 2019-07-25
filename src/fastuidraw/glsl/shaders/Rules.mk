@@ -22,7 +22,8 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_texture_fetch.glsl.resource_string \
 	fastuidraw_restricted_rays.glsl.resource_string \
 	fastuidraw_banded_rays.glsl.resource_string \
-	fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string)
+	fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string \
+	fastuidraw_unpackHalf2x16.glsl.resource_string)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))
