@@ -793,6 +793,13 @@ configure_from_context(bool choose_optimal_rendering_quality,
    */
   d->m_number_pools = 3;
 
+  /* TODO: query the GPU "somehow" to see if it has
+   * dedicated memory or shared memory. The latter
+   * will prefer m_buffer_streaming_type to be
+   * buffer_streaming_use_mapping where as the former
+   * will likely prefer buffer_streaming_orphaning
+   */
+  
   /* For now, choosing optimal rendering quality does not
    * have impact on options.
    */

@@ -785,6 +785,7 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 fastuidraw::gl::detail::PainterBackendGL::
 PainterBackendGL(const fastuidraw::gl::PainterEngineGL *f):
   PainterBackend(),
+  m_uniform_values(glsl::PainterShaderRegistrarGLSL::ubo_size()),
   m_nearest_filter_sampler(0),
   m_surface_gl(nullptr)
 {
@@ -1063,9 +1064,7 @@ set_gl_state(RenderTargetState prev_state,
   if (v & gpu_dirty_state::constant_buffers)
     {
       GLuint ubo;
-      unsigned int size_generics(glsl::PainterShaderRegistrarGLSL::ubo_size());
-      unsigned int size_bytes(sizeof(uint32_t) * size_generics);
-      void *ubo_mapped;
+      uint32_t size_bytes(sizeof(uint32_t) * m_uniform_values.size());
 
       /* Grabs and binds the buffer */
       ubo = m_pool->uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
@@ -1073,16 +1072,41 @@ set_gl_state(RenderTargetState prev_state,
 
       if (!m_uniform_ubo_ready)
         {
-          c_array<uint32_t> ubo_mapped_ptr;
-          ubo_mapped = fastuidraw_glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
-                                                   GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-                                                   | GL_MAP_FLUSH_EXPLICIT_BIT);
-          ubo_mapped_ptr = c_array<uint32_t>(static_cast<uint32_t*>(ubo_mapped),
-                                                 size_generics);
+	  switch (m_reg_gl->params().buffer_streaming_type())
+	    {
+	    case PainterEngineGL::buffer_streaming_use_mapping:
+	      {
+		c_array<uint32_t> ubo_mapped_ptr;
+		void *ubo_mapped;
 
-          m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
-          fastuidraw_glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
-          fastuidraw_glUnmapBuffer(GL_UNIFORM_BUFFER);
+		ubo_mapped = fastuidraw_glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
+							 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+							 | GL_MAP_FLUSH_EXPLICIT_BIT);
+		ubo_mapped_ptr = c_array<uint32_t>(static_cast<uint32_t*>(ubo_mapped),
+						   m_uniform_values.size());
+
+		m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
+		fastuidraw_glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
+		fastuidraw_glUnmapBuffer(GL_UNIFORM_BUFFER);
+	      }
+	      break;
+
+	    case PainterEngineGL::buffer_streaming_orphaning:
+	      {
+		m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, make_c_array(m_uniform_values));
+		fastuidraw_glBufferData(GL_UNIFORM_BUFFER, size_bytes, &m_uniform_values[0], GL_STREAM_DRAW);
+	      }
+	      break;
+
+	    default:
+	    case PainterEngineGL::buffer_streaming_buffer_subdata:
+	      {
+		m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, make_c_array(m_uniform_values));
+		fastuidraw_glBufferSubData(GL_UNIFORM_BUFFER, 0, size_bytes, &m_uniform_values[0]);
+	      }
+	      break;
+	    }
+
           m_uniform_ubo_ready = true;
         }
 
