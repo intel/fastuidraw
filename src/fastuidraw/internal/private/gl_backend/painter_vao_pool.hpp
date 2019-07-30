@@ -105,6 +105,12 @@ public:
   void
   release_vao(painter_vao &V);
 
+  static
+  void
+  prepare_index_vertex_sources(GLuint attribute_bo,
+			       GLuint header_attribute_bo,
+			       GLuint index_bo);
+
 private:
   GLuint
   generate_tbo(GLuint src_buffer, GLenum fmt, unsigned int unit);
@@ -125,6 +131,7 @@ private:
   enum glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
   enum tex_buffer_support_t m_tex_buffer_support;
   unsigned int m_data_store_binding;
+  bool m_assume_single_gl_context;
 
   unsigned int m_current_pool;
   std::vector<std::vector<painter_vao> > m_free_vaos;

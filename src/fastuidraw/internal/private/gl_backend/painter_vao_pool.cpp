@@ -33,6 +33,7 @@ painter_vao_pool(const PainterEngineGL::ConfigurationGL &params,
   m_data_store_backing(params.data_store_backing()),
   m_tex_buffer_support(tex_buffer_support),
   m_data_store_binding(data_store_binding),
+  m_assume_single_gl_context(params.assume_single_gl_context()),
   m_current_pool(0),
   m_free_vaos(params.number_pools()),
   m_ubos(params.number_pools(), 0)
@@ -99,6 +100,10 @@ request_vao(void)
           return_value.m_data_tbo = generate_tbo(return_value.m_data_bo, GL_RGBA32UI,
                                                  return_value.m_data_store_binding_point);
         }
+      if (m_assume_single_gl_context)
+	{
+	  create_vao(return_value);
+	}
       return_value.m_pool = m_current_pool;
     }
   else
@@ -107,25 +112,26 @@ request_vao(void)
       m_free_vaos[m_current_pool].pop_back();
     }
 
-  /* We re-create the VAO in case GL contexts have changed */
-  create_vao(return_value);
+  if (!m_assume_single_gl_context)
+    {
+      /* We re-create the VAO in case GL contexts have changed */
+      create_vao(return_value);
+    }
+  FASTUIDRAWassert(return_value.m_vao != 0);
   FASTUIDRAWassert(return_value.m_pool == m_current_pool);
   return return_value;
 }
 
 void
 fastuidraw::gl::detail::painter_vao_pool::
-create_vao(painter_vao &return_value)
+prepare_index_vertex_sources(GLuint attribute_bo,
+			     GLuint header_bo,
+			     GLuint index_bo)
 {
   opengl_trait_value v;
 
-  FASTUIDRAWassert(return_value.m_vao == 0);
-
-  fastuidraw_glGenVertexArrays(1, &return_value.m_vao);
-  fastuidraw_glBindVertexArray(return_value.m_vao);
-
-  fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, return_value.m_attribute_bo);
-  fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, return_value.m_index_bo);
+  fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, attribute_bo);
+  fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_bo);
 
   fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::attribute0_slot);
   v = opengl_trait_values<uvec4>(sizeof(PainterAttribute),
@@ -142,10 +148,25 @@ create_vao(painter_vao &return_value)
                                  offsetof(PainterAttribute, m_attrib2));
   VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::attribute2_slot, v);
 
-  fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, return_value.m_header_bo);
+  fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, header_bo);
   fastuidraw_glEnableVertexAttribArray(glsl::PainterShaderRegistrarGLSL::header_attrib_slot);
   v = opengl_trait_values<uint32_t>();
   VertexAttribIPointer(glsl::PainterShaderRegistrarGLSL::header_attrib_slot, v);
+}
+
+void
+fastuidraw::gl::detail::painter_vao_pool::
+create_vao(painter_vao &return_value)
+{
+  FASTUIDRAWassert(return_value.m_vao == 0);
+
+  fastuidraw_glGenVertexArrays(1, &return_value.m_vao);
+  fastuidraw_glBindVertexArray(return_value.m_vao);
+
+  prepare_index_vertex_sources(return_value.m_attribute_bo,
+			       return_value.m_header_bo,
+			       return_value.m_index_bo);
+
   fastuidraw_glBindVertexArray(0);
 }
 
@@ -161,7 +182,14 @@ release_vao_resources(const painter_vao &V)
   fastuidraw_glDeleteBuffers(1, &V.m_header_bo);
   fastuidraw_glDeleteBuffers(1, &V.m_index_bo);
   fastuidraw_glDeleteBuffers(1, &V.m_data_bo);
-  FASTUIDRAWassert(V.m_vao == 0);
+  if (m_assume_single_gl_context)
+    {
+      fastuidraw_glDeleteVertexArrays(1, &V.m_vao);
+    }
+  else
+    {
+      FASTUIDRAWassert(V.m_vao == 0);
+    }
 }
 
 void
@@ -180,8 +208,11 @@ fastuidraw::gl::detail::painter_vao_pool::
 release_vao(painter_vao &V)
 {
   FASTUIDRAWassert(V.m_pool < m_free_vaos.size());
-  fastuidraw_glDeleteVertexArrays(1, &V.m_vao);
-  V.m_vao = 0;
+  if (!m_assume_single_gl_context)
+    {
+      fastuidraw_glDeleteVertexArrays(1, &V.m_vao);
+      V.m_vao = 0;
+    }
   m_free_vaos[V.m_pool].push_back(V);
 }
 
