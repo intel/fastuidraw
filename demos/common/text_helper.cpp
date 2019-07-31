@@ -494,6 +494,10 @@ default_font(void)
     {
       return "/Library/Fonts/Arial.ttf";
     }
+  #elif defined(__EMSCRIPTEN__)
+    {
+      return "demo_data/fonts/DejaVuSans.ttf";
+    }
   #else
     {
       return "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
@@ -511,6 +515,10 @@ default_font_path(void)
   #elif defined(__APPLE__)
     {
       return "/Library/Fonts/";
+    }
+  #elif defined(__EMSCRIPTEN__)
+    {
+      return "demo_data/fonts/";
     }
   #else
     {

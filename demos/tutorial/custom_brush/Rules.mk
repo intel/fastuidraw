@@ -4,7 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-DEMOS += example_custom_brush
+TUTORIALS += example_custom_brush
 example_custom_brush_SOURCES := $(call filelist, example_custom_brush.cpp)
 
 # Begin standard footer

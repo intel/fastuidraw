@@ -34,3 +34,5 @@ COMMON_DEMO_SOURCES :=
 
 dir := demos
 include $(dir)/Rules.mk
+
+DEMOS+=$(TUTORIALS)

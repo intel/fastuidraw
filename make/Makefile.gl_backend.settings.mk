@@ -38,3 +38,16 @@ ENVIRONMENTALDESCRIPTIONS += "GL_RAW_HEADER_FILES: GL header files (default $(GL
 
 GLES_RAW_HEADER_FILES ?= $(GLES_DEFAULT_RAW_HEADER_FILES)
 ENVIRONMENTALDESCRIPTIONS += "GLES_RAW_HEADER_FILES: GLES header files (default $(GLES_DEFAULT_RAW_HEADER_FILES))"
+
+#####################################################
+## Names for macine generated header and source files
+NGL_GL_CPP = src/fastuidraw/gl_backend/ngl_gl.cpp
+NGL_GL_HPP = inc/fastuidraw/gl_backend/ngl_gl.hpp
+
+NGL_GLES_CPP = src/fastuidraw/gl_backend/ngl_gles3.cpp
+NGL_GLES_HPP = inc/fastuidraw/gl_backend/ngl_gles3.hpp
+
+##################################
+## how and where to build the generator
+NGL_BUILD = build/ngl_generator
+NGL_GENERATOR_FLAGS=

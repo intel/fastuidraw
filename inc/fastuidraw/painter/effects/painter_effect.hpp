@@ -103,7 +103,7 @@ namespace fastuidraw
     PainterData::brush_value
     brush(unsigned pass,
           const reference_counted_ptr<const Image> &image,
-	  const Rect &brush_rect,
+          const Rect &brush_rect,
           PainterEffectParams &params) const = 0;
   };
 /*! @} */

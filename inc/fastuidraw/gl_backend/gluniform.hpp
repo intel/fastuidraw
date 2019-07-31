@@ -183,6 +183,8 @@ Uniform(int location, c_array<const T> v)
     }
 }
 
+#ifndef __EMSCRIPTEN__
+
 /*!
  * \brief
  * Template version for setting array of uniforms,
@@ -322,6 +324,8 @@ ProgramUniform(GLuint program, int location, c_array<const T> v)
       ProgramUniform(program, location, v.size(), &v[0]);
     }
 }
+
+#endif
 
 /*! @} */
 

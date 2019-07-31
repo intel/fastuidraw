@@ -23,7 +23,11 @@ namespace fastuidraw { namespace gl { namespace detail {
 bool
 shader_storage_buffers_supported(const ContextProperties &ctx)
 {
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      return false;
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       return ctx.version() >= ivec2(3, 1);
     }
@@ -38,7 +42,11 @@ shader_storage_buffers_supported(const ContextProperties &ctx)
 enum gl::detail::interlock_type_t
 compute_interlock_type(const ContextProperties &ctx)
 {
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      return no_interlock;
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       if (ctx.has_extension("GL_NV_fragment_shader_interlock"))
         {
@@ -77,33 +85,42 @@ compute_preferred_blending_type(enum glsl::PainterShaderRegistrarGLSL::fbf_blend
                                 bool &have_dual_src_blending,
                                 const ContextProperties &ctx)
 {
-  bool have_framebuffer_fetch;
+  #ifdef __EMSCRIPTEN__
+    {
+      have_dual_src_blending = false;
+      return PainterBlendShader::single_src;
+    }
+  #else
+    {
+      bool have_framebuffer_fetch;
 
-  have_framebuffer_fetch = (fbf_type != glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported);
-  if (have_framebuffer_fetch && in_value == PainterBlendShader::framebuffer_fetch)
-    {
-      return in_value;
-    }
-  else
-    {
-      in_value = PainterBlendShader::dual_src;
-    }
+      have_framebuffer_fetch = (fbf_type != glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported);
+      if (have_framebuffer_fetch && in_value == PainterBlendShader::framebuffer_fetch)
+        {
+          return in_value;
+        }
+      else
+        {
+          in_value = PainterBlendShader::dual_src;
+        }
 
-  if (ctx.is_es())
-    {
-      have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
-    }
-  else
-    {
-      have_dual_src_blending = true;
-    }
+      if (ctx.is_es())
+        {
+          have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
+        }
+      else
+        {
+          have_dual_src_blending = true;
+        }
 
-  if (have_dual_src_blending && in_value == PainterBlendShader::dual_src)
-    {
-      return in_value;
-    }
+      if (have_dual_src_blending && in_value == PainterBlendShader::dual_src)
+        {
+          return in_value;
+        }
 
-  return PainterBlendShader::single_src;
+      return PainterBlendShader::single_src;
+    }
+  #endif
 }
 
 enum glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t
@@ -111,36 +128,44 @@ compute_fbf_blending_type(enum interlock_type_t interlock_value,
                           enum glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t in_value,
                           const ContextProperties &ctx)
 {
-  bool have_framebuffer_fetch;
-  have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
-
-  if (interlock_value == no_interlock
-      && in_value == glsl::PainterShaderRegistrarGLSL::fbf_blending_interlock)
+  #ifdef __EMSCRIPTEN__
     {
-      if (have_framebuffer_fetch)
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_framebuffer_fetch;
-        }
-      else
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported;
-        }
+      return glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported;
     }
-
-  if (in_value == glsl::PainterShaderRegistrarGLSL::fbf_blending_framebuffer_fetch
-      && !have_framebuffer_fetch)
+  #else
     {
-      if (interlock_value != no_interlock)
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_interlock;
-        }
-      else
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported;
-        }
-    }
+      bool have_framebuffer_fetch;
+      have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
-  return in_value;
+      if (interlock_value == no_interlock
+          && in_value == glsl::PainterShaderRegistrarGLSL::fbf_blending_interlock)
+        {
+          if (have_framebuffer_fetch)
+            {
+              in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_framebuffer_fetch;
+            }
+          else
+            {
+              in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported;
+            }
+        }
+
+      if (in_value == glsl::PainterShaderRegistrarGLSL::fbf_blending_framebuffer_fetch
+          && !have_framebuffer_fetch)
+        {
+          if (interlock_value != no_interlock)
+            {
+              in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_interlock;
+            }
+          else
+            {
+              in_value = glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported;
+            }
+        }
+
+      return in_value;
+    }
+  #endif
 }
 
 enum glsl::PainterShaderRegistrarGLSL::clipping_type_t
@@ -149,63 +174,71 @@ compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t
                       const ContextProperties &ctx,
                       bool allow_gl_clip_distance)
 {
-  bool clip_distance_supported, skip_color_write_supported;
-  skip_color_write_supported =
-    fbf_blending_type != glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported;
-
-  if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_discard)
+  #ifdef __EMSCRIPTEN__
     {
-      return in_value;
-    }
-
-  if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_skip_color_write)
-    {
-      if (skip_color_write_supported)
-        {
-          return in_value;
-        }
-      else
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance;
-        }
-    }
-
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      if (allow_gl_clip_distance)
-        {
-          clip_distance_supported = ctx.has_extension("GL_EXT_clip_cull_distance")
-            || ctx.has_extension("GL_APPLE_clip_distance");
-        }
-      else
-        {
-          clip_distance_supported = false;
-        }
+      return glsl::PainterShaderRegistrarGLSL::clipping_via_discard;
     }
   #else
     {
-      FASTUIDRAWunused(ctx);
-      clip_distance_supported = allow_gl_clip_distance;
-    }
-  #endif
+      bool clip_distance_supported, skip_color_write_supported;
+      skip_color_write_supported =
+        fbf_blending_type != glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported;
 
-  if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance)
-    {
-      if (clip_distance_supported)
+      if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_discard)
         {
           return in_value;
         }
-      else if (skip_color_write_supported)
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::clipping_via_skip_color_write;
-        }
-      else
-        {
-          in_value = glsl::PainterShaderRegistrarGLSL::clipping_via_discard;
-        }
-    }
 
-  return in_value;
+      if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_skip_color_write)
+        {
+          if (skip_color_write_supported)
+            {
+              return in_value;
+            }
+          else
+            {
+              in_value = glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance;
+            }
+        }
+
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        {
+          if (allow_gl_clip_distance)
+            {
+              clip_distance_supported = ctx.has_extension("GL_EXT_clip_cull_distance")
+                || ctx.has_extension("GL_APPLE_clip_distance");
+            }
+          else
+            {
+              clip_distance_supported = false;
+            }
+        }
+      #else
+        {
+          FASTUIDRAWunused(ctx);
+          clip_distance_supported = allow_gl_clip_distance;
+        }
+      #endif
+
+      if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance)
+        {
+          if (clip_distance_supported)
+            {
+              return in_value;
+            }
+          else if (skip_color_write_supported)
+            {
+              in_value = glsl::PainterShaderRegistrarGLSL::clipping_via_skip_color_write;
+            }
+          else
+            {
+              in_value = glsl::PainterShaderRegistrarGLSL::clipping_via_discard;
+            }
+        }
+
+      return in_value;
+    }
+  #endif
 }
 
 }}}

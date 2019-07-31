@@ -4,7 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-DEMOS += example_packed_value
+TUTORIALS += example_packed_value
 example_packed_value_SOURCES := $(call filelist, example_packed_value.cpp)
 
 # Begin standard footer

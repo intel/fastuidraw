@@ -30,6 +30,10 @@
 #include <fastuidraw/gl_backend/gl_binding.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "generic_command_line.hpp"
 #include "simple_time.hpp"
 #include "stream_holder.hpp"
@@ -215,7 +219,13 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_bpp(32, "bpp", "bits per pixel", *this),
   m_log_gl_commands("", "log_gl", "if non-empty, GL commands are logged to the named file. "
                     "If value is stderr then logged to stderr, if value is stdout logged to stdout", *this),
-  m_print_gl_info(false, "print_gl_info", "If true print to stdout GL information", *this),
+  m_print_gl_info(
+                  #ifdef __EMSCRIPTEN__
+                  true,
+                  #else
+                  false,
+                  #endif
+                  "print_gl_info", "If true print to stdout GL information", *this),
   m_swap_interval(-1, "swap_interval",
                   "If set, pass the specified value to SDL_GL_SetSwapInterval, "
                   "a value of 0 means no vsync, a value of 1 means vsync and "
@@ -387,15 +397,34 @@ init_sdl(void)
       SetProcessDPIAware();
     }
   #endif
-  
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+
+  Uint32 init_flags;
+
+  #ifdef __EMSCRIPTEN__
+    {
+      /* doing SDL_INIT_EVERYTHING makes it not work */
+      init_flags = SDL_INIT_VIDEO;
+    }
+  #else
+    {
+      init_flags = SDL_INIT_EVERYTHING;
+    }
+  #endif
+
+  if (SDL_Init(init_flags) < 0)
     {
       std::cerr << "\nFailed on SDL_Init\n";
       return fastuidraw::routine_fail;
     }
 
   int video_flags;
-  video_flags = SDL_WINDOW_RESIZABLE;
+  video_flags = SDL_WINDOW_OPENGL;
+
+  #ifndef __EMSCRIPTEN__
+    {
+      video_flags |= SDL_WINDOW_RESIZABLE;
+    }
+  #endif
 
   if (m_fullscreen.value())
     {
@@ -415,7 +444,6 @@ init_sdl(void)
       SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_msaa.value());
     }
 
-  video_flags |= SDL_WINDOW_OPENGL;
   m_window = SDL_CreateWindow("",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               m_width.value(),
@@ -463,7 +491,12 @@ init_sdl(void)
                     << SDL_GetError() << "\n";
         }
     }
-  fastuidraw::gl_binding::get_proc_function(get_proc);
+
+  #ifndef __EMSCRIPTEN__
+    {
+      fastuidraw::gl_binding::get_proc_function(get_proc);
+    }
+  #endif
 
   if (m_hide_cursor.value())
     {
@@ -499,8 +532,10 @@ init_sdl(void)
                 << "\nGL_MAX_COMBINED_UNIFORM_BLOCKS:" << fastuidraw::gl::context_get<GLint>(GL_MAX_COMBINED_UNIFORM_BLOCKS)
                 << "\nGL_MAX_UNIFORM_BLOCK_SIZE:" << fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE)
                 << "\nGL_MAX_TEXTURE_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_SIZE)
-                << "\nGL_MAX_ARRAY_TEXTURE_LAYERS: " << fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS)
-                << "\nGL_MAX_TEXTURE_BUFFER_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
+        #ifndef __EMSCRIPTEN__
+                << "\nGL_MAX_TEXTURE_BUFFER_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE)
+        #endif
+                << "\nGL_MAX_ARRAY_TEXTURE_LAYERS: " << fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
 
 
       #ifndef FASTUIDRAW_GL_USE_GLES
@@ -533,6 +568,39 @@ swap_buffers(unsigned int count)
       SDL_GL_SwapWindow(m_window);
     }
 }
+
+#ifdef __EMSCRIPTEN__
+void
+sdl_demo::
+render_emscripten_call_back(void *args)
+{
+  sdl_demo *p;
+  SDL_Event ev;
+
+  p = static_cast<sdl_demo*>(args);
+  while (p->m_run_demo && SDL_PollEvent(&ev))
+    {
+      p->handle_event(ev);
+    }
+
+  if (p->m_run_demo)
+    {
+      p->pre_draw_frame();
+      p->draw_frame();
+      p->post_draw_frame();
+    }
+  else
+    {
+      SDL_GL_MakeCurrent(p->m_window, nullptr);
+      SDL_GL_DeleteContext(p->m_ctx);
+      SDL_DestroyWindow(p->m_window);
+      p->m_window = nullptr;
+      p->m_ctx = nullptr;
+      SDL_Quit();
+      emscripten_cancel_main_loop();
+    }
+}
+#endif
 
 
 int
@@ -572,52 +640,66 @@ main(int argc, char **argv)
   SDL_GetWindowSize(m_window, &w, &h);
   init_gl(w, h);
 
-  num_frames = 0;
-  while(m_run_demo)
+  #ifndef __EMSCRIPTEN__
     {
-      if (num_frames == m_num_warm_up_frames.value())
+      num_frames = 0;
+      while(m_run_demo)
         {
-          render_time.restart();
-        }
-
-      pre_draw_frame();
-      draw_frame();
-      post_draw_frame();
-      swap_buffers();
-      ++num_frames;
-
-      if (m_run_demo && m_handle_events)
-        {
-          SDL_Event ev;
-          while(m_run_demo && m_handle_events && SDL_PollEvent(&ev))
+          if (num_frames == m_num_warm_up_frames.value())
             {
-              if (m_reverse_event_y)
+              render_time.restart();
+            }
+
+          pre_draw_frame();
+          draw_frame();
+          post_draw_frame();
+          swap_buffers();
+          ++num_frames;
+
+          if (m_run_demo && m_handle_events)
+            {
+              SDL_Event ev;
+              while(m_run_demo && m_handle_events && SDL_PollEvent(&ev))
                 {
-                  int w, h;
-                  FASTUIDRAWassert(m_window);
-                  SDL_GetWindowSize(m_window, &w, &h);
-                  reverse_y_of_sdl_event(h, ev);
+                  if (m_reverse_event_y)
+                    {
+                      int w, h;
+                      FASTUIDRAWassert(m_window);
+                      SDL_GetWindowSize(m_window, &w, &h);
+                      reverse_y_of_sdl_event(h, ev);
+                    }
+                  handle_event(ev);
                 }
-              handle_event(ev);
             }
         }
-    }
 
-  if (m_show_framerate.value() && num_frames > m_num_warm_up_frames.value())
+      if (m_show_framerate.value() && num_frames > m_num_warm_up_frames.value())
+        {
+          int32_t ms;
+          float msf, numf;
+
+          num_frames -= m_num_warm_up_frames.value();
+
+          ms = render_time.elapsed();
+          numf = static_cast<float>(std::max(1u, num_frames));
+          msf = static_cast<float>(std::max(1, ms));
+          std::cout << "Rendered " << num_frames << " in " << ms << " ms.\n"
+                    << "ms/frame = " << msf / numf  << "\n"
+                    << "FPS = " << 1000.0f * numf / msf << "\n";
+        }
+    }
+  #else
     {
-      int32_t ms;
-      float msf, numf;
+      int loop_forever, fps;
 
-      num_frames -= m_num_warm_up_frames.value();
-
-      ms = render_time.elapsed();
-      numf = static_cast<float>(std::max(1u, num_frames));
-      msf = static_cast<float>(std::max(1, ms));
-      std::cout << "Rendered " << num_frames << " in " << ms << " ms.\n"
-                << "ms/frame = " << msf / numf  << "\n"
-                << "FPS = " << 1000.0f * numf / msf << "\n";
+      /* fps : target FPS, if <= 0 then use JS interface requestionAnimationFrame
+       * loop_forever : if non-zero then loop forever until emscripten_cancel_main_loop()
+       */
+      loop_forever = 1;
+      fps = -1;
+      emscripten_set_main_loop_arg(sdl_demo::render_emscripten_call_back, this, fps, loop_forever);
     }
-
+  #endif
   return m_return_value;
 }
 
