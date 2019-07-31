@@ -9,6 +9,16 @@ fastuidraw_fp16_from_fp32(uint u)
     {
       return uintBitsToFloat(sign | 0x7F800000u | mantissa);
     }
+  else if (exponent == 0u)
+    {
+      /* denormalized-number, thus the number stored the value
+       * in the mantissa / 2^24
+       */
+      float v;
+
+      v = float(mantissa) * 5.96046448e-8;
+      return (sign == 0u) ? v : -v;
+    }
 
   // rely on bit-magic to get to fp32
 
