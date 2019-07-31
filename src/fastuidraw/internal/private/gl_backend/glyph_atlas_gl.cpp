@@ -55,6 +55,8 @@ namespace
     bool m_binding_point_is_texture_unit;
   };
 
+#ifndef __EMSCRIPTEN__
+
   class StoreGL_StorageBuffer:public StoreGL
   {
   public:
@@ -120,6 +122,7 @@ namespace
     mutable GLuint m_texture;
     mutable bool m_tbo_dirty;
   };
+#endif
 
   class StoreGL_Texture:public StoreGL
   {
@@ -271,6 +274,8 @@ set_values(unsigned int location,
     }
 }
 
+
+#ifndef __EMSCRIPTEN__
 ///////////////////////////////////////////////
 // StoreGL_TextureBuffer methods
 StoreGL_TextureBuffer::
@@ -380,6 +385,7 @@ gl_backing(void) const
 {
   return m_backing_store.buffer();
 }
+#endif
 
 ////////////////////////////////////////
 // StoreGL methods
@@ -394,6 +400,7 @@ create(const fastuidraw::gl::PainterEngineGL::GlyphAtlasParams &P)
 
   switch(P.glyph_data_backing_store_type())
     {
+#ifndef __EMSCRIPTEN__
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_tbo:
       p = FASTUIDRAWnew StoreGL_TextureBuffer(number);
       break;
@@ -401,6 +408,7 @@ create(const fastuidraw::gl::PainterEngineGL::GlyphAtlasParams &P)
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_ssbo:
       p = FASTUIDRAWnew StoreGL_StorageBuffer(number);
       break;
+#endif
 
     case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_data_texture_array:
       p = FASTUIDRAWnew StoreGL_Texture(P.texture_2d_array_store_log2_dims(),

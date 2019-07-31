@@ -34,16 +34,15 @@ fastuidraw_fp16_from_fp32(uint u)
   return uintBitsToFloat(sign | exponent | mantissa);  
 }
 
-
 #ifdef FASTUIDRAW_GL_HAS_UNPACKFP16
-#define fastuidraw_unpackHalf2x16(u) unpackHalf2x16(u)
+  #define fastuidraw_unpackHalf2x16(u) unpackHalf2x16(u)
 #else
-vec2
-fastuidraw_unpackHalf2x16(uint u)
-{
-  uint y = (u >> 16u);
-  uint x = (u & 0xFFFFu);
-  return vec2(fastuidraw_fp16_from_fp32(x),
-	      fastuidraw_fp16_from_fp32(y));
-}
+  vec2
+  fastuidraw_unpackHalf2x16(uint u)
+  {
+    uint y = (u >> 16u);
+    uint x = (u & 0xFFFFu);
+    return vec2(fastuidraw_fp16_from_fp32(x),
+                fastuidraw_fp16_from_fp32(y));
+  }
 #endif

@@ -35,8 +35,6 @@
  *
  */
 
-
-
 #include <stdlib.h>
 #include <fstream>
 #include <sstream>
@@ -441,13 +439,19 @@ output_to_header(ostream &headerFile)
       return;
     }
 
-  headerFile << "typedef " << m_returnType << "("
-             << m_APIsuffix_type << " *" << function_pointer_type()
-             << ")(" << full_arg_list_with_names() << ");\n"
-             << "extern " << function_pointer_type() << " "
-             << function_pointer_name() << ";\n"
-             << "int " << m_existsFunctionName << "(void);\n"
-             << function_pointer_type() << " " << m_getFunctionName << "(void);\n";
+  headerFile << "\n// Define " << function_name() << "\n";
+
+  #ifndef NOGLFUNCTION_POINTERS
+    {
+      headerFile << "typedef " << m_returnType << "("
+                 << m_APIsuffix_type << " *" << function_pointer_type()
+                 << ")(" << full_arg_list_with_names() << ");\n"
+                 << "extern " << function_pointer_type() << " "
+                 << function_pointer_name() << ";\n"
+                 << "int " << m_existsFunctionName << "(void);\n"
+                 << function_pointer_type() << " " << m_getFunctionName << "(void);\n";
+    }
+  #endif
 
   headerFile << "#ifdef FASTUIDRAW_DEBUG\n";
   headerFile << return_type() << " " << debug_function_name() << "(";
@@ -462,6 +466,7 @@ output_to_header(ostream &headerFile)
     {
       headerFile << ", const char *argumentName_" << i;
     }
+
   headerFile << ");\n"
              << "#define fastuidraw_"  << function_name()
              << "(" << argument_list_names_only()
@@ -486,12 +491,21 @@ output_to_header(ostream &headerFile)
       headerFile << ", #" <<  argument_name() << i;
     }
 
+  headerFile << ")\n";
+  #ifndef NOGLFUNCTION_POINTERS
+    {
+      headerFile << "#else\n" << "#define fastuidraw_" << function_name() << "(" << argument_list_names_only()
+                 << ") "
+                 << GlobalElements::get().m_namespace << "::" << function_pointer_name()
+                 <<  "(" << argument_list_names_only() << ")\n";
+    }
+  #else
+    {
+      headerFile << "#else\n" << "#define fastuidraw_" << function_name() << " " << function_name() << "\n";
+    }
+  #endif
 
-  headerFile << ")\n"
-             << "#else\n" << "#define fastuidraw_" << function_name() << "(" << argument_list_names_only()
-             << ") "
-             << GlobalElements::get().m_namespace << "::" << function_pointer_name() <<  "(" << argument_list_names_only()
-             << ")\n#endif\n\n";
+  headerFile << "#endif\n\n";
 }
 
 void
@@ -506,67 +520,71 @@ output_to_source(ostream &sourceFile)
       return;
     }
 
-  sourceFile << "typedef " << m_returnType << "("
-             << m_APIsuffix_type << " *" << function_pointer_type()
-             << ")(" << full_arg_list_with_names() << ");\n";
-
-  sourceFile << "int " << m_existsFunctionName << "(void);\n";
-  sourceFile << front_material() << " " << local_function_name() << "("
-             << full_arg_list_with_names() <<  ");\n";
-  sourceFile << front_material() << " " << do_nothing_function_name() << "("
-             << full_arg_list_withoutnames() <<  ");\n"
-             << function_pointer_type() << " " << m_getFunctionName << "(void);\n";
-
-  //init the pointer for the function!
-  sourceFile << function_pointer_type() << " " << function_pointer_name() << "="
-             << local_function_name() << ";\n\n\n";
-
-  //first the function which holds the initial value of the function pointer:
-  sourceFile << front_material() << " " << local_function_name() << "("
-             << full_arg_list_with_names() <<  ")\n{\n\t"
-             << m_getFunctionName << "();\n\t";
-
-  if (returns_value())
+  #ifndef NOGLFUNCTION_POINTERS
     {
-      sourceFile << "return ";
+      sourceFile << "typedef " << m_returnType << "("
+                 << m_APIsuffix_type << " *" << function_pointer_type()
+                 << ")(" << full_arg_list_with_names() << ");\n";
+
+      sourceFile << "int " << m_existsFunctionName << "(void);\n";
+      sourceFile << front_material() << " " << local_function_name() << "("
+                 << full_arg_list_with_names() <<  ");\n";
+      sourceFile << front_material() << " " << do_nothing_function_name() << "("
+                 << full_arg_list_withoutnames() <<  ");\n"
+                 << function_pointer_type() << " " << m_getFunctionName << "(void);\n";
+
+      //init the pointer for the function!
+      sourceFile << function_pointer_type() << " " << function_pointer_name() << "="
+                 << local_function_name() << ";\n\n\n";
+
+      //first the function which holds the initial value of the function pointer:
+      sourceFile << front_material() << " " << local_function_name() << "("
+                 << full_arg_list_with_names() <<  ")\n{\n\t"
+                 << m_getFunctionName << "();\n\t";
+
+      if (returns_value())
+        {
+          sourceFile << "return ";
+        }
+
+      sourceFile << function_pointer_name()
+                 << "(" << argument_list_names_only() << ");\n}\n\n";
+
+      //thirdly the do nothing function:
+      sourceFile << front_material() << " " << do_nothing_function_name() << "("
+                 << full_arg_list_withoutnames() <<  ")\n{\n\t";
+
+      if (returns_value())
+        {
+          sourceFile << return_type() << " retval = 0;\n\t";
+        }
+      sourceFile << function_call_unloadable_function() << "(\""
+                 << function_name() << "\");\n\treturn";
+
+      if (returns_value())
+        {
+          sourceFile << " retval";
+        }
+      sourceFile << ";\n}\n";
+
+      //fourthly the getFunction, which does the loading.
+      sourceFile << function_pointer_type() << " " << m_getFunctionName << "(void)\n{\n\t"
+                 << "if (" << function_pointer_name() << "==" << local_function_name()
+                 << ")\n\t{\n\t\t" << function_pointer_name() << "=("
+                 << function_pointer_type() << ")" << function_loader() << "(\""
+                 << function_name() << "\");\n\t\tif (" << function_pointer_name()
+                 << "==nullptr)\n\t\t{\n\t\t\t"<< function_error_loading() << "(\""
+                 << function_name() << "\");\n\t\t\t" << function_pointer_name()
+                 << "=" << do_nothing_function_name() << ";\n\t\t}\n\t}\n\t"
+                 << "return " << function_pointer_name() << ";\n}\n\n";
+
+      //lastly the exists function:
+      sourceFile << "int " << m_existsFunctionName << "(void)\n{\n\t"
+                 << m_getFunctionName << "();\n\t"
+                 << "return " << function_pointer_name() << "!="
+                 << do_nothing_function_name() << ";\n}\n\n";
     }
-
-  sourceFile << function_pointer_name()
-             << "(" << argument_list_names_only() << ");\n}\n\n";
-
-  //thirdly the do nothing function:
-  sourceFile << front_material() << " " << do_nothing_function_name() << "("
-             << full_arg_list_withoutnames() <<  ")\n{\n\t";
-
-  if (returns_value())
-    {
-      sourceFile << return_type() << " retval = 0;\n\t";
-    }
-  sourceFile << function_call_unloadable_function() << "(\""
-             << function_name() << "\");\n\treturn";
-
-  if (returns_value())
-    {
-      sourceFile << " retval";
-    }
-  sourceFile << ";\n}\n";
-
-  //fourthly the getFunction, which does the loading.
-  sourceFile << function_pointer_type() << " " << m_getFunctionName << "(void)\n{\n\t"
-             << "if (" << function_pointer_name() << "==" << local_function_name()
-             << ")\n\t{\n\t\t" << function_pointer_name() << "=("
-             << function_pointer_type() << ")" << function_loader() << "(\""
-             << function_name() << "\");\n\t\tif (" << function_pointer_name()
-             << "==nullptr)\n\t\t{\n\t\t\t"<< function_error_loading() << "(\""
-             << function_name() << "\");\n\t\t\t" << function_pointer_name()
-             << "=" << do_nothing_function_name() << ";\n\t\t}\n\t}\n\t"
-             << "return " << function_pointer_name() << ";\n}\n\n";
-
-  //lastly the exists function:
-  sourceFile << "int " << m_existsFunctionName << "(void)\n{\n\t"
-             << m_getFunctionName << "();\n\t"
-             << "return " << function_pointer_name() << "!="
-             << do_nothing_function_name() << ";\n}\n\n";
+  #endif
 
   //second the debug function.
   sourceFile << "#ifdef FASTUIDRAW_DEBUG\n"
@@ -612,22 +630,42 @@ output_to_source(ostream &sourceFile)
     }
   sourceFile << "<< \")\";\n\tcall_string=call_stream.str();\n\t";
 
-
-  sourceFile << function_pre_gl_call() << "(call_string.c_str(), call, \""
-             << function_name() << "\", (void*)"
-             << function_pointer_name() << ", file, line);\n\t";
+  #ifndef NOGLFUNCTION_POINTERS
+    {
+      sourceFile << function_pre_gl_call() << "(call_string.c_str(), call, \""
+                 << function_name() << "\", (void*)"
+                 << function_pointer_name() << ", file, line);\n\t";
+    }
+  #else
+    {
+      sourceFile << function_pre_gl_call() << "(call_string.c_str(), call, \""
+                 << function_name() << "\", (void*)"
+                 << function_name() << ", file, line);\n\t";
+    }
+  #endif
 
   if (returns_value())
     {
       sourceFile << "retval=";
     }
 
-
-  sourceFile << function_pointer_name() << "(" << argument_list_names_only()
-             << ");\n\t"
-             << function_post_gl_call() << "(call_string.c_str(), call, \""
-             << function_name() << "\", (void*)"
-             << function_pointer_name() << ", file, line);\n\t";
+  #ifndef NOGLFUNCTION_POINTERS
+    {
+      sourceFile << function_pointer_name() << "(" << argument_list_names_only()
+                 << ");\n\t"
+                 << function_post_gl_call() << "(call_string.c_str(), call, \""
+                 << function_name() << "\", (void*)"
+                 << function_pointer_name() << ", file, line);\n\t";
+    }
+  #else
+    {
+      sourceFile << function_name() << "(" << argument_list_names_only()
+                 << ");\n\t"
+                 << function_post_gl_call() << "(call_string.c_str(), call, \""
+                 << function_name() << "\", (void*)"
+                 << function_name() << ", file, line);\n\t";
+    }
+  #endif
 
   if (returns_value())
     {
@@ -752,7 +790,7 @@ openGL_function_info::
 HeaderStart(ostream &headerFile, const list<string> &fileNames)
 {
   headerFile << "#ifndef FASTUIDRAW_NGL_HPP\n\n"
-	     << "#include <KHR/khrplatform.h>\n";
+             << "#include <KHR/khrplatform.h>\n";
   for(list<string>::const_iterator i=fileNames.begin(); i!=fileNames.end(); ++i)
     {
       headerFile  << "#include <" << *i << ">\n";
@@ -760,19 +798,22 @@ HeaderStart(ostream &headerFile, const list<string> &fileNames)
   headerFile << "\n\n";
 
   begin_namespace(GlobalElements::get().m_namespace, headerFile);
-
-  headerFile << "void* " << function_loader() << "(const char *name);\n"
-             << "void " << function_load_all() << "(bool emit_load_warning);\n\n";
-
-
-  headerFile << "#define " << macro_prefix() << "functionExists(name) "
-             << GlobalElements::get().m_namespace << "::" << GlobalElements::get().m_function_prefix << "exists_function_##name()\n\n";
-
-  headerFile << "#define " << macro_prefix() << "functionPointer(name) "
-             << GlobalElements::get().m_namespace << "::" << GlobalElements::get().m_function_prefix << "get_function_ptr_##name()\n\n";
-
-
-
+  #ifndef NOGLFUNCTION_POINTERS
+    {
+      headerFile << "void* " << function_loader() << "(const char *name);\n"
+                 << "void " << function_load_all() << "(bool emit_load_warning);\n\n"
+                 << "#define " << macro_prefix() << "functionExists(name) "
+                 << GlobalElements::get().m_namespace << "::" << GlobalElements::get().m_function_prefix << "exists_function_##name()\n\n"
+                 << "#define " << macro_prefix() << "functionPointer(name) "
+                 << GlobalElements::get().m_namespace << "::" << GlobalElements::get().m_function_prefix << "get_function_ptr_##name()\n\n";
+    }
+  #else
+    {
+      headerFile << "void " << function_load_all() << "(bool);\n"
+                 << "#define " << macro_prefix() << "functionExists(name) true\n"
+                 << "#define " << macro_prefix() << "functionPointer(name) name\n";
+    }
+  #endif
 }
 
 
@@ -781,22 +822,30 @@ openGL_function_info::
 SourceEnd(ostream &sourceFile, const list<string> &fileNames)
 {
   sourceFile << "\n\nvoid " << function_load_all() << "(bool emit_load_warning)\n{\n\t";
-  for(map<string,openGL_function_info*>::iterator i=GlobalElements::get().m_lookUp.begin();
-      i!=GlobalElements::get().m_lookUp.end(); ++i)
+  #ifndef NOGLFUNCTION_POINTERS
     {
-      sourceFile << i->second->function_pointer_name() << "=("
-                 << i->second->function_pointer_type() << ")"
-                 << function_loader() << "(\""
-                 << i->second->function_name() << "\");\n\t"
-                 << "if (" << i->second->function_pointer_name()
-                 << "==nullptr)\n\t{\n\t\t" << i->second->function_pointer_name()
-                 << "=" << i->second->do_nothing_function_name()
-                 << ";\n\t\tif (emit_load_warning)\n\t\t\t" << function_error_loading() << "(\""
-                 << i->second->function_name() << "\");\n\t"
-                 << "}\n\t";
+      for(map<string,openGL_function_info*>::iterator i=GlobalElements::get().m_lookUp.begin();
+          i!=GlobalElements::get().m_lookUp.end(); ++i)
+        {
+          sourceFile << i->second->function_pointer_name() << "=("
+                     << i->second->function_pointer_type() << ")"
+                     << function_loader() << "(\""
+                     << i->second->function_name() << "\");\n\t"
+                     << "if (" << i->second->function_pointer_name()
+                     << "==nullptr)\n\t{\n\t\t" << i->second->function_pointer_name()
+                     << "=" << i->second->do_nothing_function_name()
+                     << ";\n\t\tif (emit_load_warning)\n\t\t\t" << function_error_loading() << "(\""
+                     << i->second->function_name() << "\");\n\t"
+                     << "}\n\t";
+        }
     }
-  sourceFile << "\n}\n";
+  #else
+    {
+      sourceFile << "\t(void)emit_load_warning;\n";
+    }
+  #endif
 
+  sourceFile << "\n}\n";
   end_namespace(GlobalElements::get().m_namespace, sourceFile);
 }
 

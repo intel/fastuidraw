@@ -91,26 +91,26 @@ namespace fastuidraw
        * Specifies how to stream buffers into GL
        */
       enum buffer_streaming_type_t
-	{
-	 /*!
-	  * Reuse GL buffer objects and stream the data
-	  * via glMapBufferRange
-	  */
-	 buffer_streaming_use_mapping,
+        {
+         /*!
+          * Reuse GL buffer objects and stream the data
+          * via glMapBufferRange
+          */
+         buffer_streaming_use_mapping,
 
-	 /*!
-	  * Reuse the same GL buffer NAMES, but use
-	  * glBufferData() to orphan the GL buffer
-	  * objects to replace the data.
-	  */
-	 buffer_streaming_orphaning,
+         /*!
+          * Reuse the same GL buffer NAMES, but use
+          * glBufferData() to orphan the GL buffer
+          * objects to replace the data.
+          */
+         buffer_streaming_orphaning,
 
-	 /*!
-	  * Reuse the GL buffer objects and stream the
-	  * data via glBufferSubData
-	  */
-	 buffer_streaming_buffer_subdata,
-	};
+         /*!
+          * Reuse the GL buffer objects and stream the
+          * data via glBufferSubData
+          */
+         buffer_streaming_buffer_subdata,
+        };
 
       /*!
        * \brief
@@ -627,11 +627,19 @@ namespace fastuidraw
         ConfigurationGL&
         clipping_type(enum clipping_type_t);
 
-	bool
-	use_glsl_unpack_fp16(void) const;
+        /*!
+         * If true, use the GLSL built-in unpackHalf2x16(), otherwise
+         * use an implementation based off of bit-twiddling.
+         */
+        bool
+        use_glsl_unpack_fp16(void) const;
 
-	ConfigurationGL&
-	use_glsl_unpack_fp16(bool);
+        /*!
+         * Set the value returned by use_glsl_unpack_fp16(void) const.
+         * Default value is true.
+         */
+        ConfigurationGL&
+        use_glsl_unpack_fp16(bool);
 
         /*!
          * Returns the number of external textures (realized as
@@ -866,32 +874,32 @@ namespace fastuidraw
         ConfigurationGL&
         allow_bindless_texture_from_surface(bool);
 
-	/*!
-	 * Specifies how attribute, index and data-store
-	 * is streamed to the GL buffer objects used in
-	 * drawing. Default value is \ref buffer_streaming_use_mapping
-	 */
-	enum buffer_streaming_type_t
-	buffer_streaming_type(void) const;
+        /*!
+         * Specifies how attribute, index and data-store
+         * is streamed to the GL buffer objects used in
+         * drawing. Default value is \ref buffer_streaming_use_mapping
+         */
+        enum buffer_streaming_type_t
+        buffer_streaming_type(void) const;
 
-	/*!
-	 * Set the value returned by \ref buffer_streaming_type(void) const
-	 */
-	ConfigurationGL&
-	buffer_streaming_type(enum buffer_streaming_type_t);
+        /*!
+         * Set the value returned by \ref buffer_streaming_type(void) const
+         */
+        ConfigurationGL&
+        buffer_streaming_type(enum buffer_streaming_type_t);
 
-	/*!
-	 * If true, for each PainterBackend made from the PainterEngineGL,
-	 * the same GL context will access it. Default value is true.
-	 */
-	bool
-	assume_single_gl_context(void) const;
+        /*!
+         * If true, for each PainterBackend made from the PainterEngineGL,
+         * the same GL context will access it. Default value is true.
+         */
+        bool
+        assume_single_gl_context(void) const;
 
-	/*!
-	 * Set the value returned by \ref assume_single_gl_context(void) const
-	 */
-	ConfigurationGL&
-	assume_single_gl_context(bool);
+        /*!
+         * Set the value returned by \ref assume_single_gl_context(void) const
+         */
+        ConfigurationGL&
+        assume_single_gl_context(bool);
 
         /*!
          * If a non-empty string, gives the GLSL version to be used

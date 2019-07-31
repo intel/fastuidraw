@@ -24,10 +24,12 @@ shader_extension(GLenum shader_type)
     {
     case GL_FRAGMENT_SHADER: return "frag";
     case GL_VERTEX_SHADER: return "vert";
+#ifndef __EMSCRIPTEN__
     case GL_GEOMETRY_SHADER: return "geom";
     case GL_TESS_CONTROL_SHADER: return "tesc";
     case GL_TESS_EVALUATION_SHADER: return "tese";
     case GL_COMPUTE_SHADER: return "comp";
+#endif
     default: return "unknown";
     }
 }
@@ -50,13 +52,20 @@ label_sampler_type(GLenum type)
   EASY(X##2D_MULTISAMPLE);                       \
   EASY(X##2D_MULTISAMPLE_ARRAY);
 
-#define SUFFIX(X)                                \
+#define SUFFIX_BASE(X)                           \
   SUFFIX_1D(X);                                  \
   EASY(X##2D);                                   \
   EASY(X##3D);                                   \
   EASY(X##CUBE);                                 \
-  EASY(X##2D_ARRAY);                             \
+  EASY(X##2D_ARRAY);
+
+#ifndef __EMSCRIPTEN__
+#define SUFFIX(X)                               \
+  SUFFIX_BASE(X);                               \
   EASY(X##BUFFER);
+#else
+#define SUFFIX(X) SUFFIX_BASE(X);
+#endif
 
 #define PREFIX(X)                                      \
   SUFFIX(GL_##X##_);                                   \
@@ -71,8 +80,12 @@ label_sampler_type(GLenum type)
   switch(type)
     {
       PREFIX(SAMPLER);
+
+#ifndef __EMSCRIPTEN__
       PREFIX_MS(SAMPLER);
       PREFIX(IMAGE);
+#endif
+
 #ifndef FASTUIDRAW_GL_USE_GLES
       PREFIX_MS(IMAGE);
 #endif
@@ -159,29 +172,44 @@ protected:
 
         file << pr->log();
 
-        /* query the program for the values of all texture types */
-        if (pr->link_success())
+        /* query the program for the values of all texture types;
+         * the query of the uniform value, fastuidraw_glGetUniformiv,
+         * dies in JavaScript with the error of the form
+         *  "
+         *    'WebGLUniformLocation'.,TypeError: Failed to execute 'getUniform' on
+         *    'WebGL2RenderingContext': parameter 2 is not of type 'WebGLUniformLocation'.
+         *  "
+         * which likely means that it is an emscripten bug where it does
+         * not promote the integer value of C into the appopriate JavaScript
+         * type to make the actaul WebGL call work. So for emscriptem, we just
+         * do not run this code
+         */
+        #ifndef __EMSCRIPTEN__
           {
-            pr->use_program();
-            gl::Program::block_info default_block(pr->default_uniform_block());
-            for (unsigned int v = 0, endv = default_block.number_variables(); v < endv; ++v)
+            if (pr->link_success())
               {
-                gl::Program::shader_variable_info sh(default_block.variable(v));
-                const char *sampler_type;
-
-                sampler_type = label_sampler_type(sh.glsl_type());
-                if (sampler_type)
+                pr->use_program();
+                gl::Program::block_info default_block(pr->default_uniform_block());
+                for (unsigned int v = 0, endv = default_block.number_variables(); v < endv; ++v)
                   {
-                    file << sh.name() << " of type " << sampler_type << "\n";
-                    for (unsigned c = 0, endc = sh.count(); c < endc; ++c)
+                    gl::Program::shader_variable_info sh(default_block.variable(v));
+                    const char *sampler_type;
+
+                    sampler_type = label_sampler_type(sh.glsl_type());
+                    if (sampler_type)
                       {
-                        GLint value;
-                        fastuidraw_glGetUniformiv(pr->name(), sh.location(c), &value);
-                        file << "\t[" << c << "] bound at " << value << " binding point\n";
+                        file << sh.name() << " of type " << sampler_type << "\n";
+                        for (unsigned c = 0, endc = sh.count(); c < endc; ++c)
+                          {
+                            GLint value;
+                            fastuidraw_glGetUniformiv(pr->name(), sh.location(c), &value);
+                            file << "\t[" << c << "] bound at " << value << " binding point\n";
+                          }
                       }
                   }
               }
           }
+        #endif
 
         std::cout << "\n\nProgram Log and contents written to "
                   << name.str() << "\n";
@@ -189,9 +217,13 @@ protected:
 
     log_helper(pr, prefix_1, prefix_2, GL_VERTEX_SHADER);
     log_helper(pr, prefix_1, prefix_2, GL_FRAGMENT_SHADER);
-    log_helper(pr, prefix_1, prefix_2, GL_GEOMETRY_SHADER);
-    log_helper(pr, prefix_1, prefix_2, GL_TESS_EVALUATION_SHADER);
-    log_helper(pr, prefix_1, prefix_2, GL_TESS_CONTROL_SHADER);
+    #ifndef __EMSCRIPTEN__
+      {
+        log_helper(pr, prefix_1, prefix_2, GL_GEOMETRY_SHADER);
+        log_helper(pr, prefix_1, prefix_2, GL_TESS_EVALUATION_SHADER);
+        log_helper(pr, prefix_1, prefix_2, GL_TESS_CONTROL_SHADER);
+      }
+    #endif
 
     if (pr->link_success())
       {

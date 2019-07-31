@@ -407,7 +407,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
       /* The winding number computation comes from the paper
-       * "GPU-Centered Font Rendering Directly from Glyph Outlines"
+       * GPU-Centered Font Rendering Directly from Glyph Outlines
        * by Eric Lengyel. The reason why the winding at t1 is always
        * decremented and t2 is always incremented comes from the
        * following:

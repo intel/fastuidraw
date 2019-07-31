@@ -11,6 +11,8 @@ inc/fastuidraw/gl_backend/ngl_gl.hpp
 src/fastuidraw/gl_backend/ngl_gl.cpp
 inc/fastuidraw/gl_backend/ngl_gles3.hpp
 src/fastuidraw/gl_backend/ngl_gles3.cpp
+inc/fastuidraw/gl_backend/ngl_emscripten_gles3.hpp
+src/fastuidraw/gl_backend/ngl_emscripten_gles3.cpp
 
 *-GL-release
 *-GL-debug
@@ -22,3 +24,8 @@ src/fastuidraw/gl_backend/ngl_gles3.cpp
 *-GLES-debug-static
 fastuidraw-config.nodir
 fastuidraw-config
+
+string_resources_cpp
+emscripten_build
+*-debug.*
+*-release.*

@@ -24,47 +24,66 @@ enum fastuidraw::gl::detail::tex_buffer_support_t
 fastuidraw::gl::detail::
 compute_tex_buffer_support(void)
 {
-  ContextProperties ctx;
-  return compute_tex_buffer_support(ctx);
+  #ifdef __EMSCRIPTEN__
+    {
+      return tex_buffer_not_supported;
+    }
+  #else
+    {
+      ContextProperties ctx;
+      return compute_tex_buffer_support(ctx);
+    }
+  #endif
 }
 
 enum fastuidraw::gl::detail::tex_buffer_support_t
 fastuidraw::gl::detail::
 compute_tex_buffer_support(const ContextProperties &ctx)
 {
-  if (ctx.is_es())
+  #ifdef __EMSCRIPTEN__
     {
-      if (ctx.version() >= ivec2(3, 2))
+      return tex_buffer_not_supported;
+    }
+  #else
+    {
+      if (ctx.is_es())
         {
+          if (ctx.version() >= ivec2(3, 2))
+            {
+              return tex_buffer_no_extension;
+            }
+
+          if (ctx.has_extension("GL_OES_texture_buffer"))
+            {
+              return tex_buffer_oes_extension;
+            }
+
+          if (ctx.has_extension("GL_EXT_texture_buffer"))
+            {
+              return tex_buffer_ext_extension;
+            }
+
+          return tex_buffer_not_supported;
+        }
+      else
+        {
+          // FASTUIDRAW requires version 3.3 for GL, in which read
+          // texture buffer objects are core.
           return tex_buffer_no_extension;
         }
-
-      if (ctx.has_extension("GL_OES_texture_buffer"))
-        {
-          return tex_buffer_oes_extension;
-        }
-
-      if (ctx.has_extension("GL_EXT_texture_buffer"))
-        {
-          return tex_buffer_ext_extension;
-        }
-
-      return tex_buffer_not_supported;
-
     }
-  else
-    {
-      // FASTUIDRAW requires version 3.3 for GL, in which read
-      // texture buffer objects are core.
-      return tex_buffer_no_extension;
-    }
+  #endif
 }
 
 void
 fastuidraw::gl::detail::
 tex_buffer(enum tex_buffer_support_t md, GLenum target, GLenum format, GLuint bo)
 {
-  #ifndef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      FASTUIDRAWassert(!"Texbuffer supported");
+    }
+  #elif !defined(FASTUIDRAW_GL_USE_GLES)
     {
       FASTUIDRAWassert(md == tex_buffer_no_extension);
       FASTUIDRAWunused(md);

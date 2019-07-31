@@ -276,7 +276,7 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
                                                     em.y, sy, coverage.y, nearest_curve_distance.y);
 
   /* We support the odd-even fill rule by removing
-   * the "2n" part of coverage.
+   * the  2n  part of coverage.
    */
   if (use_odd_even_rule)
     {
