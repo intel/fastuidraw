@@ -97,6 +97,8 @@ namespace
       m_use_ubo_for_uniforms(true),
       m_use_uvec2_for_bindless_handle(true),
       m_number_context_textures(1),
+      m_use_glsl_unpack_fp16(true),
+      m_add_default_precision_qualifiers(false),
 
       m_recompute_binding_points(true),
       m_colorstop_atlas_binding(-1),
@@ -134,6 +136,8 @@ namespace
     bool m_use_ubo_for_uniforms;
     bool m_use_uvec2_for_bindless_handle;
     unsigned int m_number_context_textures;
+    bool m_use_glsl_unpack_fp16;
+    bool m_add_default_precision_qualifiers;
 
     bool m_recompute_binding_points;
     int m_colorstop_atlas_binding;
@@ -749,6 +753,12 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
       frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
     }
 
+  if (params.use_glsl_unpack_fp16())
+    {
+      vert.add_macro("FASTUIDRAW_GL_HAS_UNPACKFP16");
+      frag.add_macro("FASTUIDRAW_GL_HAS_UNPACKFP16");
+    }
+
   if (render_type == PainterSurface::color_buffer_type)
     {
       vert.add_macro("FASTUIDRAW_RENDER_TO_COLOR_BUFFER");
@@ -920,6 +930,12 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
       break;
     }
 
+  if (params.add_default_precision_qualifiers())
+    {
+      vert.add_source("fastuidraw_default_precision.glsl.resource_string", ShaderSource::from_resource);
+      frag.add_source("fastuidraw_default_precision.glsl.resource_string", ShaderSource::from_resource);
+    }
+
   add_backend_constants(backend, vert);
   vert
     .add_source(m_constant_code)
@@ -936,6 +952,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES", params.number_context_textures())
     .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
     .add_macro("fastuidraw_varying", "out")
+    .add_source("fastuidraw_unpackHalf2x16.glsl.resource_string", ShaderSource::from_resource)
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
@@ -987,6 +1004,7 @@ construct_shader_common(enum fastuidraw::PainterBlendShader::shader_type blend_t
     .add_macro("FASTUIDRAW_PAINTER_NUMBER_CONTEXT_TEXTURES", params.number_context_textures())
     .add_macro("FASTUIDRAW_PAINTER_DEFERRED_COVERAGE_TEXTURE_BINDING", params.coverage_buffer_texture_binding())
     .add_macro("fastuidraw_varying", "in")
+    .add_source("fastuidraw_unpackHalf2x16.glsl.resource_string", ShaderSource::from_resource)
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
   uber_shader_varyings.stream_varying_rw_copies(frag);
@@ -1358,6 +1376,10 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate,
                  enum fastuidraw::glsl::PainterShaderRegistrarGLSL::colorstop_backing_t, colorstop_atlas_backing)
+setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, use_glsl_unpack_fp16)
+setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, add_default_precision_qualifiers)
 
 get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, unsigned int, num_ubo_units)
 get_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams, UberShaderParamsPrivate, unsigned int, num_ssbo_units)

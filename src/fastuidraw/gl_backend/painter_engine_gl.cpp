@@ -239,6 +239,16 @@ compute_uber_shader_params(const fastuidraw::gl::PainterEngineGL::ConfigurationG
       colorstop_tp = PainterEngineGL::colorstop_texture_1d_array;
     }
 
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      out_params.add_default_precision_qualifiers(true);
+    }
+  #else
+    {
+      out_params.add_default_precision_qualifiers(false);
+    }
+  #endif
+
   out_params
     .fbf_blending_type(params.fbf_blending_type())
     .preferred_blend_type(params.preferred_blend_type())
@@ -258,6 +268,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterEngineGL::ConfigurationG
     .glyph_data_backing(params.glyph_atlas_params().glyph_data_backing_store_type())
     .glyph_data_backing_log2_dims(params.glyph_atlas_params().texture_2d_array_store_log2_dims())
     .colorstop_atlas_backing(colorstop_tp)
+    .use_glsl_unpack_fp16(params.use_glsl_unpack_fp16())
     .use_uvec2_for_bindless_handle(ctx.has_extension("GL_ARB_bindless_texture"));
 
   out_shaders = out_params.default_shaders();

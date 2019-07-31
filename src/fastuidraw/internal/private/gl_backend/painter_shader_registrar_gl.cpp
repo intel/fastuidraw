@@ -361,15 +361,6 @@ configure_source_front_matter(void)
                                      ShaderSource::from_string);
     }
 
-  if (m_params.use_glsl_unpack_fp16())
-    {
-      m_front_matter_frag.add_macro("FASTUIDRAW_GL_HAS_UNPACKFP16");
-      m_front_matter_vert.add_macro("FASTUIDRAW_GL_HAS_UNPACKFP16");
-    }
-
-  m_front_matter_frag.add_source("fastuidraw_unpackHalf2x16.glsl.resource_string", ShaderSource::from_resource);
-  m_front_matter_vert.add_source("fastuidraw_unpackHalf2x16.glsl.resource_string", ShaderSource::from_resource);
-
   std::string glsl_version;
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -417,10 +408,6 @@ configure_source_front_matter(void)
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
             .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
         }
-      m_front_matter_vert.add_source("fastuidraw_painter_gles_precision.glsl.resource_string",
-                                     ShaderSource::from_resource);
-      m_front_matter_frag.add_source("fastuidraw_painter_gles_precision.glsl.resource_string",
-                                     ShaderSource::from_resource);
     }
   #else
     {

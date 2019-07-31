@@ -539,6 +539,35 @@ namespace fastuidraw
         number_context_textures(unsigned int);
 
         /*!
+         * If true, use the GLSL built-in unpackHalf2x16(), otherwise
+         * use an implementation based off of bit-twiddling.
+         */
+        bool
+        use_glsl_unpack_fp16(void) const;
+
+        /*!
+         * Set the value returned by use_glsl_unpack_fp16(void) const.
+         * Default value is true.
+         */
+        UberShaderParams&
+        use_glsl_unpack_fp16(bool);
+
+        /*!
+         * If true add shader code that gives default precision qualifiers
+         * to the types used by the produced shaders. This is required for
+         * shaders to be fed to GLES3 and WebGL2.
+         */
+        bool
+        add_default_precision_qualifiers(void) const;
+
+        /*!
+         * Set the value returned by add_default_precision_qualifiers(void) const.
+         * Default value is false.
+         */
+        UberShaderParams&
+        add_default_precision_qualifiers(bool);
+
+        /*!
          * Returns the binding point for ColorStopAtlas::backing_store()
          * derived from the current value of this UberShaderParams.
          * The data type for the uniform is decided from the value

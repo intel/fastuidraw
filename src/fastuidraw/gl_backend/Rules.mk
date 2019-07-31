@@ -10,9 +10,6 @@ include $(dir)/Rules.mk
 dir := $(d)/ngl
 include $(dir)/Rules.mk
 
-dir := $(d)/shaders
-include $(dir)/Rules.mk
-
 FASTUIDRAW_GL_SOURCES += $(call filelist, gl_get.cpp \
 	gluniform_implement.cpp \
 	gl_program.cpp gl_context_properties.cpp \
