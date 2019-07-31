@@ -27,7 +27,7 @@
 #include <private/util_private_ostream.hpp>
 #include <private/gl_backend/painter_backend_gl.hpp>
 
-#ifdef FASTUIDRAW_GL_USE_GLES
+#if defined(FASTUIDRAW_GL_USE_GLES) && !defined(__EMSCRIPTEN__)
 #define GL_SRC1_COLOR GL_SRC1_COLOR_EXT
 #define GL_SRC1_ALPHA GL_SRC1_ALPHA_EXT
 #define GL_ONE_MINUS_SRC1_COLOR GL_ONE_MINUS_SRC1_COLOR_EXT
@@ -37,6 +37,7 @@
 
 namespace
 {
+  #ifndef __EMSCRIPTEN__
   class ImageBarrier:public fastuidraw::PainterDrawBreakAction
   {
   public:
@@ -60,6 +61,7 @@ namespace
       return fastuidraw::gpu_dirty_state();
     }
   };
+  #endif
 
   class SurfacePropertiesPrivate
   {
@@ -339,6 +341,7 @@ draw(fastuidraw::gl::detail::PainterBackendGL *pr,
     }
   #else
     {
+      #ifndef __EMSCRIPTEN__
       if (pr->m_reg_gl->has_multi_draw_elements())
         {
           fastuidraw_glMultiDrawElementsEXT(GL_TRIANGLES, &m_counts[0],
@@ -346,6 +349,7 @@ draw(fastuidraw::gl::detail::PainterBackendGL *pr,
                                             &m_indices[0], m_counts.size());
         }
       else
+      #endif
         {
           for(unsigned int i = 0, endi = m_counts.size(); i < endi; ++i)
             {
@@ -489,6 +493,7 @@ draw(void) const
   fastuidraw_glBindVertexArray(m_vao.vao());
   switch(m_vao.data_store_backing())
     {
+#ifndef __EMSCRIPTEN__
     case PainterEngineGL::data_store_tbo:
       {
         fastuidraw_glActiveTexture(GL_TEXTURE0 + m_vao.data_store_binding_point());
@@ -496,15 +501,16 @@ draw(void) const
       }
       break;
 
-    case PainterEngineGL::data_store_ubo:
-      {
-        fastuidraw_glBindBufferBase(GL_UNIFORM_BUFFER, m_vao.data_store_binding_point(), m_vao.data_bo());
-      }
-      break;
-
     case PainterEngineGL::data_store_ssbo:
       {
         fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, m_vao.data_store_binding_point(), m_vao.data_bo());
+      }
+      break;
+#endif
+
+    case PainterEngineGL::data_store_ubo:
+      {
+        fastuidraw_glBindBufferBase(GL_UNIFORM_BUFFER, m_vao.data_store_binding_point(), m_vao.data_bo());
       }
       break;
 
@@ -530,9 +536,9 @@ unmap_implement(unsigned int attributes_written,
   FASTUIDRAWassert(m_indices_written == indices_written);
 
   m_pool->unmap_vao_buffers(attributes_written,
-			    indices_written,
-			    data_store_written,
-			    m_vao);
+                            indices_written,
+                            data_store_written,
+                            m_vao);
 }
 
 void
@@ -671,6 +677,7 @@ restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
    */
   switch(vao.data_store_backing())
     {
+#ifndef __EMSCRIPTEN__
     case PainterEngineGL::data_store_tbo:
       if (flags & gpu_dirty_state::textures)
         {
@@ -679,17 +686,18 @@ restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
         }
       break;
 
-    case PainterEngineGL::data_store_ubo:
-      if (flags & gpu_dirty_state::constant_buffers)
-        {
-          fastuidraw_glBindBufferBase(GL_UNIFORM_BUFFER, vao.data_store_binding_point(), vao.data_bo());
-        }
-      break;
-
     case PainterEngineGL::data_store_ssbo:
       if (flags & gpu_dirty_state::storage_buffers)
         {
           fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, vao.data_store_binding_point(), vao.data_bo());
+        }
+      break;
+#endif
+
+    case PainterEngineGL::data_store_ubo:
+      if (flags & gpu_dirty_state::constant_buffers)
+        {
+          fastuidraw_glBindBufferBase(GL_UNIFORM_BUFFER, vao.data_store_binding_point(), vao.data_bo());
         }
       break;
 
@@ -766,10 +774,13 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
       C(CONSTANT_ALPHA);
       C(ONE_MINUS_CONSTANT_ALPHA);
       C(SRC_ALPHA_SATURATE);
+
+      #ifndef __EMSCRIPTEN__
       C(SRC1_COLOR);
       C(ONE_MINUS_SRC1_COLOR);
       C(SRC1_ALPHA);
       C(ONE_MINUS_SRC1_ALPHA);
+      #endif
 
     case BlendMode::NUMBER_FUNCS:
     default:
@@ -906,6 +917,7 @@ set_gl_state(RenderTargetState prev_state,
       return_value.m_color_buffer_as_image = false;
     }
 
+#ifndef __EMSCRIPTEN__
   if (m_surface_gl->m_render_type == PainterSurface::color_buffer_type
       && fbf_blending_type == PainterEngineGL::fbf_blending_interlock
       && return_value.m_color_buffer_as_image != prev_state.m_color_buffer_as_image)
@@ -928,6 +940,7 @@ set_gl_state(RenderTargetState prev_state,
           fastuidraw_glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         }
     }
+#endif
 
   return_value.m_fbo = m_surface_gl->fbo(!return_value.m_color_buffer_as_image);
   if (return_value.m_fbo != prev_state.m_fbo || (v & gpu_dirty_state::render_target) != 0)
@@ -940,6 +953,7 @@ set_gl_state(RenderTargetState prev_state,
       v |= gpu_dirty_state::viewport_scissor;
     }
 
+#ifndef __EMSCRIPTEN__
   if (fbf_blending_type == PainterEngineGL::fbf_blending_interlock
       && ((v & gpu_dirty_state::images) != 0
           || return_value.m_color_buffer_as_image != prev_state.m_color_buffer_as_image))
@@ -965,6 +979,7 @@ set_gl_state(RenderTargetState prev_state,
                                         GL_RGBA8);
         }
     }
+#endif
 
   if (v & gpu_dirty_state::depth_stencil)
     {
@@ -999,6 +1014,7 @@ set_gl_state(RenderTargetState prev_state,
                             vwp.m_dimensions.x(), vwp.m_dimensions.y());
     }
 
+#ifndef __EMSCRIPTEN__
   if ((v & gpu_dirty_state::hw_clip) && m_reg_gl->number_clip_planes() > 0)
     {
       if (m_reg_gl->params().clipping_type() == PainterEngineGL::clipping_via_gl_clip_distance)
@@ -1021,6 +1037,7 @@ set_gl_state(RenderTargetState prev_state,
           fastuidraw_glDisable(GL_CLIP_DISTANCE0 + i);
         }
     }
+#endif
 
   if (v & gpu_dirty_state::textures)
     {
@@ -1072,40 +1089,40 @@ set_gl_state(RenderTargetState prev_state,
 
       if (!m_uniform_ubo_ready)
         {
-	  switch (m_reg_gl->params().buffer_streaming_type())
-	    {
-	    case PainterEngineGL::buffer_streaming_use_mapping:
-	      {
-		c_array<uint32_t> ubo_mapped_ptr;
-		void *ubo_mapped;
+          switch (m_reg_gl->params().buffer_streaming_type())
+            {
+            case PainterEngineGL::buffer_streaming_use_mapping:
+              {
+                c_array<uint32_t> ubo_mapped_ptr;
+                void *ubo_mapped;
 
-		ubo_mapped = fastuidraw_glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
-							 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-							 | GL_MAP_FLUSH_EXPLICIT_BIT);
-		ubo_mapped_ptr = c_array<uint32_t>(static_cast<uint32_t*>(ubo_mapped),
-						   m_uniform_values.size());
+                ubo_mapped = fastuidraw_glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
+                                                         GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+                                                         | GL_MAP_FLUSH_EXPLICIT_BIT);
+                ubo_mapped_ptr = c_array<uint32_t>(static_cast<uint32_t*>(ubo_mapped),
+                                                   m_uniform_values.size());
 
-		m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
-		fastuidraw_glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
-		fastuidraw_glUnmapBuffer(GL_UNIFORM_BUFFER);
-	      }
-	      break;
+                m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
+                fastuidraw_glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
+                fastuidraw_glUnmapBuffer(GL_UNIFORM_BUFFER);
+              }
+              break;
 
-	    case PainterEngineGL::buffer_streaming_orphaning:
-	      {
-		m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, make_c_array(m_uniform_values));
-		fastuidraw_glBufferData(GL_UNIFORM_BUFFER, size_bytes, &m_uniform_values[0], GL_STREAM_DRAW);
-	      }
-	      break;
+            case PainterEngineGL::buffer_streaming_orphaning:
+              {
+                m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, make_c_array(m_uniform_values));
+                fastuidraw_glBufferData(GL_UNIFORM_BUFFER, size_bytes, &m_uniform_values[0], GL_STREAM_DRAW);
+              }
+              break;
 
-	    default:
-	    case PainterEngineGL::buffer_streaming_buffer_subdata:
-	      {
-		m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, make_c_array(m_uniform_values));
-		fastuidraw_glBufferSubData(GL_UNIFORM_BUFFER, 0, size_bytes, &m_uniform_values[0]);
-	      }
-	      break;
-	    }
+            default:
+            case PainterEngineGL::buffer_streaming_buffer_subdata:
+              {
+                m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, make_c_array(m_uniform_values));
+                fastuidraw_glBufferSubData(GL_UNIFORM_BUFFER, 0, size_bytes, &m_uniform_values[0]);
+              }
+              break;
+            }
 
           m_uniform_ubo_ready = true;
         }
@@ -1113,15 +1130,19 @@ set_gl_state(RenderTargetState prev_state,
       fastuidraw_glBindBufferBase(GL_UNIFORM_BUFFER, m_binding_points.m_uniforms_ubo_binding, ubo);
     }
 
-  if (v & gpu_dirty_state::storage_buffers)
+  #ifndef __EMSCRIPTEN__
     {
-      if (!m_glyph_atlas->data_binding_point_is_texture_unit())
+      if (v & gpu_dirty_state::storage_buffers)
         {
-          fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                                      m_binding_points.m_glyph_atlas_store_binding,
-                                      m_glyph_atlas->data_backing());
+          if (!m_glyph_atlas->data_binding_point_is_texture_unit())
+            {
+              fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                                          m_binding_points.m_glyph_atlas_store_binding,
+                                          m_glyph_atlas->data_backing());
+            }
         }
     }
+  #endif
 
   return return_value;
 }
@@ -1192,24 +1213,29 @@ on_post_draw(void)
       fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_glyph_atlas_store_binding);
       fastuidraw_glBindTexture(m_glyph_atlas->data_binding_point(), 0);
     }
+#ifndef __EMSCRIPTEN__
   else
     {
       fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
                                   m_binding_points.m_glyph_atlas_store_binding,
                                   0);
     }
+#endif
 
   fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_colorstop_atlas_binding);
   fastuidraw_glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
 
+#ifndef __EMSCRIPTEN__
   if (params.fbf_blending_type() == fbf_blending_interlock)
     {
       fastuidraw_glBindImageTexture(m_binding_points.m_color_interlock_image_buffer_binding, 0,
                                     0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
     }
+#endif
 
   switch(params.data_store_backing())
     {
+#ifndef __EMSCRIPTEN__
     case data_store_tbo:
       {
         fastuidraw_glActiveTexture(GL_TEXTURE0 + m_binding_points.m_data_store_buffer_binding);
@@ -1217,15 +1243,16 @@ on_post_draw(void)
       }
       break;
 
-    case data_store_ubo:
-      {
-        fastuidraw_glBindBufferBase(GL_UNIFORM_BUFFER, m_binding_points.m_data_store_buffer_binding, 0);
-      }
-      break;
-
     case data_store_ssbo:
       {
         fastuidraw_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, m_binding_points.m_data_store_buffer_binding, 0);
+      }
+      break;
+#endif
+
+    case data_store_ubo:
+      {
+        fastuidraw_glBindBufferBase(GL_UNIFORM_BUFFER, m_binding_points.m_data_store_buffer_binding, 0);
       }
       break;
 

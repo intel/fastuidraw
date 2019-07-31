@@ -6,7 +6,7 @@ d		:= $(dir)
 
 COMMON_DEMO_SOURCES += $(call filelist, demo_framework.cpp initialization.cpp image_loader.cpp)
 
-DEMOS += example_initialization
+TUTORIALS += example_initialization
 example_initialization_SOURCES := $(call filelist, initialization_main.cpp)
 
 # Begin standard footer

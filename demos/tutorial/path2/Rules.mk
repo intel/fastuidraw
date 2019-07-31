@@ -4,7 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-DEMOS += example_path2
+TUTORIALS += example_path2
 example_path2_SOURCES := $(call filelist, example_path2.cpp)
 
 # Begin standard footer
