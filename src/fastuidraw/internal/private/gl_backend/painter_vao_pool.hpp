@@ -32,6 +32,24 @@
 
 namespace fastuidraw { namespace gl { namespace detail {
 
+class client_buffers:public reference_counted<client_buffers>::non_concurrent
+{
+public:
+  client_buffers(uint32_t num_attributes,
+		 uint32_t num_indices,
+		 uint32_t num_data):
+    m_attributes_store(num_attributes),
+    m_header_attributes_store(num_attributes),
+    m_indices_store(num_indices),
+    m_data_store(num_data)
+  {}
+
+  std::vector<PainterAttribute> m_attributes_store;
+  std::vector<uint32_t> m_header_attributes_store;
+  std::vector<PainterIndex> m_indices_store;
+  std::vector<uvec4> m_data_store;
+};
+      
 class painter_vao
 {
 public:
@@ -43,6 +61,62 @@ public:
     m_data_bo(0),
     m_data_tbo(0)
   {}
+  
+  c_array<PainterAttribute>
+  attributes(void) const
+  {
+    return m_attributes;
+  }
+  c_array<uint32_t>
+  header_attributes(void) const
+  {
+    return m_header_attributes;
+  }
+
+  c_array<PainterIndex>
+  indices(void) const
+  {
+    return m_indices;
+  }
+
+  c_array<uvec4>
+  data(void) const
+  {
+    return m_data;
+  }
+
+  GLuint
+  vao(void) const
+  {
+    return m_vao;
+  }
+
+  enum glsl::PainterShaderRegistrarGLSL::data_store_backing_t
+  data_store_backing(void) const
+  {
+    return m_data_store_backing;
+  }
+
+  unsigned int
+  data_store_binding_point(void) const
+  {
+    return m_data_store_binding_point;
+  }
+
+  GLuint
+  data_bo(void) const
+  {
+    return m_data_bo;
+  }
+
+  GLuint
+  data_tbo(void) const
+  {
+    return m_data_tbo;
+  }
+  
+private:
+  friend class painter_vao_pool;
 
   GLuint m_vao;
   GLuint m_attribute_bo, m_header_bo, m_index_bo, m_data_bo;
@@ -50,6 +124,11 @@ public:
   enum glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
   unsigned int m_data_store_binding_point;
   unsigned int m_pool;
+  reference_counted_ptr<client_buffers> m_buffers;
+  c_array<PainterAttribute> m_attributes;
+  c_array<uint32_t> m_header_attributes;
+  c_array<PainterIndex> m_indices;
+  c_array<uvec4> m_data;
 };
 
 class painter_vao_pool:public reference_counted<painter_vao_pool>::non_concurrent
@@ -62,32 +141,11 @@ public:
 
   ~painter_vao_pool();
 
-  unsigned int
-  attribute_buffer_size(void) const
-  {
-    return m_attribute_buffer_size;
-  }
-
-  unsigned int
-  header_buffer_size(void) const
-  {
-    return m_header_buffer_size;
-  }
-
-  unsigned int
-  index_buffer_size(void) const
-  {
-    return m_index_buffer_size;
-  }
-
-  unsigned int
-  data_buffer_size(void) const
-  {
-    return m_data_buffer_size;
-  }
-
   painter_vao
   request_vao(void);
+
+  void
+  release_vao(painter_vao &V);
 
   void
   next_pool(void);
@@ -102,8 +160,17 @@ public:
   GLuint
   uniform_ubo(unsigned int ubo_size, GLenum target);
 
+  static
   void
-  release_vao(painter_vao &V);
+  prepare_index_vertex_sources(GLuint attribute_bo,
+			       GLuint header_attribute_bo,
+			       GLuint index_bo);
+
+  void
+  unmap_vao_buffers(unsigned int attributes_written,
+		    unsigned int indices_written,
+		    unsigned int data_store_written,
+		    const painter_vao &vao);
 
 private:
   GLuint
@@ -118,13 +185,12 @@ private:
   void
   release_vao_resources(const painter_vao &V);
 
-  unsigned int m_attribute_buffer_size, m_header_buffer_size;
-  unsigned int m_index_buffer_size;
-  int m_blocks_per_data_buffer;
-  unsigned int m_data_buffer_size;
+  unsigned int m_num_attributes, m_num_indices, m_blocks_per_data_buffer;
   enum glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
   enum tex_buffer_support_t m_tex_buffer_support;
   unsigned int m_data_store_binding;
+  bool m_assume_single_gl_context;
+  enum PainterEngineGL::buffer_streaming_type_t m_buffer_streaming_type;
 
   unsigned int m_current_pool;
   std::vector<std::vector<painter_vao> > m_free_vaos;

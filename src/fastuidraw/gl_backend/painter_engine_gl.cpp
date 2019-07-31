@@ -116,6 +116,8 @@ namespace
       m_preferred_blend_type(fastuidraw::PainterBlendShader::dual_src),
       m_fbf_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported),
       m_allow_bindless_texture_from_surface(true),
+      m_buffer_streaming_type(fastuidraw::gl::PainterEngineGL::buffer_streaming_use_mapping),
+      m_assume_single_gl_context(true),
       m_support_dual_src_blend_shaders(true),
       m_use_uber_item_shader(true),
       m_use_glsl_unpack_fp16(true)
@@ -139,6 +141,8 @@ namespace
     enum fastuidraw::PainterBlendShader::shader_type m_preferred_blend_type;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_type_t m_fbf_blending_type;
     bool m_allow_bindless_texture_from_surface;
+    enum fastuidraw::gl::PainterEngineGL::buffer_streaming_type_t m_buffer_streaming_type;
+    bool m_assume_single_gl_context;
     bool m_support_dual_src_blend_shaders;
     bool m_use_uber_item_shader;
     bool m_use_glsl_unpack_fp16;
@@ -789,6 +793,13 @@ configure_from_context(bool choose_optimal_rendering_quality,
    */
   d->m_number_pools = 3;
 
+  /* TODO: query the GPU "somehow" to see if it has
+   * dedicated memory or shared memory. The latter
+   * will prefer m_buffer_streaming_type to be
+   * buffer_streaming_use_mapping where as the former
+   * will likely prefer buffer_streaming_orphaning
+   */
+  
   /* For now, choosing optimal rendering quality does not
    * have impact on options.
    */
@@ -1106,6 +1117,10 @@ setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, Configuration
                  bool, use_uber_item_shader)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_glsl_unpack_fp16)
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+		 enum fastuidraw::gl::PainterEngineGL::buffer_streaming_type_t, buffer_streaming_type)
+setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, assume_single_gl_context)
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
               const fastuidraw::gl::PainterEngineGL::ImageAtlasParams&, image_atlas_params)
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,

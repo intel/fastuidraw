@@ -139,6 +139,29 @@ namespace
   }
 
   std::ostream&
+  operator<<(std::ostream &str,
+             enum_wrapper<enum fastuidraw::gl::PainterEngineGL::buffer_streaming_type_t> v)
+  {
+    switch (v.m_v)
+      {
+      case fastuidraw::gl::PainterEngineGL::buffer_streaming_use_mapping:
+        str << "buffer_streaming_use_mapping";
+        break;
+
+      case fastuidraw::gl::PainterEngineGL::buffer_streaming_orphaning:
+        str << "buffer_streaming_orphaning";
+        break;
+
+      case fastuidraw::gl::PainterEngineGL::buffer_streaming_buffer_subdata:
+        str << "buffer_streaming_buffer_subdata";
+        break;
+      default:
+        str << "invalid value";
+      }
+    return str;
+  }
+
+  std::ostream&
   operator<<(std::ostream &ostr, const fastuidraw::PainterShader::Tag &tag)
   {
     ostr << "(ID=" << tag.m_ID << ", group=" << tag.m_group << ")";
@@ -373,6 +396,20 @@ sdl_painter_demo(const std::string &about_text,
                                         "bindless texturing, the the textures of the surfaces "
                                         "rendered to will be textured with bindless texturing",
                                         *this),
+  m_buffer_streaming_type(m_painter_params.buffer_streaming_type(),
+			  enumerated_string_type<enum fastuidraw::gl::PainterEngineGL::buffer_streaming_type_t>()
+			  .add_entry("buffer_streaming_use_mapping",
+				     fastuidraw::gl::PainterEngineGL::buffer_streaming_use_mapping,
+				     "Use glMapBufferRange and glFlushMappedBufferRange recycling BO's across frames")
+			  .add_entry("buffer_streaming_orphaning",
+				     fastuidraw::gl::PainterEngineGL::buffer_streaming_orphaning,
+				     "Call glBufferData each frame to orphan the previous buffer contents but reuse BO names across frames")
+			  .add_entry("buffer_streaming_buffer_subdata",
+				     fastuidraw::gl::PainterEngineGL::buffer_streaming_buffer_subdata,
+				     "Call glBufferSubData thus reusing BO's across frames"),
+			  "painter_buffer_streaming",
+			  "",
+			  *this),
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
                                         *this),
@@ -576,6 +613,7 @@ init_gl(int w, int h)
   APPLY_PARAM(number_pools, m_painter_number_pools);
   APPLY_PARAM(break_on_shader_change, m_painter_break_on_shader_change);
   APPLY_PARAM(clipping_type, m_use_hw_clip_planes);
+  APPLY_PARAM(buffer_streaming_type, m_buffer_streaming_type);
   APPLY_PARAM(vert_shader_use_switch, m_uber_vert_use_switch);
   APPLY_PARAM(frag_shader_use_switch, m_uber_frag_use_switch);
   APPLY_PARAM(blend_shader_use_switch, m_uber_blend_use_switch);
@@ -766,6 +804,7 @@ init_gl(int w, int h)
       LAZY_PARAM(indices_per_buffer, m_painter_indices_per_buffer);
       LAZY_PARAM(data_blocks_per_store_buffer, m_painter_data_blocks_per_buffer);
       LAZY_PARAM(number_pools, m_painter_number_pools);
+      LAZY_PARAM_ENUM(buffer_streaming_type, m_buffer_streaming_type);
       LAZY_PARAM_ENUM(break_on_shader_change, m_painter_break_on_shader_change);
       LAZY_PARAM_ENUM(clipping_type, m_use_hw_clip_planes);
       LAZY_PARAM_ENUM(vert_shader_use_switch, m_uber_vert_use_switch);
