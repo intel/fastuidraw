@@ -1,6 +1,6 @@
 /*!
- * \file fastuidraw_painter_gles_precision.glsl.resource_string
- * \brief file fastuidraw_painter_gles_precision.glsl.resource_string
+ * \file fastuidraw_default_precision.glsl.resource_string
+ * \brief file fastuidraw_default_precision.glsl.resource_string
  *
  * Copyright 2018 by Intel.
  *
