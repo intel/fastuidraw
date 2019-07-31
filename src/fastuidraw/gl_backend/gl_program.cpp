@@ -121,6 +121,7 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::ProgramInitializer> > m_values;
   };
 
+  #ifndef __EMSCRIPTEN__
   std::string
   get_program_resource_name(GLuint program,
                             GLenum program_interface,
@@ -143,6 +144,7 @@ namespace
 
     return std::string(&dst_name[0]);
   }
+  #endif
 
   class ShaderVariableInterfaceQueryList;
 
@@ -211,6 +213,7 @@ namespace
     GLint m_transform_feedback_buffer_index;
   };
 
+  #ifndef __EMSCRIPTEN__
   /* class to use program interface query to fill
    * the fields of a ShaderVariableInfo
    */
@@ -246,6 +249,7 @@ namespace
     std::vector<GLenum> m_enums;
     std::vector<dst_type> m_dsts;
   };
+  #endif
 
   /* class to fill fields associated to uniforms of a ShaderVariableInfo
    * using glGetActiveUniformsiv (thus NOT using the program interface
@@ -349,6 +353,7 @@ namespace
      * - variable_interface: the interface to access the contents of
      *                       the named block
      */
+#ifndef __EMSCRIPTEN__
     void
     populate_from_interface_block(GLuint program,
                                   GLenum program_interface,
@@ -363,6 +368,7 @@ namespace
     populate_from_resource(GLuint program,
                            GLenum resource_interface,
                            const ShaderVariableInterfaceQueryList &queries);
+#endif
 
   private:
     template<typename iterator>
@@ -485,6 +491,7 @@ namespace
       m_backing_type(fastuidraw::gl::Program::src_null)
     {}
 
+#ifndef __EMSCRIPTEN__
     /* populate the block information using
      * program interface query
      */
@@ -493,6 +500,7 @@ namespace
              GLint resource_index,
              GLenum variable_resource,
              const ShaderVariableInterfaceQueryList &queries);
+#endif
 
     std::string m_name;
     GLint m_initial_buffer_binding;
@@ -829,6 +837,8 @@ compile(void)
 
 //////////////////////////////////////
 // ShaderVariableInterfaceQueryList methods
+#ifndef __EMSCRIPTEN__
+
 void
 ShaderVariableInterfaceQueryList::
 fill_variable(GLuint program,
@@ -894,6 +904,7 @@ fill_variable(GLuint program,
       FASTUIDRAWassert(!"Unhandled variable interface type to assign to m_shader_variable_src");
     }
 }
+#endif
 
 ////////////////////////////////////
 // ShaderUniformQueryList methods
@@ -1122,6 +1133,7 @@ populate_non_program_interface_query(GLuint program,
   finalize();
 }
 
+#ifndef __EMSCRIPTEN__
 void
 ShaderVariableSet::
 populate_from_resource(GLuint program,
@@ -1170,6 +1182,7 @@ populate_from_interface_block(GLuint program,
     }
   finalize();
 }
+#endif
 
 template<typename iterator>
 std::string
@@ -1273,6 +1286,7 @@ add_element(ShaderVariableInfo v)
 
 /////////////////////////////
 // BlockInfoPrivate methods
+#ifndef __EMSCRIPTEN__
 void
 BlockInfoPrivate::
 populate(GLuint program, GLenum program_interface,
@@ -1297,7 +1311,7 @@ populate(GLuint program, GLenum program_interface,
                                     1, &prop_binding_point,
                                     1, nullptr, &m_initial_buffer_binding);
 }
-
+#endif
 
 ///////////////////////////////
 // AttributeInfo methods
@@ -1305,6 +1319,8 @@ void
 AttributeInfo::
 populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
 {
+#ifndef __EMSCRIPTEN__
+
   bool use_program_interface_query;
 
   if (ctx_props.is_es())
@@ -1328,6 +1344,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
       populate_from_resource(program, GL_PROGRAM_INPUT, attribute_queries);
     }
   else
+#endif
     {
       populate_non_program_interface_query(program,
                                            GL_ACTIVE_ATTRIBUTES,
@@ -1343,6 +1360,7 @@ void
 TransformFeedbackInfo::
 populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
 {
+#ifndef __EMSCRIPTEN__
   bool use_program_interface_query;
 
   if (ctx_props.is_es())
@@ -1395,6 +1413,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
       #endif
     }
   else
+#endif
     {
       populate_non_program_interface_query(program,
                                            GL_TRANSFORM_FEEDBACK_VARYINGS,
@@ -1532,8 +1551,8 @@ ShaderStorageBlockSetInfo::
 populate(GLuint program,
          const fastuidraw::gl::ContextProperties &ctx_props)
 {
+#ifndef __EMSCRIPTEN__
   bool ssbo_supported;
-
   if (ctx_props.is_es())
     {
       ssbo_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
@@ -1572,6 +1591,7 @@ populate(GLuint program,
       m_all_shader_storage_variables.finalize();
     }
   else
+#endif
     {
       populate_as_empty();
     }
@@ -1584,6 +1604,7 @@ UniformBlockSetInfo::
 populate(GLuint program,
          const fastuidraw::gl::ContextProperties &ctx_props)
 {
+#ifndef __EMSCRIPTEN__
   bool use_program_interface_query;
 
   if (ctx_props.is_es())
@@ -1601,6 +1622,7 @@ populate(GLuint program,
       populate_private_program_interface_query(program, ctx_props);
     }
   else
+ #endif
     {
       populate_private_non_program_interface_query(program, ctx_props);
     }
@@ -1616,6 +1638,7 @@ populate(GLuint program,
 
 }
 
+#ifndef __EMSCRIPTEN__
 void
 UniformBlockSetInfo::
 populate_private_program_interface_query(GLuint program,
@@ -1683,6 +1706,7 @@ populate_private_program_interface_query(GLuint program,
 
   FASTUIDRAWunused(ctx_props);
 }
+#endif
 
 void
 UniformBlockSetInfo::
@@ -1893,10 +1917,12 @@ gl_shader_type_label(GLenum shader_type)
 
       CASE(GL_FRAGMENT_SHADER);
       CASE(GL_VERTEX_SHADER);
+#ifndef __EMSCRIPTEN__
       CASE(GL_GEOMETRY_SHADER);
       CASE(GL_TESS_EVALUATION_SHADER);
       CASE(GL_TESS_CONTROL_SHADER);
       CASE(GL_COMPUTE_SHADER);
+#endif
     }
 
   #undef CASE
@@ -1967,7 +1993,11 @@ action(GLuint glsl_program) const
 {
   BindFragDataLocationPrivate *d;
   d = static_cast<BindFragDataLocationPrivate*>(m_d);
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      FASTUIDRAWassert(!"glBindFragDataLocationIndexed(EXT) not supported in EMCRIPTEN");
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       fastuidraw_glBindFragDataLocationIndexedEXT(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
     }
@@ -1984,7 +2014,15 @@ void
 fastuidraw::gl::ProgramSeparable::
 action(GLuint glsl_program) const
 {
-  fastuidraw_glProgramParameteri(glsl_program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+  #ifdef __EMSCRIPTEN__
+    {
+      FASTUIDRAWassert(!"GL_PROGRAM_SEPARABLE not supported in EMCRIPTEN");
+    }
+  #else
+    {
+      fastuidraw_glProgramParameteri(glsl_program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+    }
+  #endif
 }
 
 ///////////////////////////////////////////////////
@@ -2505,15 +2543,23 @@ populate_info(void)
       int current_program;
       bool sso_supported;
 
-      if (ctx_props.is_es())
+      #ifdef __EMSCRIPTEN__
         {
-          sso_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
+          sso_supported = false;
         }
-      else
+      #else
         {
-          sso_supported = ctx_props.version() >= fastuidraw::ivec2(4, 1)
-            || ctx_props.has_extension("GL_ARB_separate_shader_objects");
+          if (ctx_props.is_es())
+            {
+              sso_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
+            }
+          else
+            {
+              sso_supported = ctx_props.version() >= fastuidraw::ivec2(4, 1)
+                || ctx_props.has_extension("GL_ARB_separate_shader_objects");
+            }
         }
+      #endif
 
       if (!sso_supported)
         {
@@ -3511,13 +3557,17 @@ init_uniform(GLuint program, Program::shader_variable_info info,
    */
   for (int endc = info.count(), v = m_value, a = array_index; a < endc; ++a, ++v)
     {
+#ifdef __EMSCRIPTEN__
+      Uniform(info.location(a), v);
+#else
       if (program_bound)
-      {
-        Uniform(info.location(a), v);
-      }
-    else
-      {
-        ProgramUniform(program, info.location(a), v);
-      }
+    {
+      Uniform(info.location(a), v);
+    }
+      else
+    {
+      ProgramUniform(program, info.location(a), v);
+    }
+#endif
     }
 }

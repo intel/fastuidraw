@@ -129,6 +129,12 @@ private:
   void
   create_sdl_gl_context(void);
 
+#ifdef __EMSCRIPTEN__
+  static
+  void
+  render_emscripten_call_back(void *args);
+#endif
+
   std::string m_about;
   command_separator m_common_label;
   command_line_argument_value<int> m_red_bits;

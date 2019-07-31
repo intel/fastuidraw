@@ -7,12 +7,6 @@ d		:= $(dir)
 GL_HEADER_FILES=$(GL_RAW_HEADER_FILES:%.h=$(GL_INCLUDEPATH)/%.h)
 GLES_HEADER_FILES=$(GLES_RAW_HEADER_FILES:%.h=$(GL_INCLUDEPATH)/%.h)
 
-NGL_GL_CPP = src/fastuidraw/gl_backend/ngl_gl.cpp
-NGL_GL_HPP = inc/fastuidraw/gl_backend/ngl_gl.hpp
-
-NGL_GLES_CPP = src/fastuidraw/gl_backend/ngl_gles3.cpp
-NGL_GLES_HPP = inc/fastuidraw/gl_backend/ngl_gles3.hpp
-
 $(NGL_GL_CPP): $(NGL_GL_HPP) $(NGL_FILTER) $(NGL_EXTRACTOR)
 $(NGL_GL_HPP): $(NGL_FILTER) $(NGL_EXTRACTOR)
 	$(NGL_FILTER) $(GL_HEADER_FILES) \

@@ -245,8 +245,8 @@ fastuidraw_color_burn(in float S, in float D)
 
 /* Naughty macro that assumes in_src, in_fb are defined AND
  * expression is a scalar expression in S and D (temporaries)
- * with S representing "source" (i.e in_src with alpha undone)
- * and D representing "destination" (i.e. in_fb with alpha undone).
+ * with S representing  source  (i.e in_src with alpha undone)
+ * and D representing  destination  (i.e. in_fb with alpha undone).
  */
 #define FASTUIDRAW_SEPERABLE_FBF_BLEND_MACRO(expression)                \
   vec3 Srgb, Drgb;                                                      \
@@ -262,8 +262,8 @@ fastuidraw_color_burn(in float S, in float D)
 
 /* Naughty macro that assumes in_src, in_fb are defined AND
  * expression is a vec3 expression in S and D (temporaries)
- * with S representing "source" (i.e in_src with alpha undone)
- * and D representing "destination" (i.e. in_fb with alpha undone).
+ * with S representing  source  (i.e in_src with alpha undone)
+ * and D representing  destination  (i.e. in_fb with alpha undone).
  */
 #define FASTUIDRAW_NON_SEPERABLE_FBF_BLEND_MACRO(expression)            \
   vec3 S, D;                                                            \

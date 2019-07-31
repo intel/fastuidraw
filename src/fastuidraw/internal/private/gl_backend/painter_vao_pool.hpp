@@ -36,8 +36,8 @@ class client_buffers:public reference_counted<client_buffers>::non_concurrent
 {
 public:
   client_buffers(uint32_t num_attributes,
-		 uint32_t num_indices,
-		 uint32_t num_data):
+                 uint32_t num_indices,
+                 uint32_t num_data):
     m_attributes_store(num_attributes),
     m_header_attributes_store(num_attributes),
     m_indices_store(num_indices),
@@ -163,14 +163,14 @@ public:
   static
   void
   prepare_index_vertex_sources(GLuint attribute_bo,
-			       GLuint header_attribute_bo,
-			       GLuint index_bo);
+                               GLuint header_attribute_bo,
+                               GLuint index_bo);
 
   void
   unmap_vao_buffers(unsigned int attributes_written,
-		    unsigned int indices_written,
-		    unsigned int data_store_written,
-		    const painter_vao &vao);
+                    unsigned int indices_written,
+                    unsigned int data_store_written,
+                    const painter_vao &vao);
 
 private:
   GLuint

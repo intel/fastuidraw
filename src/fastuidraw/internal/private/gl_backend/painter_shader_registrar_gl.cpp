@@ -190,7 +190,11 @@ configure_backend(void)
   using namespace fastuidraw::glsl;
 
   m_tex_buffer_support = compute_tex_buffer_support(m_ctx_properties);
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      m_number_clip_planes = 0;
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       if (m_ctx_properties.has_extension("GL_EXT_clip_cull_distance")
           || m_ctx_properties.has_extension("GL_APPLE_clip_distance"))
@@ -445,15 +449,15 @@ configure_source_front_matter(void)
           glsl_version = "330";
 
           /* We need this extension for unpackHalf2x16() */
-	  if (m_params.use_glsl_unpack_fp16())
-	    {
-	      m_front_matter_vert.specify_extension("GL_ARB_shading_language_packing",
-						    ShaderSource::require_extension);
-	      m_front_matter_frag.specify_extension("GL_ARB_shading_language_packing",
-						    ShaderSource::require_extension);
-	    }
+          if (m_params.use_glsl_unpack_fp16())
+            {
+              m_front_matter_vert.specify_extension("GL_ARB_shading_language_packing",
+                                                    ShaderSource::require_extension);
+              m_front_matter_frag.specify_extension("GL_ARB_shading_language_packing",
+                                                    ShaderSource::require_extension);
+            }
 
-	  if (m_uber_shader_builder_params.assign_layout_to_varyings())
+          if (m_uber_shader_builder_params.assign_layout_to_varyings())
             {
               m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects",
                                                     ShaderSource::require_extension);
@@ -542,6 +546,7 @@ configure_source_front_matter(void)
             .specify_extension("GL_NV_bindless_texture", ShaderSource::enable_extension);
         }
     }
+
 }
 
 const fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set&

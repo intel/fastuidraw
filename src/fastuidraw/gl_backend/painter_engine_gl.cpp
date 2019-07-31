@@ -116,7 +116,11 @@ namespace
       m_preferred_blend_type(fastuidraw::PainterBlendShader::dual_src),
       m_fbf_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::fbf_blending_not_supported),
       m_allow_bindless_texture_from_surface(true),
-      m_buffer_streaming_type(fastuidraw::gl::PainterEngineGL::buffer_streaming_use_mapping),
+      #ifdef __EMSCRIPTEN__
+      m_buffer_streaming_type(fastuidraw::gl::PainterEngineGL::buffer_streaming_buffer_subdata),
+      #else
+      m_buffer_streaming_type(fastuidraw::gl::PainterEngineGL::buffer_streaming_orphaning),
+      #endif
       m_assume_single_gl_context(true),
       m_support_dual_src_blend_shaders(true),
       m_use_uber_item_shader(true),
@@ -599,6 +603,7 @@ fastuidraw::gl::PainterEngineGL::GlyphAtlasParams&
 fastuidraw::gl::PainterEngineGL::GlyphAtlasParams::
 use_optimal_store_backing(void)
 {
+#ifndef __EMSCRIPTEN__
   if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= GlyphAtlasParamsPrivate::required_max_size)
     {
       use_storage_buffer_store();
@@ -609,6 +614,7 @@ use_optimal_store_backing(void)
       use_texture_buffer_store();
     }
   else
+#endif
     {
       use_texture_2d_array_store();
     }
@@ -875,10 +881,10 @@ adjust_for_context(const ContextProperties &ctx)
   #ifndef FASTUIDRAW_GL_USE_GLES
     {
       if (d->m_use_glsl_unpack_fp16)
-	{
-	  d->m_use_glsl_unpack_fp16 = ctx.version() >= ivec2(4, 2)
-	    || ctx.has_extension("GL_ARB_shading_language_packing");
-	}
+        {
+          d->m_use_glsl_unpack_fp16 = ctx.version() >= ivec2(4, 2)
+            || ctx.has_extension("GL_ARB_shading_language_packing");
+        }
     }
   #endif
 
@@ -887,16 +893,6 @@ adjust_for_context(const ContextProperties &ctx)
    */
   switch(d->m_data_store_backing)
     {
-    case data_store_tbo:
-      {
-        unsigned int max_texture_buffer_size(0);
-        max_texture_buffer_size = context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
-        d->m_data_blocks_per_store_buffer = t_min(max_texture_buffer_size,
-                                                  d->m_data_blocks_per_store_buffer);
-        ++num_textures_used;
-      }
-      break;
-
     case data_store_ubo:
       {
         unsigned int max_ubo_size_bytes, max_num_blocks, block_size_bytes;
@@ -905,6 +901,17 @@ adjust_for_context(const ContextProperties &ctx)
         max_num_blocks = max_ubo_size_bytes / block_size_bytes;
         d->m_data_blocks_per_store_buffer = t_min(max_num_blocks,
                                                   d->m_data_blocks_per_store_buffer);
+      }
+      break;
+
+#ifndef __EMSCRIPTEN__
+    case data_store_tbo:
+      {
+        unsigned int max_texture_buffer_size(0);
+        max_texture_buffer_size = context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
+        d->m_data_blocks_per_store_buffer = t_min(max_texture_buffer_size,
+                                                  d->m_data_blocks_per_store_buffer);
+        ++num_textures_used;
       }
       break;
 
@@ -918,6 +925,11 @@ adjust_for_context(const ContextProperties &ctx)
                                                   d->m_data_blocks_per_store_buffer);
       }
       break;
+#endif
+    default:
+      FASTUIDRAWassert(!"Unsupported data-store-backing");
+      break;
+
     }
 
   interlock_type = compute_interlock_type(ctx);
@@ -1129,7 +1141,7 @@ setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, Configuration
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, use_glsl_unpack_fp16)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
-		 enum fastuidraw::gl::PainterEngineGL::buffer_streaming_type_t, buffer_streaming_type)
+                 enum fastuidraw::gl::PainterEngineGL::buffer_streaming_type_t, buffer_streaming_type)
 setget_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,
                  bool, assume_single_gl_context)
 get_implement(fastuidraw::gl::PainterEngineGL::ConfigurationGL, ConfigurationGLPrivate,

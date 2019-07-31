@@ -1,0 +1,160 @@
+default: targets
+
+CC=emcc
+CXX=em++
+LEX=lex
+ECHO=$(shell which echo)
+STRING_RESOURCE_CC = shell_scripts/fastuidraw-create-resource-cpp-file.sh
+
+# When building projects that use libFatUIDraw, these emscripten flags are
+# required; also add to one's compile flags -Isome/path where some/path is
+# the location of the incldue files from fastuidaw; for example when building
+# the demos, the value -Iinc is added.
+FASTUIDRAW_EMSCRIPTEN_LIBS=-s FORCE_FILESYSTEM=1 -s EXIT_RUNTIME=1 -s USE_WEBGL2=1 -s FULL_ES2=1 -s FULL_ES3=1 -s USE_FREETYPE=1 -s ALLOW_MEMORY_GROWTH=1
+FASTUIDRAW_EMSCRIPTEN_BASE_FLAGS=-DFASTUIDRAW_GL_USE_GLES -std=c++11
+FASTUIDRAW_EMSCRIPTEN_DEBUG_FLAGS=$(FASTUIDRAW_EMSCRIPTEN_BASE_FLAGS) -g -DFASTUIDRAW_DEBUG
+FASTUIDRAW_EMSCRIPTEN_RELEASE_FLAGS=$(FASTUIDRAW_EMSCRIPTEN_BASE_FLAGS) -O3
+
+# The build of FastUIdraw scans a GL header to generate
+# its ngl-header file, this requires that the host tool-chain
+# is used to generate the scanner and header-file creator
+HOST_CC=cc
+HOST_CXX=c++
+NGL_GENERATOR_FLAGS=-DNOGLFUNCTION_POINTERS
+NGL_BUILD = emscripten_build/ngl_generator
+
+# Automatically use GLES3/gl3.h from the EMSDK
+# Note that the ngl-header for Emscripten builds
+# is different than that of the GLES builds; this
+# allows one to have Emscripten and normal builds
+# to coexist.
+EMSDK_LOCATION=$(shell $(ECHO) $(EMSDK))
+EMSDK_INCLUDEPATH=$(EMSDK_LOCATION)/fastcomp/emscripten/system/include/
+GL_INCLUDEPATH=$(EMSDK_INCLUDEPATH)
+GLES_RAW_HEADER_FILES=GLES3/gl3.h
+NGL_GLES_CPP = src/fastuidraw/gl_backend/ngl_emscripten_gles3.cpp
+NGL_GLES_HPP = inc/fastuidraw/gl_backend/ngl_emscripten_gles3.hpp
+
+# Location of demo-assets
+ASSET_FLAGS=--preload-file demo_data
+
+###########################
+## clean to track build files
+clean = string_resources_cpp emscripten_build $(NGL_GLES_CPP) $(NGL_GLES_HPP)
+
+######################################
+# Reuse the Rules.mk system to collect the source files
+filelist = $(foreach filename,$(1),$(d)/$(filename))
+DEMOS:=
+COMMON_DEMO_SOURCES:=
+FASTUIDRAW_SOURCES:=
+FASTUIDRAW_PRIVATE_SOURCES:=
+FASTUIDRAW_GL_SOURCES:=
+FASTUIDRAW_PRIVATE_GL_SOURCES:=
+NGL_COMMON_SRCS:=
+FASTUIDRAW_RESOURCE_STRING:=
+FASTUIDRAW_GL_RESOURCE_STRING:=
+
+dir := src
+include $(dir)/Rules.mk
+
+dir := demos
+include $(dir)/Rules.mk
+
+######################################
+# Recipe to build FastUIDraw libraries
+FASTUIDRAW_LIB_RESOURCE_STRING:=$(FASTUIDRAW_RESOURCE_STRING) $(FASTUIDRAW_GL_RESOURCE_STRING)
+FASTUIDRAW_LIB_RESOURCE_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_LIB_RESOURCE_STRING) )
+FASTUIDRAW_LIB_SOURCES:=$(FASTUIDRAW_SOURCES) $(FASTUIDRAW_PRIVATE_SOURCES) $(FASTUIDRAW_GL_SOURCES) $(FASTUIDRAW_PRIVATE_GL_SOURCES) $(NGL_COMMON_SRCS) $(NGL_GLES_CPP) $(FASTUIDRAW_LIB_RESOURCE_SRCS)
+FASTUIDRAW_LIB_RAW_OBJS:=$(patsubst %.cpp, %.bc, $(FASTUIDRAW_LIB_SOURCES))
+FASTUIDRAW_LIB_DEBUG_OBJS:=$(addprefix emscripten_build/debug/fastuidraw/, $(FASTUIDRAW_LIB_RAW_OBJS))
+FASTUIDRAW_LIB_RELEASE_OBJS:=$(addprefix emscripten_build/release/fastuidraw/, $(FASTUIDRAW_LIB_RAW_OBJS))
+
+FASTUIDRAW_BUILD_INCLUDES=-Isrc/fastuidraw/internal -Isrc/fastuidraw/internal/3rd_party -Iinc
+FASTUIDRAW_BUILD_DEBUG_FLAGS=$(FASTUIDRAW_EMSCRIPTEN_LIBS) $(FASTUIDRAW_BUILD_INCLUDES) $(FASTUIDRAW_EMSCRIPTEN_DEBUG_FLAGS)
+FASTUIDRAW_BUILD_RELEASE_FLAGS=$(FASTUIDRAW_EMSCRIPTEN_LIBS) $(FASTUIDRAW_BUILD_INCLUDES) $(FASTUIDRAW_EMSCRIPTEN_RELEASE_FLAGS)
+
+emscripten_build/debug/fastuidraw/%.bc: %.cpp $(NGL_GLES_HPP)
+	@mkdir -p $(dir $@)
+	$(CXX) $(FASTUIDRAW_BUILD_DEBUG_FLAGS) $< -o $@
+
+emscripten_build/release/fastuidraw/%.bc: %.cpp $(NGL_GLES_HPP)
+	@mkdir -p $(dir $@)
+	$(CXX) $(FASTUIDRAW_BUILD_RELEASE_FLAGS) $< -o $@
+
+string_resources_cpp/%.resource_string.cpp: %.resource_string
+	@mkdir -p $(dir $@)
+	$(STRING_RESOURCE_CC) $< $(notdir $<) $(dir $@)
+
+libFastUIDraw-emscripten-debug.bc: $(FASTUIDRAW_LIB_DEBUG_OBJS)
+	$(CXX) $(FASTUIDRAW_BUILD_DEBUG_FLAGS) $(FASTUIDRAW_LIB_DEBUG_OBJS)  -o $@
+
+libFastUIDraw-emscripten-release.bc: $(FASTUIDRAW_LIB_RELEASE_OBJS)
+	$(CXX) $(FASTUIDRAW_BUILD_RELEASE_FLAGS) $(FASTUIDRAW_LIB_RELEASE_OBJS)  -o $@
+
+libFastUIDraw-emscripten-debug: libFastUIDraw-emscripten-debug.bc
+libFastUIDraw-emscripten-release: libFastUIDraw-emscripten-release.bc
+libFastUIDraw-emscripten: libFastUIDraw-emscripten-debug libFastUIDraw-emscripten-release
+.PHONY: libFastUIDraw-emscripten-debug libFastUIDraw-emscripten-release libFastUIDraw-emscripten
+clean += libFastUIDraw-emscripten-debug.bc libFastUIDraw-emscripten-release.bc
+clean += $(NGL_GLES_CPP) $(NGL_GLES_HPP)
+
+########################
+## Recipe to build demos
+DEMO_INCLUDE_FLAGS=-Idemos/common -Iinc
+ENCRIPTEN_DEMO_LIBS=-s USE_SDL=2 -s USE_SDL_IMAGE=2 $(FASTUIDRAW_EMSCRIPTEN_LIBS)
+DEMO_DEBUG_FLAGS=$(FASTUIDRAW_EMSCRIPTEN_DEBUG_FLAGS) $(DEMO_INCLUDE_FLAGS) $(ENCRIPTEN_DEMO_LIBS)
+DEMO_RELEASE_FLAGS=$(FASTUIDRAW_EMSCRIPTEN_RELEASE_FLAGS) $(DEMO_INCLUDE_FLAGS) $(ENCRIPTEN_DEMO_LIBS)
+
+COMMON_DEMO_OBJS_RAW=$(patsubst %.cpp, %.bc, $(COMMON_DEMO_SOURCES))
+COMMON_DEMO_DEBUG_OBJS:=$(addprefix emscripten_build/debug/demo/, $(COMMON_DEMO_OBJS_RAW))
+COMMON_DEMO_RELEASE_OBJS:=$(addprefix emscripten_build/release/demo/, $(COMMON_DEMO_OBJS_RAW))
+
+emscripten_build/debug/demo/%.bc: %.cpp $(NGL_GLES_HPP)
+	@mkdir -p $(dir $@)
+	$(CXX) $(DEMO_DEBUG_FLAGS) $< -o $@
+
+emscripten_build/release/demo/%.bc: %.cpp $(NGL_GLES_HPP)
+	@mkdir -p $(dir $@)
+	$(CXX) $(DEMO_RELEASE_FLAGS) $< -o $@
+
+define demorule
+$(eval THISDEMO_$(1)_DEBUG_OBJS:=$$(COMMON_DEMO_DEBUG_OBJS) $$(addprefix emscripten_build/debug/demo/, $$(patsubst %.cpp, %.bc, $$($(1)_SOURCES)))
+$(1)-debug.html: $$(THISDEMO_$(1)_DEBUG_OBJS) libFastUIDraw-emscripten-debug.bc
+	$(CXX) $(ASSET_FLAGS) $(DEMO_DEBUG_FLAGS) $$(THISDEMO_$(1)_DEBUG_OBJS) libFastUIDraw-emscripten-debug.bc -o $$@
+
+THISDEMO_$(1)_RELEASE_OBJS:=$(COMMON_DEMO_RELEASE_OBJS) $$(addprefix emscripten_build/release/demo/, $$(patsubst %.cpp, %.bc, $$($(1)_SOURCES)))
+$(1)-release.html: $$(THISDEMO_$(1)_RELEASE_OBJS) libFastUIDraw-emscripten-release.bc
+	$(CXX) $(ASSET_FLAGS) $(DEMO_RELEASE_FLAGS) $$(THISDEMO_$(1)_RELEASE_OBJS) libFastUIDraw-emscripten-release.bc -o $$@
+
+$(1)-debug:$(1)-debug.html
+$(1)-release:$(1)-release.html
+$(1):$(1)-debug $(1)-release
+.PHONY: $(1) $(1)-debug $(1)-release
+
+demos-debug:$(1)-debug.html
+demos-release:$(1)-release.html
+clean+=$(1)-debug.* $(1)-release.*
+)
+endef
+
+$(foreach demoname,$(DEMOS),$(call demorule,$(demoname)))
+
+targets:
+	@echo "Individual Demos avaliable (each having a -release -debug speficic target):"
+	@printf "    %s\n" $(DEMOS)
+.PHONY: targets
+
+all:demos
+.PHONE:all
+
+demos: demos-debug demos-release
+.PHONY: demos demos-debug demos-release
+
+common: common-debug common-release
+common-debug: $(COMMON_DEBUG_OBJS)
+common-release: $(COMMON_RELEASE_OBJS)
+.PHONY:common common-debug common-release
+
+clean:
+	rm -rf $(clean)

@@ -33,6 +33,9 @@ endif
 CXX ?= g++
 CC ?= gcc
 
+HOST_CXX ?= $(CXX)
+HOST_CC ?= $(CC)
+
 ECHO=$(shell which echo)
 
 # Lex choice
