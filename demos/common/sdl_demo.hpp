@@ -153,8 +153,13 @@ private:
   command_line_argument_value<int> m_bpp;
   command_line_argument_value<std::string> m_log_gl_commands;
   command_line_argument_value<bool> m_print_gl_info;
+#ifndef __EMSCRIPTEN__
   command_line_argument_value<int> m_swap_interval;
   command_line_argument_value<int> m_gl_major, m_gl_minor;
+#else
+  command_line_argument_value<int> m_emscripten_fps;
+#endif
+
 #ifndef FASTUIDRAW_GL_USE_GLES
   command_line_argument_value<bool> m_gl_forward_compatible_context;
   command_line_argument_value<bool> m_gl_debug_context;

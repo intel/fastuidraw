@@ -203,7 +203,13 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_stencil_bits(8, "stencil_bits",
                  "Bpp of stencil buffer, non-positive values mean use SDL defaults",
                  *this),
-  m_fullscreen(false, "fullscreen", "fullscreen mode", *this),
+  m_fullscreen(
+               #ifdef __EMSCRIPTEN__
+               true,
+               #else
+               false,
+               #endif
+               "fullscreen", "fullscreen mode", *this),
   m_hide_cursor(false, "hide_cursor", "If true, hide the mouse cursor with a SDL call", *this),
   m_use_msaa(false, "enable_msaa", "If true enables MSAA", *this),
   m_msaa(4, "msaa_samples",
@@ -226,28 +232,36 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
                   false,
                   #endif
                   "print_gl_info", "If true print to stdout GL information", *this),
-  m_swap_interval(-1, "swap_interval",
-                  "If set, pass the specified value to SDL_GL_SetSwapInterval, "
-                  "a value of 0 means no vsync, a value of 1 means vsync and "
-                  "a value of -1, if the platform supports, late swap tearing "
-                  "as found in extensions GLX_EXT_swap_control_tear and "
-                  "WGL_EXT_swap_control_tear. STRONG REMINDER: the value is "
-                  "only passed to SDL_GL_SetSwapInterval if the value is set "
-                  "at command line", *this),
-  #ifdef FASTUIDRAW_GL_USE_GLES
-  m_gl_major(3, "gles_major", "GLES major version", *this),
-  m_gl_minor(0, "gles_minor", "GLES minor version", *this),
+  #ifndef __EMSCRIPTEN__
+    m_swap_interval(-1, "swap_interval",
+                    "If set, pass the specified value to SDL_GL_SetSwapInterval, "
+                    "a value of 0 means no vsync, a value of 1 means vsync and "
+                    "a value of -1, if the platform supports, late swap tearing "
+                    "as found in extensions GLX_EXT_swap_control_tear and "
+                    "WGL_EXT_swap_control_tear. STRONG REMINDER: the value is "
+                    "only passed to SDL_GL_SetSwapInterval if the value is set "
+                    "at command line", *this),
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      m_gl_major(3, "gles_major", "GLES major version", *this),
+      m_gl_minor(0, "gles_minor", "GLES minor version", *this),
+    #else
+      m_gl_major(3, "gl_major", "GL major version", *this),
+      m_gl_minor(3, "gl_minor", "GL minor version", *this),
+      m_gl_forward_compatible_context(false, "foward_context", "if true request forward compatible context", *this),
+      m_gl_debug_context(false, "debug_context", "if true request a context with debug", *this),
+      m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
+      m_try_to_get_latest_gl_version(true, "try_to_get_latest_gl_version",
+                                     "If true, first create a GL context the old fashioned way "
+                                     "and query its context version and then max that value with "
+                                     "the requested version before making the context used by the application",
+                                     *this),
+    #endif
   #else
-  m_gl_major(3, "gl_major", "GL major version", *this),
-  m_gl_minor(3, "gl_minor", "GL minor version", *this),
-  m_gl_forward_compatible_context(false, "foward_context", "if true request forward compatible context", *this),
-  m_gl_debug_context(false, "debug_context", "if true request a context with debug", *this),
-  m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
-  m_try_to_get_latest_gl_version(true, "try_to_get_latest_gl_version",
-                                 "If true, first create a GL context the old fashioned way "
-                                 "and query its context version and then max that value with "
-                                 "the requested version before making the context used by the application",
-                                 *this),
+  m_emscripten_fps(0, "emscripten_fps",
+                   "Value to pass as fps to emscripten_set_main_loop_arg() "
+                   "A value <= 0  indicates to use the JS interface "
+                   "requestionAnimationFrame, a value > 0 indicates an "
+                   "FPS to -try- for", *this),
   #endif
 
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
@@ -283,7 +297,13 @@ void
 sdl_demo::
 set_sdl_gl_context_attributes(void)
 {
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.value());
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.value());
@@ -418,13 +438,7 @@ init_sdl(void)
     }
 
   int video_flags;
-  video_flags = SDL_WINDOW_OPENGL;
-
-  #ifndef __EMSCRIPTEN__
-    {
-      video_flags |= SDL_WINDOW_RESIZABLE;
-    }
-  #endif
+  video_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
   if (m_fullscreen.value())
     {
@@ -483,18 +497,22 @@ init_sdl(void)
     }
   SDL_GL_MakeCurrent(m_window, m_ctx);
 
-  if (m_swap_interval.set_by_command_line())
-    {
-      if (SDL_GL_SetSwapInterval(m_swap_interval.value()) != 0)
-        {
-          std::cerr << "Warning unable to set swap interval: "
-                    << SDL_GetError() << "\n";
-        }
-    }
-
   #ifndef __EMSCRIPTEN__
     {
+      /* Emscripten build of NGL does NOT use function pointers,
+       * instead it just uses macros to all the functions declared
+       * in GLES3/gl3.h
+       */
       fastuidraw::gl_binding::get_proc_function(get_proc);
+
+      if (m_swap_interval.set_by_command_line())
+        {
+          if (SDL_GL_SetSwapInterval(m_swap_interval.value()) != 0)
+            {
+              std::cerr << "Warning unable to set swap interval: "
+                        << SDL_GetError() << "\n";
+            }
+        }
     }
   #endif
 
@@ -696,7 +714,7 @@ main(int argc, char **argv)
        * loop_forever : if non-zero then loop forever until emscripten_cancel_main_loop()
        */
       loop_forever = 1;
-      fps = -1;
+      fps = m_emscripten_fps.value();
       emscripten_set_main_loop_arg(sdl_demo::render_emscripten_call_back, this, fps, loop_forever);
     }
   #endif
