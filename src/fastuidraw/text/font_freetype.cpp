@@ -30,6 +30,8 @@
 
 #include <ft2build.h>
 #include FT_OUTLINE_H
+#include FT_TRUETYPE_TABLES_H
+#include FT_TYPE1_TABLES_H
 
 namespace
 {
@@ -900,6 +902,24 @@ compute_font_metrics_from_face(FT_Face in_face, FontMetrics &out_metrics)
         .height(in_face->height)
         .ascender(in_face->ascender)
         .descender(in_face->descender)
-        .units_per_EM(in_face->units_per_EM);
+        .units_per_EM(in_face->units_per_EM)
+        .underline_position(in_face->underline_position)
+        .underline_thickness(in_face->underline_thickness);
+
+      TT_OS2* os2;
+
+      os2 = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(in_face, ft_sfnt_os2));
+      if (!os2)
+        {
+          out_metrics
+            .strikeout_position(out_metrics.height() * 0.5f)
+            .strikeout_thickness(out_metrics.underline_thickness());
+        }
+      else
+        {
+          out_metrics
+            .strikeout_position(os2->yStrikeoutPosition)
+            .strikeout_thickness(os2->yStrikeoutSize);
+        }
     }
 }

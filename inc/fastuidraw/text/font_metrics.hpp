@@ -122,6 +122,54 @@ namespace fastuidraw
     FontMetrics&
     units_per_EM(float);
 
+    /*!
+     * Returns the strike-through position.
+     */
+    float
+    strikeout_position(void) const;
+
+    /*!
+     * Set the value returned by strikeout_position(void) const
+     */
+    FontMetrics&
+    strikeout_position(float);
+
+    /*!
+     * Returns the strike-through thickness.
+     */
+    float
+    strikeout_thickness(void) const;
+
+    /*!
+     * Set the value returned by strikeout_thickness(void) const
+     */
+    FontMetrics&
+    strikeout_thickness(float);
+
+    /*!
+     * Returns the underline position.
+     */
+    float
+    underline_position(void) const;
+
+    /*!
+     * Set the value returned by underline_position(void) const
+     */
+    FontMetrics&
+    underline_position(float);
+
+    /*!
+     * Returns the underline thickness.
+     */
+    float
+    underline_thickness(void) const;
+
+    /*!
+     * Set the value returned by underline_thickness(void) const
+     */
+    FontMetrics&
+    underline_thickness(float);
+
   private:
     void *m_d;
   };
