@@ -80,6 +80,20 @@ namespace fastuidraw
     GlyphMetricsValue&
     units_per_EM(float);
 
+    /*!
+     * Set that the GlyphMetrics::strikeout_thickness()
+     * returns true and the value of the strikeout thickness.
+     */
+    GlyphMetricsValue&
+    strikeout_thickness(float);
+
+    /*!
+     * Set that the GlyphMetrics::strikeout_position()
+     * returns true and the value of the strikeout position.
+     */
+    GlyphMetricsValue&
+    strikeout_position(float);
+
   private:
     friend class GlyphCache;
     friend class Glyph;

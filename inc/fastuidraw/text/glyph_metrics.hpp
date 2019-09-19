@@ -117,6 +117,20 @@ namespace fastuidraw
     float
     units_per_EM(void) const;
 
+    /*!
+     * If the glyph has a strikeout thickness, returns true
+     * and sets the value of *v to the strikeout thickness.
+     */
+    bool
+    strikeout_thickness(float *v) const;
+
+    /*!
+     * If the glyph has a strikeout position, returns true
+     * and sets the value of *v to the strikeout position.
+     */
+    bool
+    strikeout_position(float *v) const;
+
   private:
     friend class GlyphCache;
     friend class Glyph;

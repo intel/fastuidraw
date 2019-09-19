@@ -62,7 +62,9 @@ namespace
       m_vertical_layout_offset(0.0f, 0.0f),
       m_size(0.0f, 0.0f),
       m_advance(0.0f, 0.0f),
-      m_units_per_EM(0.0f)
+      m_units_per_EM(0.0f),
+      m_has_strikeout_thickness(false),
+      m_has_strikeout_position(false)
     {}
 
     GlyphMetricsPrivate():
@@ -75,12 +77,25 @@ namespace
       m_vertical_layout_offset(0.0f, 0.0f),
       m_size(0.0f, 0.0f),
       m_advance(0.0f, 0.0f),
-      m_units_per_EM(0.0f)
+      m_units_per_EM(0.0f),
+      m_has_strikeout_thickness(false),
+      m_has_strikeout_position(false)
     {}
 
     void
     clear(void)
-    {}
+    {
+      m_ready = false;
+      m_glyph_code = 0;
+      m_font = nullptr;
+      m_horizontal_layout_offset = fastuidraw::vec2(0.0f, 0.0f);
+      m_vertical_layout_offset = fastuidraw::vec2(0.0f, 0.0f);
+      m_size = fastuidraw::vec2(0.0f, 0.0f);
+      m_advance = fastuidraw::vec2(0.0f, 0.0f);
+      m_units_per_EM = 0.0f;
+      m_has_strikeout_thickness = false;
+      m_has_strikeout_position = false;
+    }
 
     /* owner */
     GlyphCachePrivate *m_cache;
@@ -97,6 +112,9 @@ namespace
     fastuidraw::vec2 m_vertical_layout_offset;
     fastuidraw::vec2 m_size, m_advance;
     float m_units_per_EM;
+
+    bool m_has_strikeout_thickness, m_has_strikeout_position;
+    float m_strikeout_thickness, m_strikeout_position;
   };
 
   class GlyphDataPrivate:public GlyphAtlasProxyPrivate
@@ -716,6 +734,26 @@ get_implement(fastuidraw::GlyphMetrics, GlyphMetricsPrivate, fastuidraw::vec2, s
 get_implement(fastuidraw::GlyphMetrics, GlyphMetricsPrivate, fastuidraw::vec2, advance)
 get_implement(fastuidraw::GlyphMetrics, GlyphMetricsPrivate, float, units_per_EM)
 
+bool
+fastuidraw::GlyphMetrics::
+strikeout_thickness(float *v) const
+{
+  GlyphMetricsPrivate *d;
+  d = static_cast<GlyphMetricsPrivate*>(m_d);
+  *v = d->m_strikeout_thickness;
+  return d->m_has_strikeout_thickness;
+}
+
+bool
+fastuidraw::GlyphMetrics::
+strikeout_position(float *v) const
+{
+  GlyphMetricsPrivate *d;
+  d = static_cast<GlyphMetricsPrivate*>(m_d);
+  *v = d->m_strikeout_position;
+  return d->m_has_strikeout_position;
+}
+
 ////////////////////////////////////////
 // GlyphMetricsValue methods
 set_implement(fastuidraw::GlyphMetricsValue, GlyphMetricsPrivate, fastuidraw::vec2, horizontal_layout_offset)
@@ -723,6 +761,28 @@ set_implement(fastuidraw::GlyphMetricsValue, GlyphMetricsPrivate, fastuidraw::ve
 set_implement(fastuidraw::GlyphMetricsValue, GlyphMetricsPrivate, fastuidraw::vec2, size)
 set_implement(fastuidraw::GlyphMetricsValue, GlyphMetricsPrivate, fastuidraw::vec2, advance)
 set_implement(fastuidraw::GlyphMetricsValue, GlyphMetricsPrivate, float, units_per_EM)
+
+fastuidraw::GlyphMetricsValue&
+fastuidraw::GlyphMetricsValue::
+strikeout_thickness(float v)
+{
+  GlyphMetricsPrivate *d;
+  d = static_cast<GlyphMetricsPrivate*>(m_d);
+  d->m_strikeout_thickness = v;
+  d->m_has_strikeout_thickness = true;
+  return *this;
+}
+
+fastuidraw::GlyphMetricsValue&
+fastuidraw::GlyphMetricsValue::
+strikeout_position(float v)
+{
+  GlyphMetricsPrivate *d;
+  d = static_cast<GlyphMetricsPrivate*>(m_d);
+  d->m_strikeout_position = v;
+  d->m_has_strikeout_position = true;
+  return *this;
+}
 
 //////////////////////////////////////////////////////////
 // fastuidraw::GlyphCache methods

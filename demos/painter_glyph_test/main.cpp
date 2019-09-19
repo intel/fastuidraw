@@ -946,6 +946,68 @@ draw_glyphs(float us)
       render = m_painter->compute_glyph_renderer(m_draw_shared.glyph_sequence().format_size());
     }
 
+  unsigned int number_arc_segs(0), number_linear_segs(0);
+  unsigned int number_contours(0), number_interpolators(0);
+  std::vector<unsigned int> number_beziers;
+
+  for(unsigned int i : glyphs_visible)
+    {
+      GlyphMetrics M;
+      vec2 position;
+
+      m_draw_shared.glyph_sequence().added_glyph(i, &M, &position);
+      if (M.valid())
+        {
+          Glyph G;
+          const fastuidraw::Path *path;
+          const fastuidraw::TessellatedPath *tess_path;
+          float thresh;
+
+          G = m_painter->glyph_cache().fetch_glyph(render, M.font().get(), M.glyph_code());
+
+          path = &G.path();
+          thresh = m_painter->compute_path_thresh(*path);
+          tess_path = &path->tessellation(thresh);
+
+          number_arc_segs += tess_path->segment_data().size();
+          number_linear_segs += tess_path->linearization(thresh).segment_data().size();
+          number_contours += path->number_contours();
+          for (unsigned int C = 0, endC = path->number_contours(); C < endC; ++C)
+            {
+              const fastuidraw::PathContour *contour(path->contour(C).get());
+
+              number_interpolators += contour->number_interpolators();
+              for (unsigned int N = 0, endN = contour->number_interpolators(); N < endN; ++N)
+                {
+                  const fastuidraw::PathContour::interpolator_base *I;
+                  int d;
+
+                  I = contour->interpolator(N).get();
+                  if (I->is_flat())
+                    {
+                      d = 1;
+                    }
+                  else
+                    {
+                      const fastuidraw::PathContour::bezier *B;
+
+                      B = dynamic_cast<const fastuidraw::PathContour::bezier*>(I);
+                      d = (B) ? B->pts().size() - 1 : -1;
+                    }
+
+                  if (d > 0)
+                    {
+                      if (number_beziers.size() <= d)
+                        {
+                          number_beziers.resize(d + 1, 0u);
+                        }
+                      ++number_beziers[d];
+                    }
+                }
+            }
+        }
+    }
+
   if (m_fill_glyphs)
     {
       unsigned int src(m_current_drawer);
@@ -1184,6 +1246,15 @@ draw_glyphs(float us)
           ostr << "\nms(over " << num_frames << " frames) = " << avg_us / 1000.0f;
         }
 
+      ostr << "\nNumber Arc Segs: " << number_arc_segs
+           << "\nNumber Linear Segs: " << number_linear_segs
+           << "\nNumber Contours: " << number_contours
+           << "\nNumber Interpolators: " << number_interpolators;
+      for (unsigned int i = 1; i < number_beziers.size(); ++i)
+        {
+          ostr << "\nNumber Degree " << i << " beziers: " << number_beziers[i];
+        }
+
       if (m_fill_glyphs)
         {
           ostr << "\nFilling Glyphs (anti-aliasing = "
@@ -1255,7 +1326,7 @@ draw_glyphs(float us)
       if (G != GenericHierarchy::not_found)
         {
           GlyphMetrics metrics;
-          float ratio, ysign;
+          float tmp, ratio, ysign;
           vec2 glyph_position, glyph_coord;
 
           m_draw_shared.glyph_sequence().added_glyph(G, &metrics, &glyph_position);
@@ -1267,8 +1338,17 @@ draw_glyphs(float us)
           /* start with an eol so that top line is visible */
           ostr << "\nGlyph at " << p << " is:"
                << "\n\tglyph_code: " << metrics.glyph_code()
-               << "\n\tfont: " << metrics.font()->properties()
-               << "\n\trenderer: ";
+               << "\n\tfont: " << metrics.font()->properties();
+
+          if (metrics.strikeout_thickness(&tmp))
+            {
+              ostr << "\n\tStrikeoutThickness = " << tmp;
+            }
+          if (metrics.strikeout_position(&tmp))
+            {
+              ostr << "\n\tStrikeoutPosition = " << tmp;
+            }
+          ostr << "\n\trenderer: ";
 
           if (!m_fill_glyphs)
             {
@@ -1443,11 +1523,19 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_z:
           {
-            vec2 p, fixed_point(dimensions() / 2);
-            ScaleTranslate<float> tr;
-            tr = m_zoomer.transformation();
-            p = fixed_point - (fixed_point - tr.translation()) / tr.scale();
-            m_zoomer.transformation(ScaleTranslate<float>(p));
+            float c;
+
+            c = m_painter->curve_flatness();
+            if (ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT))
+              {
+                c *= 0.5f;
+              }
+            else
+              {
+                c *= 2.0f;
+              }
+            std::cout << "Painter::curve_flatness set to " << c << "\n";
+            m_painter->curve_flatness(c);
           }
           break;
 

@@ -30,6 +30,16 @@
 
 #include <ft2build.h>
 #include FT_OUTLINE_H
+#include FT_BITMAP_H
+#include FT_FREETYPE_H
+#include FT_LCD_FILTER_H
+#include FT_MODULE_H
+#include FT_MULTIPLE_MASTERS_H
+#include FT_OUTLINE_H
+#include FT_SIZES_H
+#include FT_SYSTEM_H
+#include FT_TRUETYPE_TABLES_H
+#include FT_TYPE1_TABLES_H
 
 namespace
 {
@@ -761,6 +771,15 @@ compute_metrics(uint32_t glyph_code, GlyphMetricsValue &metrics) const
                                  face->glyph->metrics.vertBearingY - face->glyph->metrics.height))
     .advance(vec2(face->glyph->linearHoriAdvance, face->glyph->linearVertAdvance))
     .units_per_EM(face->units_per_EM);
+
+  TT_OS2 *os2;
+  os2 = (TT_OS2*) FT_Get_Sfnt_Table(face, ft_sfnt_os2);
+  if (os2)
+    {
+      metrics
+        .strikeout_thickness(os2->yStrikeoutSize)
+        .strikeout_position(os2->yStrikeoutPosition);
+    }
 }
 
 fastuidraw::GlyphRenderData*
