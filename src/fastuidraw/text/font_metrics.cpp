@@ -30,10 +30,16 @@ namespace
       m_height(0.0f),
       m_ascender(0.0f),
       m_descender(0.0f),
-      m_units_per_EM(0.0f)
+      m_units_per_EM(0.0f),
+      m_strikeout_position(0.0f),
+      m_strikeout_thickness(0.0f),
+      m_underline_position(0.0f),
+      m_underline_thickness(0.0f)
     {}
 
     float m_height, m_ascender, m_descender, m_units_per_EM;
+    float m_strikeout_position, m_strikeout_thickness;
+    float m_underline_position, m_underline_thickness;
   };
 }
 
@@ -75,3 +81,15 @@ setget_implement(fastuidraw::FontMetrics,
 setget_implement(fastuidraw::FontMetrics,
                  FontMetricsPrivate,
                  float, units_per_EM)
+setget_implement(fastuidraw::FontMetrics,
+                 FontMetricsPrivate,
+                 float, strikeout_position)
+setget_implement(fastuidraw::FontMetrics,
+                 FontMetricsPrivate,
+                 float, strikeout_thickness)
+setget_implement(fastuidraw::FontMetrics,
+                 FontMetricsPrivate,
+                 float, underline_position)
+setget_implement(fastuidraw::FontMetrics,
+                 FontMetricsPrivate,
+                 float, underline_thickness)
