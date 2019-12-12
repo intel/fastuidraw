@@ -32,11 +32,20 @@ namespace fastuidraw
 
   /*!
    * A GlyphRenderDataBandedRays represents the data needed to
-   * build a glyph to render it with a modification to the technique
-   * of "GPU-Centered Font Rendering Directly from Glyph Outlines"
-   * by Eric Lengyel. The class follows the original paper except
-   * that rather than using a set of textures to hold the data,
-   * we use a single buffer (from \ref GlyphAtlas) to hold the data.
+   * build a glyph to render it directly from the geometric data
+   * of the curve. This implementation does NOT use the techinque
+   * as patented by Eric Lengyel that computes by a lookup table
+   * keyed by the 3 conditions of examing q1, q2, q3 against 0.
+   * The Lengyel technique does give a fast shader, but we cannot
+   * use it because of the patent on it. Instead, we enforece the
+   * condition 0 <= t <= 1 of the solutions to 0 = [q1, q2, q3](t)
+   * by the hammer of algebra. Assuming that the leading coefficient
+   * of the quadratic is positive the enforement then becomes
+   * - use t1 if (q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0)
+   * - use t2 if (q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0)
+   *
+   * The fragment shader needs to have additional code to handle
+   * the case where the leading coefficient is negative.
    *
    * The attribute data for a Glyph has:
    *   - the number of bands horizontally H

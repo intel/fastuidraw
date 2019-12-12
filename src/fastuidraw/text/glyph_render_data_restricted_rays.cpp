@@ -270,7 +270,9 @@ namespace
                                       fastuidraw::vec2 A,
                                       fastuidraw::vec2 B,
                                       fastuidraw::vec2 C,
-                                      uint32_t code,
+                                      fastuidraw::vec2 p1,
+                                      fastuidraw::vec2 p2,
+                                      fastuidraw::vec2 p3,
                                       float *dist) const;
 
     float
@@ -1031,7 +1033,6 @@ compute_winding_contribution(fastuidraw::vec2 p, float *dist) const
 {
   using namespace fastuidraw;
   vec2 p1(m_fstart - p), p2(m_fcontrol - p), p3(m_fend - p);
-  uint32_t codex, codey;
   ivec2 R;
   vec2 A, B, C;
 
@@ -1047,16 +1048,8 @@ compute_winding_contribution(fastuidraw::vec2 p, float *dist) const
       *dist = t_min(*dist, q.L1norm());
     }
 
-  codex = (p1.x() > 0.0f ? 2u : 0u)
-    + (p2.x() > 0.0f ? 4u : 0u)
-    + (p3.x() > 0.0f ? 8u : 0u);
-
-  codey = (p1.y() > 0.0f ? 2u : 0u)
-    + (p2.y() > 0.0f ? 4u : 0u)
-    + (p3.y() > 0.0f ? 8u : 0u);
-
-  R.x() = -compute_winding_contribution_impl(0, A, B, C, codex, dist);
-  R.y() = compute_winding_contribution_impl(1, A, B, C, codey, dist);
+  R.x() = -compute_winding_contribution_impl(0, A, B, C, p1, p2, p3, dist);
+  R.y() = compute_winding_contribution_impl(1, A, B, C, p1, p2, p3, dist);
 
   if (m_has_control)
     {
@@ -1077,54 +1070,92 @@ compute_winding_contribution_impl(int coord,
                                   fastuidraw::vec2 A,
                                   fastuidraw::vec2 B,
                                   fastuidraw::vec2 C,
-                                  uint32_t code,
+                                  fastuidraw::vec2 p1,
+                                  fastuidraw::vec2 p2,
+                                  fastuidraw::vec2 p3,
                                   float *dist) const
 {
   using namespace fastuidraw;
 
-  code = (0x2E74u >> code) & 0x3u;
-
-  int iA;
+  int iA, incr1, incr2;
   float t1, t2, x1, x2;
 
   iA = m_start[coord] - 2 * m_control[coord] + m_end[coord];
 
   if (m_has_control && iA != 0)
     {
-      float D, rA = 1.0f / A[coord];
+      float D, rA, Ap, Bp, q1, q2, q3, sA;
+      int incr_base;
+
+      sA = (iA > 0) ? 1.0 : -1.0;
+      incr_base = (iA > 0) ? 1 : -1;
+      Ap = sA * A[coord];
+      Bp = sA * B[coord];
+      q1 = sA * p1[coord];
+      q2 = sA * p2[coord];
+      q3 = sA * p3[coord];
 
       D = B[coord] * B[coord] - A[coord] * C[coord];
-      D = t_sqrt(t_max(0.0f, D));
-      t1 = (B[coord] - D) * rA;
-      t2 = (B[coord] + D) * rA;
+      if (D > 0.0)
+        {
+          rA = 1.0f / Ap;
+
+          D = sqrt(D);
+          t1 = (Bp - D) * rA;
+          t2 = (Bp + D) * rA;
+          if ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0))
+            {
+              incr1 = incr_base;
+            }
+          else
+            {
+              incr1 = 0;
+            }
+
+          if ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0))
+            {
+              incr2 = -incr_base;
+            }
+          else
+            {
+              incr2 = 0;
+            }
+        }
+      else
+        {
+          incr1 = incr2 = 0;
+          t1 = t2 = 0.0f;
+        }
     }
   else
     {
       t1 = t2 = 0.5f * C[coord] / B[coord];
+      incr1 = (p1[coord] >= 0.0 && p3[coord] < 0.0) ? +1 : 0;
+      incr2 = (p1[coord] <= 0.0 && p3[coord] > 0.0) ? -1 : 0;
     }
 
   x1 = (A[1 - coord] * t1 - B[1 - coord] * 2.0f) * t1 + C[1 - coord];
   x2 = (A[1 - coord] * t2 - B[1 - coord] * 2.0f) * t2 + C[1 - coord];
 
-  if (t1 <= 1.0 && t1 >= 0.0f)
+  if (t1 <= 1.0 && t1 >= 0.0f && incr1 != 0)
     {
       *dist = t_min(*dist, t_abs(x1));
     }
 
-  if (t2 <= 1.0 && t2 >= 0.0f)
+  if (t2 <= 1.0 && t2 >= 0.0f && incr2 != 0)
     {
       *dist = t_min(*dist, t_abs(x2));
     }
 
   int r(0);
-  if ((code & 1u) != 0u && x1 > 0.0f)
+  if (incr1 != 0 && x1 > 0.0f)
     {
-      ++r;
+      r += incr1;
     }
 
-  if (code > 1u && x2 > 0.0f)
+  if (incr2 != 0 && x2 > 0.0f)
     {
-      --r;
+      r += incr2;
     }
 
   return r;
