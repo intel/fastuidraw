@@ -32,28 +32,30 @@ namespace fastuidraw
 
   /*!
    * A GlyphRenderDataRestrictedRays represents the data needed to
-   * build a glyph to render it with a modification to the technique
-   * of "GPU-Centered Font Rendering Directly from Glyph Outlines"
-   * by Eric Lengyel. The modifications we have to the technique are
-   * as follows.
-   *  - We break the glyph's box into a hierarchy of boxes where
-   *    each leaf node has a list of what curves are in the box
-   *    together with a single sample point inside the box giving
-   *    the winding number at the sample point.
-   *  - To compute the winding number, one runs the technique
-   *    on the ray connecting the fragment position to the winding
-   *    sample position and increment the value by the winding value
-   *    of the sample. Here the main caveat is that one needs to
-   *    ignore any intersection that are not between the fragment
-   *    position and the sample position.
-   *  - The shader (which can be fetched with the function
-   *    fastuidraw::glsl::restricted_rays_compute_coverage())
-   *    tracks the closest curve (in a local L1-metric scaled to
-   *    window coordinates) to the fragment position that increments
-   *    the winding value and also tracks the closest curve that
-   *    decrements the winding value. Using those two values together
-   *    with the winding value allows the shader to compute a coverage
-   *    value to perform anti-aliasing.
+   * build a glyph to render it. The technique operates as follows:
+   *  - a hierarchy of boxes is created on CPU and traversed by
+   *    the GPU; the hierarchy is such a form that traversal on
+   *    the GPU is a simple loop that checks bits
+   *  - each box has a list of what curves are within it and
+   *    a point P whose winding number at that point is also stored.
+   *    The point P is guaranteed to be away from any curve so its
+   *    winding number is defined and numerically stable
+   *  - On the GPU, the fragment shader computes what box the fragment
+   *    is contained and computes the difference of the winding
+   *    number between the fragment and the reference point P.
+   *    The computation is numerically stable becuase instead of
+   *    using directl 0 <= t <= 1 when computing if an intersection
+   *    contributes, we instead walk the algebra of what that condition
+   *    means in terms of the points of the bezier curve [q1, q2, q2].
+   *    Whhen the quadratic term of the bezier curve is poisition,
+   *    the condition is:
+   *    -- use t1 if (q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0)
+   *    -- use t2 if (q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0)
+   *
+   * NOTE: this is NOT the techinque as patented by Eric Lengyel that
+   * computes by a lookup table keyed by the 3 conditions of examing
+   * q1, q2, q3 against 0. The Lengyel technique does give a fast shader,
+   * but we cannot use it because of the patent on it.
    */
   class GlyphRenderDataRestrictedRays:public GlyphRenderData
   {
