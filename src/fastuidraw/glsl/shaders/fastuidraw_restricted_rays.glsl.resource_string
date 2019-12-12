@@ -98,22 +98,6 @@ fastuidraw_restricted_rays_update_distance(in float dist, in bool is_increment,
     }
 }
 
-bool
-fastuidraw_restricted_rays_is_increment(in vec2 p, in vec2 dp)
-{
-  float det;
-
-  /* The vector from the origin to the point is given by the point value, p.
-   * the direction of the curve is given by dp. When crossing the curve in the
-   * direction from the origin to p, the winding is incremented if the pair
-   * (p, dp) forms a 2x2 matrix that has positive determinant and decrements
-   * otherwise.
-   */
-  det = p.x * dp.y - p.y * dp.x;
-  return det > 0.0;
-}
-
-
 void
 fastuidraw_restricted_rays_update_distance(in vec2 p, in bool is_increment,
                                            inout fastuidraw_restricted_rays_distance_type nv)
@@ -122,13 +106,6 @@ fastuidraw_restricted_rays_update_distance(in vec2 p, in bool is_increment,
 
   d = abs(p.x) + abs(p.y);
   fastuidraw_restricted_rays_update_distance(d, is_increment, nv);
-}
-
-void
-fastuidraw_restricted_rays_update_distance(in vec2 p, in vec2 dp,
-                                           inout fastuidraw_restricted_rays_distance_type nv)
-{
-  fastuidraw_restricted_rays_update_distance(p, fastuidraw_restricted_rays_is_increment(p, dp), nv);
 }
 
 uint
@@ -330,7 +307,8 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
                                                         inout fastuidraw_restricted_rays_distance_type dst)
 {
   vec2 A, B, C;
-  int R = 0;
+  int incr, R = 0;
+  bool a1, a2;
 
   curve.p1 = fastuidraw_restricted_rays_apply_transformation(curve.p1, tr);
   curve.p2 = fastuidraw_restricted_rays_apply_transformation(curve.p2, tr);
@@ -341,14 +319,12 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   C = curve.p1;
 
     {
-      float t1, t2, x1, x2;
+      float t1, t2, x1, x2, signA;
       const float quad_tol = 0.0001;
-      int incr1, incr2;
 
       if (curve.is_quadratic && abs(A.y) > quad_tol)
         {
-          int incr_base;
-          float q1, q2, q3, Ap, Bp, D, rA, signA;
+          float q1, q2, q3, Ap, Bp, D, rA;
 
           /* our inequalities for enforcing 0 <= t <= 1
            * assmume that A > 0; When A < 0, we flip
@@ -357,7 +333,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
            * the winding contribution
            */
           signA = sign(A.y);
-          incr_base = (A.y > 0.0) ? 1 : -1;
+          incr = (A.y > 0.0) ? 1 : -1;
           q1 = signA * curve.p1.y;
           q2 = signA * curve.p2.y;
           q3 = signA * curve.p3.y;
@@ -372,7 +348,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
                * not contribute to the winding number.
                */
               t1 = t2 = 2.0;
-              incr1 = incr2 = 0;
+              a1 = a2 = false;
             }
           else
             {
@@ -401,57 +377,40 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
                *            = (q3 > q2 && q3 > 0) && (q1 >= q2 || q1 <= 0)
                */
 
-              if ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0))
-                {
-                  incr1 = incr_base;
-                }
-              else
-                {
-                  incr1 = 0;
-                }
-
-              if ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0))
-                {
-                  incr2 = -incr_base;
-                }
-              else
-                {
-                  incr2 = 0;
-                }
+              a1 = ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0));
+              a2 = ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0));
             }
         }
       else
         {
+          incr = 1;
+          signA = 1.0;
           t1 = t2 = 0.5 * C.y / B.y;
-          incr1 = (curve.p1.y >= 0.0 && curve.p3.y < 0.0) ? 1 : 0;
-          incr2 = (curve.p1.y <= 0.0 && curve.p3.y > 0.0) ? -1 : 0;
+          a1 = (curve.p1.y >= 0.0 && curve.p3.y < 0.0);
+          a2 = (curve.p1.y <= 0.0 && curve.p3.y > 0.0);
         }
 
       x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      if (incr1 != 0)
+      if (a1)
         {
           if (x1 <= tr.reference_location && x1 >= 0.0)
             {
-              R += incr1;
+              R += incr;
             }
 
-          bool is_increment;
-          is_increment = (incr1 > 0) ? (x1 < 0.0) : (x1 > 0.0);
-          fastuidraw_restricted_rays_update_distance(abs(x1), is_increment, dst);
+          fastuidraw_restricted_rays_update_distance(abs(x1), signA * x1 < 0.0, dst);
         }
 
-      if (incr2 != 0)
+      if (a2)
         {
           if (x2 <= tr.reference_location && x2 >= 0.0)
             {
-              R += incr2;
+              R -= incr;
             }
 
-          bool is_increment;
-          is_increment = (incr2 > 0) ? (x2 < 0.0) : (x2 > 0.0);
-          fastuidraw_restricted_rays_update_distance(abs(x2), is_increment, dst);
+          fastuidraw_restricted_rays_update_distance(abs(x2), signA * x2 > 0.0, dst);
         }
     }
 
