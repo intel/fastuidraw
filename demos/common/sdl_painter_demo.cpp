@@ -231,6 +231,7 @@ namespace
     print_stroke_shader_ids(rp, sh.shader(fastuidraw::Painter::square_caps), "\t\t\t");
   }
 
+  #ifndef __EMSCRIPTEN__
   GLuint
   ready_pixel_counter_ssbo(unsigned int binding_index)
   {
@@ -263,6 +264,7 @@ namespace
     dst[sdl_painter_demo::total_number_pixels] += dst[sdl_painter_demo::frame_number_pixels];
     dst[sdl_painter_demo::total_number_pixels_that_neighbor_helper] += dst[sdl_painter_demo::frame_number_pixels_that_neighbor_helper];
   }
+  #endif
 }
 
 sdl_painter_demo::
@@ -711,20 +713,24 @@ init_gl(int w, int h)
     .glyph_atlas_params(m_glyph_atlas_params)
     .colorstop_atlas_params(m_colorstop_atlas_params);
 
-  if (m_pixel_counter_stack.value() >= 0)
+  #ifndef __EMSCRIPTEN__
     {
-      fastuidraw::c_string version;
-      #ifdef FASTUIDRAW_GL_USE_GLES
+      if (m_pixel_counter_stack.value() >= 0)
         {
-          version = "310 es";
+          fastuidraw::c_string version;
+          #ifdef FASTUIDRAW_GL_USE_GLES
+            {
+              version = "310 es";
+            }
+          #else
+            {
+              version = "450";
+            }
+          #endif
+            m_painter_params.glsl_version_override(version);
         }
-      #else
-        {
-          version = "450";
-        }
-      #endif
-      m_painter_params.glsl_version_override(version);
     }
+  #endif
 
   m_backend = fastuidraw::gl::PainterEngineGL::create(m_painter_params);
 
@@ -740,35 +746,39 @@ init_gl(int w, int h)
   m_font_database = FASTUIDRAWnew fastuidraw::FontDatabase();
   m_ft_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
 
-  if (m_pixel_counter_stack.value() >= 0)
+  #ifndef __EMSCRIPTEN__
     {
-      fastuidraw::c_string code;
-      fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterShaderRegistrarGLSL> R;
+      if (m_pixel_counter_stack.value() >= 0)
+        {
+          fastuidraw::c_string code;
+          fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterShaderRegistrarGLSL> R;
 
-      m_pixel_counter_buffer_binding_index = fastuidraw::gl::context_get<GLint>(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS) - 1;
-      code =
-        "layout(binding = PIXEL_COUNTER_BINDING) buffer pixel_counter_buffer\n"
-        "{\n"
-        "\tuint num_pixels;\n"
-        "\tuint num_neighbor_helper_pixels;\n"
-        "};\n"
-        "void real_main(void);\n"
-        "void main(void)\n"
-        "{\n"
-        "\tfloat f;\n"
-        "\tf = float(gl_HelperInvocation);\n"
-        "\tatomicAdd(num_pixels, 1u);\n"
-        "\tif(abs(dFdxFine(f)) > 0.0 || abs(dFdyFine(f)) > 0.0)\n"
-        "\t\tatomicAdd(num_neighbor_helper_pixels, 1u);\n"
-        "\treal_main();\n"
-        "}\n";
+          m_pixel_counter_buffer_binding_index = fastuidraw::gl::context_get<GLint>(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS) - 1;
+          code =
+            "layout(binding = PIXEL_COUNTER_BINDING) buffer pixel_counter_buffer\n"
+            "{\n"
+            "\tuint num_pixels;\n"
+            "\tuint num_neighbor_helper_pixels;\n"
+            "};\n"
+            "void real_main(void);\n"
+            "void main(void)\n"
+            "{\n"
+            "\tfloat f;\n"
+            "\tf = float(gl_HelperInvocation);\n"
+            "\tatomicAdd(num_pixels, 1u);\n"
+            "\tif(abs(dFdxFine(f)) > 0.0 || abs(dFdyFine(f)) > 0.0)\n"
+            "\t\tatomicAdd(num_neighbor_helper_pixels, 1u);\n"
+            "\treal_main();\n"
+            "}\n";
 
-      R = static_cast<fastuidraw::glsl::PainterShaderRegistrarGLSL*>(&m_painter->painter_shader_registrar());
-      R->add_fragment_shader_util(fastuidraw::glsl::ShaderSource()
-                                  .add_macro("PIXEL_COUNTER_BINDING", m_pixel_counter_buffer_binding_index)
-                                  .add_source(code, fastuidraw::glsl::ShaderSource::from_string)
-                                  .add_macro("main", "real_main"));
+          R = static_cast<fastuidraw::glsl::PainterShaderRegistrarGLSL*>(&m_painter->painter_shader_registrar());
+          R->add_fragment_shader_util(fastuidraw::glsl::ShaderSource()
+                                      .add_macro("PIXEL_COUNTER_BINDING", m_pixel_counter_buffer_binding_index)
+                                      .add_source(code, fastuidraw::glsl::ShaderSource::from_string)
+                                      .add_macro("main", "real_main"));
+        }
     }
+  #endif
 
   if (m_print_painter_config.value())
     {
@@ -896,30 +906,38 @@ void
 sdl_painter_demo::
 pre_draw_frame(void)
 {
-  if (m_pixel_counter_stack.value() >= 0)
+  #ifndef __EMSCRIPTEN__
     {
-      GLuint bo;
+      if (m_pixel_counter_stack.value() >= 0)
+        {
+          GLuint bo;
 
-      bo = ready_pixel_counter_ssbo(m_pixel_counter_buffer_binding_index);
-      m_pixel_counter_buffers.push_back(bo);
-      ++m_num_pixel_counter_buffers;
+          bo = ready_pixel_counter_ssbo(m_pixel_counter_buffer_binding_index);
+          m_pixel_counter_buffers.push_back(bo);
+          ++m_num_pixel_counter_buffers;
+        }
     }
+  #endif
 }
 
 void
 sdl_painter_demo::
 post_draw_frame(void)
 {
-  if (m_pixel_counter_stack.value() >= 0
-      && m_num_pixel_counter_buffers > m_pixel_counter_stack.value())
+  #ifndef __EMSCRIPTEN__
     {
-      GLuint bo;
+      if (m_pixel_counter_stack.value() >= 0
+          && m_num_pixel_counter_buffers > m_pixel_counter_stack.value())
+        {
+          GLuint bo;
 
-      bo = m_pixel_counter_buffers.front();
-      update_pixel_counts(bo, m_pixel_counts);
+          bo = m_pixel_counter_buffers.front();
+          update_pixel_counts(bo, m_pixel_counts);
 
-      m_pixel_counter_buffers.pop_front();
-      --m_num_pixel_counter_buffers;
+          m_pixel_counter_buffers.pop_front();
+          --m_num_pixel_counter_buffers;
+        }
     }
+  #endif
   m_painter->query_stats(cast_c_array(m_painter_stats));
 }

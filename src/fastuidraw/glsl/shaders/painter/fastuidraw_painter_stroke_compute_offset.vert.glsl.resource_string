@@ -412,7 +412,7 @@ FASTUIDRAW_LOCAL(compute_offset_pixels_rounded_join)(in uint point_packed_data,
     }
   else
     {
-      /* "Joy", screen_t0 and screen_t1 point in different
+      /*  Joy , screen_t0 and screen_t1 point in different
        * directions. In this painful case we will interpolate
        * along a circle
        */

@@ -129,6 +129,12 @@ private:
   void
   create_sdl_gl_context(void);
 
+#ifdef __EMSCRIPTEN__
+  static
+  void
+  render_emscripten_call_back(void *args);
+#endif
+
   std::string m_about;
   command_separator m_common_label;
   command_line_argument_value<int> m_red_bits;
@@ -147,8 +153,13 @@ private:
   command_line_argument_value<int> m_bpp;
   command_line_argument_value<std::string> m_log_gl_commands;
   command_line_argument_value<bool> m_print_gl_info;
+#ifndef __EMSCRIPTEN__
   command_line_argument_value<int> m_swap_interval;
   command_line_argument_value<int> m_gl_major, m_gl_minor;
+#else
+  command_line_argument_value<int> m_emscripten_fps;
+#endif
+
 #ifndef FASTUIDRAW_GL_USE_GLES
   command_line_argument_value<bool> m_gl_forward_compatible_context;
   command_line_argument_value<bool> m_gl_debug_context;

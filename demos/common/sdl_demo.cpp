@@ -30,6 +30,10 @@
 #include <fastuidraw/gl_backend/gl_binding.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "generic_command_line.hpp"
 #include "simple_time.hpp"
 #include "stream_holder.hpp"
@@ -199,7 +203,13 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_stencil_bits(8, "stencil_bits",
                  "Bpp of stencil buffer, non-positive values mean use SDL defaults",
                  *this),
-  m_fullscreen(false, "fullscreen", "fullscreen mode", *this),
+  m_fullscreen(
+               #ifdef __EMSCRIPTEN__
+               true,
+               #else
+               false,
+               #endif
+               "fullscreen", "fullscreen mode", *this),
   m_hide_cursor(false, "hide_cursor", "If true, hide the mouse cursor with a SDL call", *this),
   m_use_msaa(false, "enable_msaa", "If true enables MSAA", *this),
   m_msaa(4, "msaa_samples",
@@ -215,29 +225,43 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_bpp(32, "bpp", "bits per pixel", *this),
   m_log_gl_commands("", "log_gl", "if non-empty, GL commands are logged to the named file. "
                     "If value is stderr then logged to stderr, if value is stdout logged to stdout", *this),
-  m_print_gl_info(false, "print_gl_info", "If true print to stdout GL information", *this),
-  m_swap_interval(-1, "swap_interval",
-                  "If set, pass the specified value to SDL_GL_SetSwapInterval, "
-                  "a value of 0 means no vsync, a value of 1 means vsync and "
-                  "a value of -1, if the platform supports, late swap tearing "
-                  "as found in extensions GLX_EXT_swap_control_tear and "
-                  "WGL_EXT_swap_control_tear. STRONG REMINDER: the value is "
-                  "only passed to SDL_GL_SetSwapInterval if the value is set "
-                  "at command line", *this),
-  #ifdef FASTUIDRAW_GL_USE_GLES
-  m_gl_major(3, "gles_major", "GLES major version", *this),
-  m_gl_minor(0, "gles_minor", "GLES minor version", *this),
+  m_print_gl_info(
+                  #ifdef __EMSCRIPTEN__
+                  true,
+                  #else
+                  false,
+                  #endif
+                  "print_gl_info", "If true print to stdout GL information", *this),
+  #ifndef __EMSCRIPTEN__
+    m_swap_interval(-1, "swap_interval",
+                    "If set, pass the specified value to SDL_GL_SetSwapInterval, "
+                    "a value of 0 means no vsync, a value of 1 means vsync and "
+                    "a value of -1, if the platform supports, late swap tearing "
+                    "as found in extensions GLX_EXT_swap_control_tear and "
+                    "WGL_EXT_swap_control_tear. STRONG REMINDER: the value is "
+                    "only passed to SDL_GL_SetSwapInterval if the value is set "
+                    "at command line", *this),
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      m_gl_major(3, "gles_major", "GLES major version", *this),
+      m_gl_minor(0, "gles_minor", "GLES minor version", *this),
+    #else
+      m_gl_major(3, "gl_major", "GL major version", *this),
+      m_gl_minor(3, "gl_minor", "GL minor version", *this),
+      m_gl_forward_compatible_context(false, "foward_context", "if true request forward compatible context", *this),
+      m_gl_debug_context(false, "debug_context", "if true request a context with debug", *this),
+      m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
+      m_try_to_get_latest_gl_version(true, "try_to_get_latest_gl_version",
+                                     "If true, first create a GL context the old fashioned way "
+                                     "and query its context version and then max that value with "
+                                     "the requested version before making the context used by the application",
+                                     *this),
+    #endif
   #else
-  m_gl_major(3, "gl_major", "GL major version", *this),
-  m_gl_minor(3, "gl_minor", "GL minor version", *this),
-  m_gl_forward_compatible_context(false, "foward_context", "if true request forward compatible context", *this),
-  m_gl_debug_context(false, "debug_context", "if true request a context with debug", *this),
-  m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
-  m_try_to_get_latest_gl_version(true, "try_to_get_latest_gl_version",
-                                 "If true, first create a GL context the old fashioned way "
-                                 "and query its context version and then max that value with "
-                                 "the requested version before making the context used by the application",
-                                 *this),
+  m_emscripten_fps(0, "emscripten_fps",
+                   "Value to pass as fps to emscripten_set_main_loop_arg() "
+                   "A value <= 0  indicates to use the JS interface "
+                   "requestionAnimationFrame, a value > 0 indicates an "
+                   "FPS to -try- for", *this),
   #endif
 
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
@@ -273,7 +297,13 @@ void
 sdl_demo::
 set_sdl_gl_context_attributes(void)
 {
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.value());
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.value());
@@ -387,15 +417,28 @@ init_sdl(void)
       SetProcessDPIAware();
     }
   #endif
-  
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+
+  Uint32 init_flags;
+
+  #ifdef __EMSCRIPTEN__
+    {
+      /* doing SDL_INIT_EVERYTHING makes it not work */
+      init_flags = SDL_INIT_VIDEO;
+    }
+  #else
+    {
+      init_flags = SDL_INIT_EVERYTHING;
+    }
+  #endif
+
+  if (SDL_Init(init_flags) < 0)
     {
       std::cerr << "\nFailed on SDL_Init\n";
       return fastuidraw::routine_fail;
     }
 
   int video_flags;
-  video_flags = SDL_WINDOW_RESIZABLE;
+  video_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
   if (m_fullscreen.value())
     {
@@ -415,7 +458,6 @@ init_sdl(void)
       SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_msaa.value());
     }
 
-  video_flags |= SDL_WINDOW_OPENGL;
   m_window = SDL_CreateWindow("",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               m_width.value(),
@@ -455,15 +497,24 @@ init_sdl(void)
     }
   SDL_GL_MakeCurrent(m_window, m_ctx);
 
-  if (m_swap_interval.set_by_command_line())
+  #ifndef __EMSCRIPTEN__
     {
-      if (SDL_GL_SetSwapInterval(m_swap_interval.value()) != 0)
+      /* Emscripten build of NGL does NOT use function pointers,
+       * instead it just uses macros to all the functions declared
+       * in GLES3/gl3.h
+       */
+      fastuidraw::gl_binding::get_proc_function(get_proc);
+
+      if (m_swap_interval.set_by_command_line())
         {
-          std::cerr << "Warning unable to set swap interval: "
-                    << SDL_GetError() << "\n";
+          if (SDL_GL_SetSwapInterval(m_swap_interval.value()) != 0)
+            {
+              std::cerr << "Warning unable to set swap interval: "
+                        << SDL_GetError() << "\n";
+            }
         }
     }
-  fastuidraw::gl_binding::get_proc_function(get_proc);
+  #endif
 
   if (m_hide_cursor.value())
     {
@@ -499,8 +550,10 @@ init_sdl(void)
                 << "\nGL_MAX_COMBINED_UNIFORM_BLOCKS:" << fastuidraw::gl::context_get<GLint>(GL_MAX_COMBINED_UNIFORM_BLOCKS)
                 << "\nGL_MAX_UNIFORM_BLOCK_SIZE:" << fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE)
                 << "\nGL_MAX_TEXTURE_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_SIZE)
-                << "\nGL_MAX_ARRAY_TEXTURE_LAYERS: " << fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS)
-                << "\nGL_MAX_TEXTURE_BUFFER_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
+        #ifndef __EMSCRIPTEN__
+                << "\nGL_MAX_TEXTURE_BUFFER_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE)
+        #endif
+                << "\nGL_MAX_ARRAY_TEXTURE_LAYERS: " << fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
 
 
       #ifndef FASTUIDRAW_GL_USE_GLES
@@ -533,6 +586,39 @@ swap_buffers(unsigned int count)
       SDL_GL_SwapWindow(m_window);
     }
 }
+
+#ifdef __EMSCRIPTEN__
+void
+sdl_demo::
+render_emscripten_call_back(void *args)
+{
+  sdl_demo *p;
+  SDL_Event ev;
+
+  p = static_cast<sdl_demo*>(args);
+  while (p->m_run_demo && SDL_PollEvent(&ev))
+    {
+      p->handle_event(ev);
+    }
+
+  if (p->m_run_demo)
+    {
+      p->pre_draw_frame();
+      p->draw_frame();
+      p->post_draw_frame();
+    }
+  else
+    {
+      SDL_GL_MakeCurrent(p->m_window, nullptr);
+      SDL_GL_DeleteContext(p->m_ctx);
+      SDL_DestroyWindow(p->m_window);
+      p->m_window = nullptr;
+      p->m_ctx = nullptr;
+      SDL_Quit();
+      emscripten_cancel_main_loop();
+    }
+}
+#endif
 
 
 int
@@ -572,52 +658,66 @@ main(int argc, char **argv)
   SDL_GetWindowSize(m_window, &w, &h);
   init_gl(w, h);
 
-  num_frames = 0;
-  while(m_run_demo)
+  #ifndef __EMSCRIPTEN__
     {
-      if (num_frames == m_num_warm_up_frames.value())
+      num_frames = 0;
+      while(m_run_demo)
         {
-          render_time.restart();
-        }
-
-      pre_draw_frame();
-      draw_frame();
-      post_draw_frame();
-      swap_buffers();
-      ++num_frames;
-
-      if (m_run_demo && m_handle_events)
-        {
-          SDL_Event ev;
-          while(m_run_demo && m_handle_events && SDL_PollEvent(&ev))
+          if (num_frames == m_num_warm_up_frames.value())
             {
-              if (m_reverse_event_y)
+              render_time.restart();
+            }
+
+          pre_draw_frame();
+          draw_frame();
+          post_draw_frame();
+          swap_buffers();
+          ++num_frames;
+
+          if (m_run_demo && m_handle_events)
+            {
+              SDL_Event ev;
+              while(m_run_demo && m_handle_events && SDL_PollEvent(&ev))
                 {
-                  int w, h;
-                  FASTUIDRAWassert(m_window);
-                  SDL_GetWindowSize(m_window, &w, &h);
-                  reverse_y_of_sdl_event(h, ev);
+                  if (m_reverse_event_y)
+                    {
+                      int w, h;
+                      FASTUIDRAWassert(m_window);
+                      SDL_GetWindowSize(m_window, &w, &h);
+                      reverse_y_of_sdl_event(h, ev);
+                    }
+                  handle_event(ev);
                 }
-              handle_event(ev);
             }
         }
-    }
 
-  if (m_show_framerate.value() && num_frames > m_num_warm_up_frames.value())
+      if (m_show_framerate.value() && num_frames > m_num_warm_up_frames.value())
+        {
+          int32_t ms;
+          float msf, numf;
+
+          num_frames -= m_num_warm_up_frames.value();
+
+          ms = render_time.elapsed();
+          numf = static_cast<float>(std::max(1u, num_frames));
+          msf = static_cast<float>(std::max(1, ms));
+          std::cout << "Rendered " << num_frames << " in " << ms << " ms.\n"
+                    << "ms/frame = " << msf / numf  << "\n"
+                    << "FPS = " << 1000.0f * numf / msf << "\n";
+        }
+    }
+  #else
     {
-      int32_t ms;
-      float msf, numf;
+      int loop_forever, fps;
 
-      num_frames -= m_num_warm_up_frames.value();
-
-      ms = render_time.elapsed();
-      numf = static_cast<float>(std::max(1u, num_frames));
-      msf = static_cast<float>(std::max(1, ms));
-      std::cout << "Rendered " << num_frames << " in " << ms << " ms.\n"
-                << "ms/frame = " << msf / numf  << "\n"
-                << "FPS = " << 1000.0f * numf / msf << "\n";
+      /* fps : target FPS, if <= 0 then use JS interface requestionAnimationFrame
+       * loop_forever : if non-zero then loop forever until emscripten_cancel_main_loop()
+       */
+      loop_forever = 1;
+      fps = m_emscripten_fps.value();
+      emscripten_set_main_loop_arg(sdl_demo::render_emscripten_call_back, this, fps, loop_forever);
     }
-
+  #endif
   return m_return_value;
 }
 

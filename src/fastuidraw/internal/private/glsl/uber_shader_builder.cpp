@@ -545,8 +545,8 @@ namespace
     not_cnd = (should_be_defined) ? "!defined" : "defined";
     msg = (should_be_defined) ? "" : "not ";
     dst << "#if " << not_cnd << "(" << macro << ")\n"
-        << "#error \"" << error_message << ": "
-        << macro << " should " << msg << "be defined\"\n"
+        << "#error " << error_message << ": "
+        << macro << " should " << msg << "be defined\n"
         << "#endif\n";
   }
 
@@ -558,8 +558,8 @@ namespace
   {
     dst << "#if (!defined(" << macro1 << ") && !defined(" << macro2 << ")) "
         << " || (defined(" << macro1 << ") && defined(" << macro2 << "))\n"
-        << "#error \"" << error_message << ": exactly one of "
-        << macro1 << " or " << macro2 << " should be defined\"\n"
+        << "#error " << error_message << ": exactly one of "
+        << macro1 << " or " << macro2 << " should be defined\n"
         << "#endif\n";
   }
 
