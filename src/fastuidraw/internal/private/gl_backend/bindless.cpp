@@ -23,9 +23,16 @@
 fastuidraw::gl::detail::Bindless::
 Bindless(void)
 {
-  gl::ContextProperties ctx;
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
     {
+      m_type = no_bindless_texture;
+    }
+  #else
+    {
+      gl::ContextProperties ctx;
+
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        {
       if(ctx.has_extension("GL_NV_bindless_texture"))
         {
           m_type = nv_bindless_texture;
@@ -35,7 +42,7 @@ Bindless(void)
           m_type = no_bindless_texture;
         }
     }
-  #else
+      #else
     {
       if (ctx.has_extension("GL_ARB_bindless_texture"))
         {
@@ -50,6 +57,8 @@ Bindless(void)
           m_type = no_bindless_texture;
         }
     }
+      #endif
+    }
   #endif
 }
 
@@ -57,7 +66,12 @@ GLuint64
 fastuidraw::gl::detail::Bindless::
 get_texture_handle(GLuint tex) const
 {
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      FASTUIDRAWassert(!"Bindless not supported");
+      return 0;
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       FASTUIDRAWassert(m_type == nv_bindless_texture);
       return fastuidraw_glGetTextureHandleNV(tex);
@@ -81,7 +95,11 @@ void
 fastuidraw::gl::detail::Bindless::
 make_texture_handle_resident(GLuint64 h) const
 {
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      FASTUIDRAWassert(!"Bindless not supported");
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       FASTUIDRAWassert(m_type == nv_bindless_texture);
       fastuidraw_glMakeTextureHandleResidentNV(h);
@@ -105,7 +123,11 @@ void
 fastuidraw::gl::detail::Bindless::
 make_texture_handle_non_resident(GLuint64 h) const
 {
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
+    {
+      FASTUIDRAWassert(!"Bindless not supported");
+    }
+  #elif defined(FASTUIDRAW_GL_USE_GLES)
     {
       FASTUIDRAWassert(m_type == nv_bindless_texture);
       fastuidraw_glMakeTextureHandleNonResidentNV(h);

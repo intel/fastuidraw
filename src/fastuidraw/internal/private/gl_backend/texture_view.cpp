@@ -25,29 +25,29 @@ enum fastuidraw::gl::detail::texture_view_support_t
 fastuidraw::gl::detail::
 compute_texture_view_support(void)
 {
-  ContextProperties ctx;
-  if (ctx.is_es())
+  #ifndef __EMSCRIPTEN__
     {
-      if (ctx.has_extension("GL_OES_texture_view"))
+      ContextProperties ctx;
+      if (ctx.is_es())
         {
-          return texture_view_oes_extension;
+          if (ctx.has_extension("GL_OES_texture_view"))
+            {
+              return texture_view_oes_extension;
+            }
+          if (ctx.has_extension("GL_EXT_texture_view"))
+            {
+              return texture_view_ext_extension;
+            }
         }
-      if (ctx.has_extension("GL_EXT_texture_view"))
-        {
-          return texture_view_ext_extension;
-        }
-    }
-  else
-    {
-      #ifndef __APPLE__
+      else
         {
           if (ctx.version() >= ivec2(4, 3) || ctx.has_extension("GL_ARB_texture_view"))
             {
               return texture_view_without_extension;
             }
         }
-      #endif
     }
+  #endif
 
   return texture_view_not_supported;
 }
@@ -58,7 +58,7 @@ texture_view(enum texture_view_support_t md,
              GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat,
              GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers)
 {
-  #ifdef __APPLE__
+  #if defined(__EMSCRIPTEN__)
     {
       FASTUIDRAWunused(md);
       FASTUIDRAWunused(texture);

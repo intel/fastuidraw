@@ -1,0 +1,14 @@
+FastUIDraw has support for Emscripten, however using it requires some work.
+
+Firstly, to build FastUIDraw for Emscripten, use the makefile Makefile.emscripten
+instead of the default makefile, Makefile; Makefile.emscripten builds uses the
+same Rules.mk file as the defualt build system to gather up the needed source files
+to do the build.
+
+To use FastUIDraw in one's own Emscripten project, one needs to do the following:
+ - add the flags FASTUIDRAW_EMSCRIPTEN_LIBS found in Makefile.emscripten
+ - add where the headers of fastuidraw are located (for example when building the demos, -Iinc is added)
+ - for debug build, also add the flags FASTUIDRAW_EMSCRIPTEN_DEBUG_FLAGS
+ - for debug build, add libFastUIDraw-emscripten-debug.bc to ones list of objects to link
+ - for release build, also add the flags FASTUIDRAW_EMSCRIPTEN_RELEASE_FLAGS
+ - for release build, add libFastUIDraw-emscripten-release.bc to ones list of objects to link

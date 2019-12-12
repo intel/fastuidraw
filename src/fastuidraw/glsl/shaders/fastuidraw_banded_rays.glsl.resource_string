@@ -82,10 +82,10 @@ fastuidraw_banded_rays_load_curve(in uint loc, out fastuidraw_banded_rays_curve 
 }
 
 vec2
-fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curve)
+fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curve, out float f1, out float f2)
 {
   const float tiny = 0.0001;
-  float rA, D, t1, t2, x1, x2;
+  float x1, x2, t1, t2;
   vec2 A, B, C;
 
   /* The curve is given by
@@ -102,33 +102,48 @@ fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curv
   B = curve.p0 - curve.p1;
   C = curve.p0;
 
-  rA = 1.0 / A.y;
-  D = sqrt(max(B.y * B.y - A.y * C.y, 0.0));
-  t1 = (B.y - D) * rA;
-  t2 = (B.y + D) * rA;
+  if (abs(A.y) > tiny)
+    {
+      float D, Ap, Bp, q1, q2, q3, signA;
 
-  if (abs(A.y) < tiny)
+      signA = sign(A.y);
+      q1 = signA * curve.p0.y;
+      q2 = signA * curve.p1.y;
+      q3 = signA * curve.p2.y;
+      Ap = abs(A.y);
+      Bp = signA * B.y;
+
+      D = B.y * B.y - A.y * C.y;
+      if (D > 0.0)
+        {
+          float rA;
+
+          D = sqrt(D);
+          rA = 1.0 / Ap;
+
+          t1 = (Bp - D) * rA;
+          t2 = (Bp + D) * rA;
+
+          f1 = ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0)) ? signA : 0.0;
+          f2 = ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0)) ? -signA : 0.0;
+        }
+      else
+        {
+          t1 = t2 = 0.0;
+          f1 = f2 = 0.0;
+        }
+    }
+  else
     {
       t1 = t2 = 0.5 * C.y / B.y;
+
+      f1 = (curve.p0.y > 0.0 && curve.p2.y <= 0.0) ? +1.0 : 0.0;
+      f2 = (curve.p0.y <= 0.0 && curve.p2.y > 0.0) ? -1.0 : 0.0;
     }
 
   x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
   x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
   return vec2(x1, x2);
-}
-
-uint
-fastuidraw_banded_rays_compute_y_equals_0_code(in fastuidraw_banded_rays_curve curve)
-{
-  uint code;
-  /* TODO: there are faster ways to get the code by
-   * exploiting the expected bit-patterns for floats
-   */
-  code = ((curve.p0.y > 0.0) ? 2u : 0u)
-    | ((curve.p1.y > 0.0) ? 4u : 0u)
-    | ((curve.p2.y > 0.0) ? 8u : 0u);
-  code = (0x2E74u >> code) & 0x3u;
-  return code;
 }
 
 void
@@ -144,7 +159,6 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
   for (uint c = 0u, curve_src = curve_offset; c < num_curves; curve_src += 3u, ++c)
     {
       fastuidraw_banded_rays_curve curve;
-      uint code;
 
       fastuidraw_banded_rays_load_curve(curve_src, curve);
 
@@ -156,25 +170,23 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
       if (s > 0.0 && max(curve.p0.x, max(curve.p1.x, curve.p2.x)) * em < -0.5) break;
       if (s < 0.0 && min(curve.p0.x, min(curve.p1.x, curve.p2.x)) * em > 0.5) break;
 
-      code = fastuidraw_banded_rays_compute_y_equals_0_code(curve);
-      if (code != 0u)
         {
           vec2 x1x2;
-          float x1, x2;
+          float x1, x2, f1, f2;
 
-          x1x2 = em * fastuidraw_banded_rays_intersect_y_equals_0(curve);
+          x1x2 = em * fastuidraw_banded_rays_intersect_y_equals_0(curve, f1, f2);
           x1 = x1x2.x;
           x2 = x1x2.y;
 
-          if ((code & 1u) != 0u)
+          if (f1 != 0.0)
             {
-              coverage += clamp(0.5 + x1 * s, 0.0, 1.0);
+              coverage += clamp(0.5 + x1 * s, 0.0, 1.0) * f1;
               nearest_curve_distance = min(nearest_curve_distance, abs(x1));
             }
 
-          if (code > 1u)
+          if (f2 != 0.0)
             {
-              coverage -= clamp(0.5 + x2 * s, 0.0, 1.0);
+              coverage += clamp(0.5 + x2 * s, 0.0, 1.0) * f2;
               nearest_curve_distance = min(nearest_curve_distance, abs(x2));
             }
         }
@@ -276,7 +288,7 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
                                                     em.y, sy, coverage.y, nearest_curve_distance.y);
 
   /* We support the odd-even fill rule by removing
-   * the "2n" part of coverage.
+   * the  2n  part of coverage.
    */
   if (use_odd_even_rule)
     {

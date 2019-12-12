@@ -96,25 +96,29 @@ request_vao(void)
       return_value.m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_num_indices * sizeof(PainterIndex));
       return_value.m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_num_attributes * sizeof(uint32_t));
 
-      if (m_data_store_backing == glsl::PainterShaderRegistrarGLSL::data_store_tbo)
+      #ifndef __EMSCRIPTEN__
         {
-          return_value.m_data_tbo = generate_tbo(return_value.m_data_bo, GL_RGBA32UI,
-                                                 return_value.m_data_store_binding_point);
+          if (m_data_store_backing == glsl::PainterShaderRegistrarGLSL::data_store_tbo)
+            {
+              return_value.m_data_tbo = generate_tbo(return_value.m_data_bo, GL_RGBA32UI,
+                                                     return_value.m_data_store_binding_point);
+            }
         }
+      #endif
 
       if (m_buffer_streaming_type != PainterEngineGL::buffer_streaming_use_mapping)
-	{
-	  return_value.m_buffers = FASTUIDRAWnew client_buffers(m_num_attributes, m_num_indices, m_blocks_per_data_buffer);
-	  return_value.m_attributes = make_c_array(return_value.m_buffers->m_attributes_store);
-	  return_value.m_header_attributes = make_c_array(return_value.m_buffers->m_header_attributes_store);
-	  return_value.m_indices = make_c_array(return_value.m_buffers->m_indices_store);
-	  return_value.m_data = make_c_array(return_value.m_buffers->m_data_store);
-	}
+        {
+          return_value.m_buffers = FASTUIDRAWnew client_buffers(m_num_attributes, m_num_indices, m_blocks_per_data_buffer);
+          return_value.m_attributes = make_c_array(return_value.m_buffers->m_attributes_store);
+          return_value.m_header_attributes = make_c_array(return_value.m_buffers->m_header_attributes_store);
+          return_value.m_indices = make_c_array(return_value.m_buffers->m_indices_store);
+          return_value.m_data = make_c_array(return_value.m_buffers->m_data_store);
+        }
       
       if (m_assume_single_gl_context)
-	{
-	  create_vao(return_value);
-	}
+        {
+          create_vao(return_value);
+        }
       return_value.m_pool = m_current_pool;
     }
   else
@@ -168,9 +172,9 @@ request_vao(void)
 void
 fastuidraw::gl::detail::painter_vao_pool::
 unmap_vao_buffers(unsigned int attributes_written,
-		  unsigned int indices_written,
-		  unsigned int data_store_written,
-		  const painter_vao &vao)
+          unsigned int indices_written,
+          unsigned int data_store_written,
+          const painter_vao &vao)
 {
   if (m_buffer_streaming_type == PainterEngineGL::buffer_streaming_use_mapping)
     {
@@ -223,8 +227,8 @@ unmap_vao_buffers(unsigned int attributes_written,
 void
 fastuidraw::gl::detail::painter_vao_pool::
 prepare_index_vertex_sources(GLuint attribute_bo,
-			     GLuint header_bo,
-			     GLuint index_bo)
+                             GLuint header_bo,
+                             GLuint index_bo)
 {
   opengl_trait_value v;
 
@@ -262,8 +266,8 @@ create_vao(painter_vao &return_value)
   fastuidraw_glBindVertexArray(return_value.m_vao);
 
   prepare_index_vertex_sources(return_value.m_attribute_bo,
-			       return_value.m_header_bo,
-			       return_value.m_index_bo);
+                   return_value.m_header_bo,
+                   return_value.m_index_bo);
 
   fastuidraw_glBindVertexArray(0);
 }
@@ -320,12 +324,20 @@ generate_tbo(GLuint src_buffer, GLenum fmt, unsigned int unit)
 {
   GLuint return_value(0);
 
-  fastuidraw_glGenTextures(1, &return_value);
-  FASTUIDRAWassert(return_value != 0);
+  #ifndef __EMSCRIPTEN__
+    {
+      fastuidraw_glGenTextures(1, &return_value);
+      FASTUIDRAWassert(return_value != 0);
 
-  fastuidraw_glActiveTexture(GL_TEXTURE0 + unit);
-  fastuidraw_glBindTexture(GL_TEXTURE_BUFFER, return_value);
-  tex_buffer(m_tex_buffer_support, GL_TEXTURE_BUFFER, fmt, src_buffer);
+      fastuidraw_glActiveTexture(GL_TEXTURE0 + unit);
+      fastuidraw_glBindTexture(GL_TEXTURE_BUFFER, return_value);
+      tex_buffer(m_tex_buffer_support, GL_TEXTURE_BUFFER, fmt, src_buffer);
+    }
+  #else
+    {
+      FASTUIDRAWassert(!"TexBuffer not supported");
+    }
+  #endif
 
   return return_value;
 }

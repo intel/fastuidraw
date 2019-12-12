@@ -324,31 +324,6 @@ fastuidraw_restricted_rays_apply_transformation(in vec2 p,
               dot(tr.jq_vector, p));
 }
 
-uint
-fastuidraw_restricted_rays_compute_code(in float y1, in float y2, in float y3)
-{
-  uint code;
-
-  /* The purpose of the algorithm is to determine in a numerically stable
-   * way if a an intersection of the quadratic parametric curve against
-   * y = 0 is in the paremtirc range [0, 1]. What is does is to examine
-   * which of the control points are above the line y = 0. There are 8
-   * possibilities each yielding a result of weather or not to use the
-   * first and/or second intersection of the quadratic curve against the
-   * line y = 0. Rather than have a massive cumberson switch-case statement
-   * we simply store a single 16-bit value where 2-bits are given for each
-   * of the cases. The shift by the value of code is choosing which of
-   * those 2-bits and the bit-wise and by 3 is to make the test for the
-   * second bit from checking if a bit if up to just testing if the value
-   * is strictly greater than 1.
-   */
-  code = (y1 > 0.0 ? 2u : 0u)
-    + (y2 > 0.0 ? 4u : 0u)
-    + (y3 > 0.0 ? 8u : 0u);
-
-  return (0x2E74u >> code) & 0x3u;
-}
-
 int
 fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted_rays_curve_type curve,
                                                         in fastuidraw_restricted_rays_transformation tr,
@@ -356,7 +331,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
 {
   vec2 A, B, C;
   int R = 0;
-  uvec2 code;
 
   curve.p1 = fastuidraw_restricted_rays_apply_transformation(curve.p1, tr);
   curve.p2 = fastuidraw_restricted_rays_apply_transformation(curve.p2, tr);
@@ -366,139 +340,170 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   B = curve.p1 - curve.p2;
   C = curve.p1;
 
-  code.x = fastuidraw_restricted_rays_compute_code(curve.p1.x, curve.p2.x, curve.p3.x);
-  code.y = fastuidraw_restricted_rays_compute_code(curve.p1.y, curve.p2.y, curve.p3.y);
-  if (code.y != 0u)
     {
       float t1, t2, x1, x2;
       const float quad_tol = 0.0001;
+      int incr1, incr2;
 
       if (curve.is_quadratic && abs(A.y) > quad_tol)
         {
-          float D, rA = 1.0 / A.y;
+          int incr_base;
+          float q1, q2, q3, Ap, Bp, D, rA, signA;
+
+          /* our inequalities for enforcing 0 <= t <= 1
+           * assmume that A > 0; When A < 0, we flip
+           * the parobola; this affects the ordering
+           * of the solutions and requires us to flip
+           * the winding contribution
+           */
+          signA = sign(A.y);
+          incr_base = (A.y > 0.0) ? 1 : -1;
+          q1 = signA * curve.p1.y;
+          q2 = signA * curve.p2.y;
+          q3 = signA * curve.p3.y;
+          Ap = abs(A.y);
+          Bp = signA * B.y;
 
           D = B.y * B.y - A.y * C.y;
+
           if (D < 0.0)
             {
-              /* the original paper let the point get counted even
-               * when the descrimant was negative with the motivation
-               * that the changes by the t's would cancel each other.
-               * However, we are also computing a distance value to
-               * the curve and we don't want to allow those t's to
-               * affect the distance values (because the points (x1, 0)
-               * and (x2, 0) are not on the curves), so we just kill
-               * the possibility that they affect the values by just
-               * changing the code to zero.
+              /* the parobola does not go through y = 0, thus it does
+               * not contribute to the winding number.
                */
-              code.y = 0u;
-              D = 0.0;
+              t1 = t2 = 2.0;
+              incr1 = incr2 = 0;
             }
+          else
+            {
+              rA = 1.0 / Ap;
+              D = sqrt(D);
 
-          D = sqrt(D);
-          t1 = (B.y - D) * rA;
-          t2 = (B.y + D) * rA;
+              t1 = (Bp - D) * rA;
+              t2 = (Bp + D) * rA;
+
+              /* We need to enfore the condition that
+               * 0 <= t <= 1 in a numerically stable way;
+               * we do this with the a hammer of algebra:
+               *
+               * 0 <= (Bp - sqrt(BB - AC)) / Ap <= 1
+               *
+               * becomes
+               *
+               * Condition1 = (Bp >=0 && Cp >=0) && (Ap > Bp || Ap - 2Bp + Cp < 0)
+               *            = (q1 >= q2 && q1 >= 0) && (q3 > q2 || q3 < 0)
+               *
+               * 0 <= (Bp + sqrt(BB - AC)) / Ap <= 1
+               *
+               * becomes
+               *
+               * Condition2 = (Ap > Bp && Ap - 2Bp + Cp > 0) && (Bp >=0 || Cp <= 0)
+               *            = (q3 > q2 && q3 > 0) && (q1 >= q2 || q1 <= 0)
+               */
+
+              if ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0))
+                {
+                  incr1 = incr_base;
+                }
+              else
+                {
+                  incr1 = 0;
+                }
+
+              if ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0))
+                {
+                  incr2 = -incr_base;
+                }
+              else
+                {
+                  incr2 = 0;
+                }
+            }
         }
       else
         {
           t1 = t2 = 0.5 * C.y / B.y;
+          incr1 = (curve.p1.y >= 0.0 && curve.p3.y < 0.0) ? 1 : 0;
+          incr2 = (curve.p1.y <= 0.0 && curve.p3.y > 0.0) ? -1 : 0;
         }
 
       x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      /* The winding number computation comes from the paper
-       * "GPU-Centered Font Rendering Directly from Glyph Outlines"
-       * by Eric Lengyel. The reason why the winding at t1 is always
-       * decremented and t2 is always incremented comes from the
-       * following:
-       *
-       *  y(t) = C + Bt + At^2
-       *
-       * which factors into:
-       *
-       *  y(t) = A(t - t1)(t - t2)
-       *
-       * whose derivative is
-       *
-       * y'(t) = A(t - t1) + A(t - t2)
-       *
-       * the two cases to examine are A > 0 and A < 0 when the roots are real.
-       *   case A > 0: then t1 <= t2, thus y'(t1) = A(t - t2) < 0 and y'(t2) = A(t2 - t1) > 0
-       *   case A < 0: then t1 >= t2, thus y'(t1) = A(t - t2) < 0 and y'(t2) = A(t2 - t1) > 0
-       *
-       * Thus, the change in the winding number for t1 and t2 will only depend on
-       * if x1 (repsectively x2) is greater or smaller than zero. When crossing from
-       * the fragment point to the reference point, the change is by one in the
-       * opposite of the sign of y'. For modifying the winding number, we only note
-       * the crossing if it is between the fragment and reference point (which means
-       * the x value is non-negative). Thus, the effect of t1 is to always increment
-       * (because y'(t1) <= 0) and the effect for t2 is to always decrement. However,
-       * the effect on the distance value is that the cross represents changing the
-       * winding number at the fragment point by +1 if x1 < 0 and -1 if x1 > 0 for t1.
-       * Similairly, the change in winding from the fragment point is -1 for
-       * x2 < 0 and +1 if x2 > 0 for t2.
-       *
-       * Additionally, although the condition x1 >= 0 (and x2 >= 0) are numerically unstable
-       * near the curve, that is OK because the anti-aliasing molifies the instability.
-       *
-       * Lastly, the entire point of the code value is to avoid testing against
-       * if t is in the range [0, 1]. Thus, for the distance updates we do not need
-       * to check if t is in range.
-       */
-
-      if ((code.y & 1u) != 0u)
+      if (incr1 != 0)
         {
           if (x1 <= tr.reference_location && x1 >= 0.0)
             {
-              R += 1;
+              R += incr1;
             }
-          fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
+
+          bool is_increment;
+          is_increment = (incr1 > 0) ? (x1 < 0.0) : (x1 > 0.0);
+          fastuidraw_restricted_rays_update_distance(abs(x1), is_increment, dst);
         }
 
-      if (code.y > 1u)
+      if (incr2 != 0)
         {
           if (x2 <= tr.reference_location && x2 >= 0.0)
             {
-              R -= 1;
+              R += incr2;
             }
-          fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
+
+          bool is_increment;
+          is_increment = (incr2 > 0) ? (x2 < 0.0) : (x2 > 0.0);
+          fastuidraw_restricted_rays_update_distance(abs(x2), is_increment, dst);
         }
     }
 
-  if (code.x != 0u)
+    /* we do the x-solve just for the distance function,
+     * since we are just aiming for a distance, we can
+     * use the numerically unstable 0 <= t <= 1 instead
+     * of the nasty condition from the control points
+     * directly.
+     */
     {
       float t1, t2, y1, y2;
       const float quad_tol = 0.0001;
+      bool a1, a2;
 
       if (curve.is_quadratic && abs(A.x) > quad_tol)
         {
-          float D, rA = 1.0 / A.x;
+          float D;
 
           D = B.x * B.x - A.x * C.x;
           if (D < 0.0)
             {
-              code.x = 0u;
               D = 0.0;
+              a1 = a2 = false;
             }
+          else
+            {
+              float rA = 1.0 / A.x;
 
-          D = sqrt(D);
-          t1 = (B.x - D) * rA;
-          t2 = (B.x + D) * rA;
+              D = sqrt(D);
+              t1 = (B.x - D) * rA;
+              t2 = (B.x + D) * rA;
+
+              a1 = (t1 >= 0.0 && t1 <= 1.0);
+              a2 = (t2 >= 0.0 && t2 <= 1.0);
+            }
         }
       else
         {
           t1 = t2 = 0.5 * C.x / B.x;
+          a1 = (curve.p1.x >= 0.0 && curve.p3.x < 0.0);
+          a2 = (curve.p1.x <= 0.0 && curve.p3.x > 0.0);
         }
 
       y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
       y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
 
-      if ((code.x & 1u) != 0u)
+      if (a1)
         {
           fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
         }
 
-      if (code.x > 1u)
+      if (a2)
         {
           fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
         }

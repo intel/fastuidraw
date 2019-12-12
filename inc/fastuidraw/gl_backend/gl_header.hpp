@@ -16,16 +16,14 @@
  *
  */
 
-#ifdef FASTUIDRAW_GL_USE_GLES
+#ifdef __EMSCRIPTEN__
+  #include <GLES3/gl3.h>
+#elif defined(FASTUIDRAW_GL_USE_GLES)
   #include <GLES3/gl3platform.h>
   #include <GLES3/gl3.h>
   #include <GLES3/gl31.h>
   #include <GLES3/gl32.h>
   #include <GLES2/gl2ext.h>
 #else
-  #if defined(__APPLE__)
-    #include <OpenGL/gl3.h>
-  #else
-    #include <GL/glcorearb.h>
-  #endif
+  #include <GL/glcorearb.h>
 #endif

@@ -126,7 +126,7 @@ namespace fastuidraw
         reference_counted_ptr<GlyphAtlasGL> m_glyph_atlas;
         reference_counted_ptr<ImageAtlasGL> m_image_atlas;
         reference_counted_ptr<ColorStopAtlasGL> m_colorstop_atlas;
-	std::vector<uint32_t> m_uniform_values;
+        std::vector<uint32_t> m_uniform_values;
 
         GLuint m_nearest_filter_sampler;
         reference_counted_ptr<painter_vao_pool> m_pool;

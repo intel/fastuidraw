@@ -23,7 +23,7 @@ public:
 
   explicit
   sdl_painter_demo(const std::string &about_text=std::string(),
-                   bool default_value_for_print_painter_config = false);
+                   bool default_value_for_print_painter_config = true);
 
   ~sdl_painter_demo();
 

@@ -231,9 +231,16 @@ enum fastuidraw::gl::detail::CopyImageSubData::type_t
 fastuidraw::gl::detail::CopyImageSubData::
 compute_type(void)
 {
-  ContextProperties ctx;
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  #ifdef __EMSCRIPTEN__
     {
+      return emulate_function;
+    }
+  #else
+    {
+      ContextProperties ctx;
+
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        {
       if (ctx.version() >= ivec2(3, 2))
         {
           return unextended_function;
@@ -251,10 +258,8 @@ compute_type(void)
 
       return emulate_function;
     }
-  #else
+      #else
     {
-      #ifndef __APPLE__
-        {
           if (ctx.version() >= ivec2(4,3) || ctx.has_extension("GL_ARB_copy_image"))
             {
               return unextended_function;
@@ -283,7 +288,8 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 
   switch(m_type)
     {
-#ifndef __APPLE__
+#ifndef __EMSCRIPTEN__
+
     case unextended_function:
       fastuidraw_glCopyImageSubData(srcName, srcTarget, srcLevel,
                                     srcX, srcY, srcZ,
@@ -291,7 +297,6 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
                                     dstX, dstY, dstZ,
                                     width, height, depth);
       break;
-#endif
 
 #ifdef FASTUIDRAW_GL_USE_GLES
     case oes_function:
@@ -308,6 +313,8 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
                                        dstX, dstY, dstZ,
                                        width, height, depth);
       break;
+#endif
+
 #endif
 
     default:

@@ -16,8 +16,9 @@
  *
  */
 
-
-#ifdef FASTUIDRAW_GL_USE_GLES
+#ifdef __EMSCRIPTEN__
+  #include <fastuidraw/gl_backend/ngl_emscripten_gles3.hpp>
+#elif defined(FASTUIDRAW_GL_USE_GLES)
   #include <fastuidraw/gl_backend/ngl_gles3.hpp>
 #else
   #include <fastuidraw/gl_backend/ngl_gl.hpp>
