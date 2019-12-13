@@ -117,7 +117,7 @@ fastuidraw_banded_rays_load_curve(in uint loc, out fastuidraw_banded_rays_curve 
 }
 
 vec2
-fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curve, out bool f1, out bool f2, out int isignA)
+fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curve, out bool f1, out bool f2, out float signA)
 {
   const float tiny = 0.0001;
   float x1, x2, t1, t2;
@@ -139,10 +139,9 @@ fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curv
 
   if (abs(A.y) > tiny)
     {
-      float D, Ap, Bp, q1, q2, q3, signA;
+      float D, Ap, Bp, q1, q2, q3;
 
       signA = sign(A.y);
-      isignA = (A.y > 0.0) ? 1 : -1;
       q1 = signA * curve.p0.y;
       q2 = signA * curve.p1.y;
       q3 = signA * curve.p2.y;
@@ -171,7 +170,7 @@ fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curv
     }
   else
     {
-      isignA = 1;
+      signA = 1.0;
       t1 = t2 = 0.5 * C.y / B.y;
 
       f1 = (curve.p0.y >= 0.0 && curve.p2.y < 0.0);
@@ -187,7 +186,7 @@ void
 fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
                                                   in uint num_curves,
                                                   in vec2 glyph_coord,
-                                                  in float em, in int s,
+                                                  in float em, in float s,
                                                   out int winding,
                                                   inout fastuidraw_banded_rays_distance_type nv)
 {
@@ -208,30 +207,29 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
 
         {
           vec2 x1x2;
-          float x1, x2;
+          float f, x1, x2;
           bool f1, f2;
-          int f;
 
           x1x2 = em * fastuidraw_banded_rays_intersect_y_equals_0(curve, f1, f2, f);
-          x1 = x1x2.x;
-          x2 = x1x2.y;
+          x1 = s * x1x2.x;
+          x2 = s * x1x2.y;
 
           if (f1)
             {
-              if (s * x1 > 0.0)
+              if (x1 > 0.0)
                 {
-                  winding += f;
+                  winding += int(f);
                 }
-              fastuidraw_banded_rays_update_distance(abs(x1), f > 0, nv);
+              fastuidraw_banded_rays_update_distance(abs(x1), f * x1 < 0.0, nv);
             }
 
           if (f2)
             {
-              if (s * x2 > 0.0)
+              if (x2 > 0.0)
                 {
-                  winding -= f;
+                  winding -= int(f);
                 }
-              fastuidraw_banded_rays_update_distance(abs(x2), f < 0, nv);
+              fastuidraw_banded_rays_update_distance(abs(x2), f * x2 > 0.0, nv);
             }
         }
     }
@@ -263,7 +261,7 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
   vec2 em, band_factor;
   fastuidraw_banded_rays_distance_type nv;
   ivec2 winding;
-  int sx, sy;
+  float sx, sy;
   uint horiz_band, vert_band;
   fastuidraw_banded_rays_band horiz_band_data, vert_band_data;
 
@@ -286,22 +284,22 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
   if (glyph_coord.x < 0.0)
     {
       horiz_band_offset += num_horizontal_bands;
-      sx = -1;
+      sx = -1.0;
     }
   else
     {
-      sx = 1;
+      sx = 1.0;
     }
 
   vert_band_offset = vert_band + 2u * num_horizontal_bands;
   if (glyph_coord.y < 0.0)
     {
       vert_band_offset += num_vertical_bands;
-      sy = -1;
+      sy = -1.0;
     }
   else
     {
-      sy = +1;
+      sy = +1.0;
     }
 
   /* load the horizontal and vertical band headers */
