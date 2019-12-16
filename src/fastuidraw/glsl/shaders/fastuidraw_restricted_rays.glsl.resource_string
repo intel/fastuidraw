@@ -309,7 +309,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   vec2 A, B, C;
   int incr, R = 0;
   bool a1, a2;
-  float t1, t2, x1, x2, y1, y2, signA;
+  float q1, q2, q3, t1, t2, x1, x2, y1, y2, signA;
   const float quad_tol = 0.0001;
 
   curve.p1 = fastuidraw_restricted_rays_apply_transformation(curve.p1, tr);
@@ -320,9 +320,18 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   B = curve.p1 - curve.p2;
   C = curve.p1;
 
+  signA = sign(A.y);
+  q1 = signA * curve.p1.y;
+  q2 = signA * curve.p2.y;
+  q3 = signA * curve.p3.y;
+
+  incr = (A.y > 0.0) ? 1 : -1;
+  a1 = (q1 > 0.0 && (q3 < 0.0 || q2 < 0.0));
+  a2 = (q3 > 0.0 && (q1 < 0.0 || q2 < 0.0));
+
   if (curve.is_quadratic && abs(A.y) > quad_tol)
     {
-      float q1, q2, q3, Ap, Bp, D, rA;
+      float Ap, Bp, D, rA;
 
       /* our inequalities for enforcing 0 <= t <= 1
        * assmume that A > 0; When A < 0, we flip
@@ -330,11 +339,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
        * of the solutions and requires us to flip
        * the winding contribution
        */
-      signA = sign(A.y);
-      incr = (A.y > 0.0) ? 1 : -1;
-      q1 = signA * curve.p1.y;
-      q2 = signA * curve.p2.y;
-      q3 = signA * curve.p3.y;
       Ap = abs(A.y);
       Bp = signA * B.y;
 
@@ -373,9 +377,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
            * Condition2 = (Ap > Bp && Ap - 2Bp + Cp > 0) && (Bp >=0 || Cp <= 0)
            *            = (q3 > q2 && q3 > 0) && (q1 >= q2 || q1 <= 0)
            */
-
-          a1 = ((q1 > q2 && q1 > 0.0) && (q3 > q2 || q3 < 0.0));
-          a2 = ((q3 > q2 && q3 > 0.0) && (q1 > q2 || q1 < 0.0));
         }
     }
   else
