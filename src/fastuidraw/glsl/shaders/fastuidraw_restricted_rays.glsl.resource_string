@@ -108,6 +108,28 @@ fastuidraw_restricted_rays_update_distance(in vec2 p, in bool is_increment,
   fastuidraw_restricted_rays_update_distance(d, is_increment, nv);
 }
 
+bool
+fastuidraw_restricted_rays_is_increment(in vec2 p, in vec2 dp)
+{
+  float det;
+
+  /* The vector from the origin to the point is given by the point value, p.
+   * the direction of the curve is given by dp. When crossing the curve in the
+   * direction from the origin to p, the winding is incremented if the pair
+   * (p, dp) forms a 2x2 matrix that has positive determinant and decrements
+   * otherwise.
+   */
+  det = p.x * dp.y - p.y * dp.x;
+  return det > 0.0;
+}
+
+void
+fastuidraw_restricted_rays_update_distance(in vec2 p, in vec2 dp,
+                                           inout fastuidraw_restricted_rays_distance_type nv)
+{
+  fastuidraw_restricted_rays_update_distance(p, fastuidraw_restricted_rays_is_increment(p, dp), nv);
+}
+
 uint
 fastuidaw_restricted_rays_compute_box(in vec2 p,
                                       in uint data_location,
@@ -309,7 +331,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   vec2 A, B, C;
   int R = 0;
   bool increment, decrement, use_t1, use_t2;
-  float t1, t2, x1, x2, y1, y2, sy;
+  float t1, t2, x1, x2, y1, y2;
   const float quad_tol = 0.0001;
   vec2 q1, q2, q3;
 
@@ -381,14 +403,12 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       q1 = vec2(curve.p3.x, -curve.p3.y);
       q2 = vec2(curve.p2.x, -curve.p2.y);
       q3 = vec2(curve.p1.x, -curve.p1.y);
-      sy = -1.0;
     }
   else
     {
       q1 = curve.p1;
       q2 = curve.p2;
       q3 = curve.p3;
-      sy = 1.0;
     }
 
   A.x = q1.x - 2.0 * q2.x + q3.x;
@@ -418,25 +438,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
 
           t1 = (B.y - D) * rA;
           t2 = (B.y + D) * rA;
-
-          /* We need to enfore the condition that
-           * 0 <= t <= 1 in a numerically stable way;
-           * we do this with the a hammer of algebra:
-           *
-           * 0 <= (Bp - sqrt(BB - AC)) / Ap <= 1
-           *
-           * becomes
-           *
-           * Condition1 = (Bp >=0 && Cp >=0) && (Ap > Bp || Ap - 2Bp + Cp < 0)
-           *            = (q1 >= q2 && q1 >= 0) && (q3 > q2 || q3 < 0)
-           *
-           * 0 <= (Bp + sqrt(BB - AC)) / Ap <= 1
-           *
-           * becomes
-           *
-           * Condition2 = (Ap > Bp && Ap - 2Bp + Cp > 0) && (Bp >=0 || Cp <= 0)
-           *            = (q3 > q2 && q3 > 0) && (q1 >= q2 || q1 <= 0)
-           */
         }
     }
   else
@@ -454,6 +455,10 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
           R += 1;
         }
 
+      /* We know that the root t1 if used always -increments- the winding
+       * number, this is why we only need to look at if the curve intersects
+       * y = 0 before or after the origin
+       */
       fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
     }
 
@@ -464,6 +469,10 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
           R -= 1;
         }
 
+      /* We know that the root t2 if used always -decrements- the winding
+       * number, this is why we only need to look at if the curve intersects
+       * y = 0 before or after the origin
+       */
       fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
     }
 
@@ -504,6 +513,21 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
   y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
 
+  /* The below is moderately amusing that we do NOT need to
+   * track if A.x is positive or negative and still get the
+   * impact on winding number from crossing. given the roots
+   * t1, t2, we then have that
+   *
+   *  g_x(t) = Ax * (t - t1) * (t - t2)
+   *  g_x'(t) = Ax * (t - t1) + Ax * (t - t2)
+   *
+   * then
+   *   if Ax < 0, then t1 > t2 and thus g_x'(t) < 0
+   *   if Ax > 0, then t1 < t2 and thus g_x'(t) < 0
+   *
+   * thus the sign of A.x has no effect on how the winding
+   * number gets changed.
+   */
   if (use_t1)
     {
       fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
