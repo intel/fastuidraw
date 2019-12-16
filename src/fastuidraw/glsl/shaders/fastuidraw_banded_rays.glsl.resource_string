@@ -73,7 +73,8 @@ fastuidraw_banded_rays_update_distance(in float dist, in bool is_increment,
   /* We are assuming that there are no cancelling curves in the glyph data.
    * The class GlyphRenderDataRestrictedRays has code to detect most forms
    * of cancelling curves (it detects partially overlapping vertical and
-   * horizontal curves along with perfectly overlapping general curves).
+   * horizontal curves along with perfectly overlapping general curves),
+   * but GlyphRenderDataBandedRays does not.
    */
   if (is_increment)
     {
@@ -108,89 +109,115 @@ fastuidraw_banded_rays_load_point(in uint loc)
 void
 fastuidraw_banded_rays_load_curve(in uint loc, out fastuidraw_banded_rays_curve curve)
 {
-  /* a reasonable shader compiler should re-order so that the reads of
-   * the curve data come first followed by the assignment of values.
-   */
   curve.p0 = fastuidraw_banded_rays_load_point(loc);
   curve.p1 = fastuidraw_banded_rays_load_point(loc + 1u);
   curve.p2 = fastuidraw_banded_rays_load_point(loc + 2u);
 }
 
-vec2
-fastuidraw_banded_rays_intersect_y_equals_0(in fastuidraw_banded_rays_curve curve, out bool f1, out bool f2, out float signA)
+int
+fastuidraw_banded_rays_compute_winding_contribution(in fastuidraw_banded_rays_curve curve,
+                                                    float em,
+                                                    inout fastuidraw_banded_rays_distance_type dst,
+                                                    in float winding_effect_multiplier)
 {
-  const float tiny = 0.0001;
-  float x1, x2, t1, t2;
   vec2 A, B, C;
+  int R = 0;
+  bool use_t1, use_t2;
+  float t1, t2, x1, x2, y1, y2;
+  const float quad_tol = 0.0001;
+  vec2 q1, q2, q3;
 
-  /* The curve is given by
-   *  f(t) = (1-t)^2 p0 + 2t(t-1) p1 + t^2 p2
-   *       = A t^2 - 2B t + C
-   *
-   * which gives
-   *
-   *  A = p0 - 2p1 + p2
-   *  B = p0 - p1
-   *  C = p0
+  /* See fastuidraw_restricted_rays.glsl.resource_string
+   * for an explanation of what is going on here.
    */
-  A = curve.p0 - 2.0 * curve.p1 + curve.p2;
-  B = curve.p0 - curve.p1;
-  C = curve.p0;
-
-  if (abs(A.y) > tiny)
+  A.y = curve.p0.y - 2.0 * curve.p1.y + curve.p2.y;
+  if (A.y <= -quad_tol)
     {
-      float D, Ap, Bp, q1, q2, q3;
+      A.y = -A.y;
+      q1 = vec2(curve.p2.x, -curve.p2.y);
+      q2 = vec2(curve.p1.x, -curve.p1.y);
+      q3 = vec2(curve.p0.x, -curve.p0.y);
+    }
+  else
+    {
+      q1 = curve.p0;
+      q2 = curve.p1;
+      q3 = curve.p2;
+    }
 
-      signA = sign(A.y);
-      q1 = signA * curve.p0.y;
-      q2 = signA * curve.p1.y;
-      q3 = signA * curve.p2.y;
-      Ap = abs(A.y);
-      Bp = signA * B.y;
+  A.x = q1.x - 2.0 * q2.x + q3.x;
+  B = q1 - q2;
+  C = q1;
+
+  use_t1 = (q1.y > 0.0 && (q3.y < 0.0 || q2.y < 0.0));
+  use_t2 = (q3.y > 0.0 && (q1.y < 0.0 || q2.y < 0.0));
+
+  if (A.y > quad_tol)
+    {
+      float D, rA;
 
       D = B.y * B.y - A.y * C.y;
-      if (D > 0.0)
+      if (D < 0.0)
         {
-          float rA;
-
-          D = sqrt(D);
-          rA = 1.0 / Ap;
-
-          t1 = (Bp - D) * rA;
-          t2 = (Bp + D) * rA;
-
-          f1 = ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0));
-          f2 = ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0));
+          t1 = t2 = 2.0;
+          use_t1 = use_t2 = false;
         }
       else
         {
-          t1 = t2 = 0.0;
-          f1 = f2 = false;
+          rA = 1.0 / A.y;
+          D = sqrt(D);
+
+          t1 = (B.y - D) * rA;
+          t2 = (B.y + D) * rA;
         }
     }
   else
     {
-      signA = 1.0;
       t1 = t2 = 0.5 * C.y / B.y;
-
-      f1 = (curve.p0.y >= 0.0 && curve.p2.y < 0.0);
-      f2 = (curve.p0.y <= 0.0 && curve.p2.y > 0.0);
     }
 
-  x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
-  x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
-  return vec2(x1, x2);
+  if (use_t1)
+    {
+      x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
+      if (x1 >= 0.0)
+        {
+          R += 1;
+        }
+
+      fastuidraw_banded_rays_update_distance(abs(em * x1), winding_effect_multiplier * x1 < 0.0, dst);
+    }
+
+  if (use_t2)
+    {
+      x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
+      if (x2 >= 0.0)
+        {
+          R -= 1;
+        }
+
+      fastuidraw_banded_rays_update_distance(abs(em * x2), winding_effect_multiplier * x2 > 0.0, dst);
+    }
+
+  return R;
 }
 
 void
 fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
                                                   in uint num_curves,
                                                   in vec2 glyph_coord,
-                                                  in float em, in float s,
+                                                  in float em,
+                                                  in float ray_direction,
+                                                  in float coordinate_permutation_factor,
                                                   out int winding,
                                                   inout fastuidraw_banded_rays_distance_type nv)
 {
   winding = 0;
+
+  /* the effect on the winding number is to negate it if the ray direction
+   * is negative and to negate it (possible again) if the xy coordinates
+   * are swapped
+   */
+  coordinate_permutation_factor *= ray_direction;
   for (uint c = 0u, curve_src = curve_offset; c < num_curves; curve_src += 3u, ++c)
     {
       fastuidraw_banded_rays_curve curve;
@@ -202,37 +229,18 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
       curve.p1 -= glyph_coord;
       curve.p2 -= glyph_coord;
 
-      if (s > 0.0 && max(curve.p0.x, max(curve.p1.x, curve.p2.x)) * em < -0.5) break;
-      if (s < 0.0 && min(curve.p0.x, min(curve.p1.x, curve.p2.x)) * em > 0.5) break;
+      /* orient the curves in the direction of the ray */
+      curve.p0.x *= ray_direction;;
+      curve.p1.x *= ray_direction;
+      curve.p2.x *= ray_direction;
 
-        {
-          vec2 x1x2;
-          float f, x1, x2;
-          bool f1, f2;
+      if (max(curve.p0.x, max(curve.p1.x, curve.p2.x)) * em < -0.5)
+        break;
 
-          x1x2 = em * fastuidraw_banded_rays_intersect_y_equals_0(curve, f1, f2, f);
-          x1 = s * x1x2.x;
-          x2 = s * x1x2.y;
-
-          if (f1)
-            {
-              if (x1 > 0.0)
-                {
-                  winding += int(f);
-                }
-              fastuidraw_banded_rays_update_distance(abs(x1), f * x1 < 0.0, nv);
-            }
-
-          if (f2)
-            {
-              if (x2 > 0.0)
-                {
-                  winding -= int(f);
-                }
-              fastuidraw_banded_rays_update_distance(abs(x2), f * x2 > 0.0, nv);
-            }
-        }
+      winding += fastuidraw_banded_rays_compute_winding_contribution(curve, em, nv, coordinate_permutation_factor);
     }
+
+  winding *= int(coordinate_permutation_factor);
 }
 ///@endcond
 
@@ -258,10 +266,9 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
 {
   uint horiz_band_offset, vert_band_offset;
   uint c, curve_src, num_curves, curve_offset;
-  vec2 em, band_factor;
+  vec2 ray_direction, em, band_factor;
   fastuidraw_banded_rays_distance_type nv;
   ivec2 winding;
-  float sx, sy;
   uint horiz_band, vert_band;
   fastuidraw_banded_rays_band horiz_band_data, vert_band_data;
 
@@ -279,55 +286,46 @@ fastuidraw_banded_rays_compute_coverage(in uint glyph_data_location,
   horiz_band = min(num_horizontal_bands - 1u,
                    uint(band_factor.y * (glyph_coord.y + fastuidraw_banded_rays_glyph_coord)));
 
-  /* choose which bands */
+  /* choose which bands, which in turn chooses the direction of the ray */
   horiz_band_offset = horiz_band;
   if (glyph_coord.x < 0.0)
     {
       horiz_band_offset += num_horizontal_bands;
-      sx = -1.0;
+      ray_direction.x = -1.0;
     }
   else
     {
-      sx = 1.0;
+      ray_direction.x = 1.0;
     }
 
   vert_band_offset = vert_band + 2u * num_horizontal_bands;
   if (glyph_coord.y < 0.0)
     {
       vert_band_offset += num_vertical_bands;
-      sy = -1.0;
+      ray_direction.y = -1.0;
     }
   else
     {
-      sy = +1.0;
+      ray_direction.y = +1.0;
     }
 
   /* load the horizontal and vertical band headers */
   fastuidraw_banded_rays_load_band(glyph_data_location + horiz_band_offset, horiz_band_data);
   fastuidraw_banded_rays_load_band(glyph_data_location + vert_band_offset, vert_band_data);
 
-  /* TODO: is it better to have a common loop with slightly more icky logic inside
-   * to handle both cases simutaneously or to have a top level if() and each case
-   * has their own loop?
-   *  Pros for common loop: if fragments are across the line with a single frag-shader
-   *                        dispatch, this significantly reduces the code divergence
-   *
-   *  Cons for common loop: We add (up to) two multiplies per curve (the sx multiply)
-   *                        and an additional 2-mins or 2-maxes per curve for the early
-   *                        out test.
-   */
   fastuidraw_banded_rays_compute_coverage_from_band(horiz_band_data.curve_offset + glyph_data_location,
                                                     horiz_band_data.num_curves, glyph_coord,
-                                                    em.x, sx, winding.x, nv);
+                                                    em.x, ray_direction.x, 1.0, winding.x, nv);
 
   /* the curves for the vertical bands are saved with the x-coordinate
    * and y-coordinate swapped; this way we can avoid writing more
    * routines (to handle the xy-swapping) and just swap the xy-coords
-   * of glyph_coords.
+   * of glyph_coords; this causes the orientation to change which is
+   * why the -1 for coordinate_permutation_factor is passed.
    */
   fastuidraw_banded_rays_compute_coverage_from_band(vert_band_data.curve_offset + glyph_data_location,
                                                     vert_band_data.num_curves, glyph_coord.yx,
-                                                    em.y, sy, winding.y, nv);
+                                                    em.y, ray_direction.y, -1.0, winding.y, nv);
 
   float distance, cvg;
   int winding_number = winding.x;
