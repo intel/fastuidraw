@@ -307,53 +307,100 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
                                                         inout fastuidraw_restricted_rays_distance_type dst)
 {
   vec2 A, B, C;
-  int incr, R = 0;
-  bool a1, a2;
-  float q1, q2, q3, t1, t2, x1, x2, y1, y2, signA;
+  int R = 0;
+  bool increment, decrement, use_t1, use_t2;
+  float t1, t2, x1, x2, y1, y2, sy;
   const float quad_tol = 0.0001;
+  vec2 q1, q2, q3;
 
   curve.p1 = fastuidraw_restricted_rays_apply_transformation(curve.p1, tr);
   curve.p2 = fastuidraw_restricted_rays_apply_transformation(curve.p2, tr);
   curve.p3 = fastuidraw_restricted_rays_apply_transformation(curve.p3, tr);
 
-  A = curve.p1 - 2.0 * curve.p2 + curve.p3;
-  B = curve.p1 - curve.p2;
-  C = curve.p1;
-
+  /* Let
+   *   f(t) = [p1, p2, p3](t) = At^2 - 2Bt + C
+   * where
+   *   A = p1 - 2p2 + p3
+   *   B = p1 - p2
+   *   C = p1
+   *
+   * we wish to solve for t so that f_y(t) = 0 but enforce that
+   * 0 < t < 1. Dropping the .y suffixes, the quadratic formula
+   * gives us the two roots:
+   *
+   *  t1 = (B - sqrt(B^2 - AC)) / A
+   *  t2 = (B + sqrt(B^2 - AC)) / A
+   *
+   * using 0 <=t <= 1 directly is numerically unstable, instead
+   * we will use algebra to enforce that condition from p1, p2, p3.
+   * When A > 0, high school algebra yields
+   *
+   * 0 < t1 < 1 if and only if (p1 > p2 && p1 > 0 && (p3 > p2 || p3 < 0))
+   * 0 < t2 < 1 if and only if (p3 > p2 && p3 > 0 && (p1 > p2 || p1 < 0))
+   *
+   * which can, again via high school algebra, becomes
+   *
+   * 0 < t1 < 1 if and only if (p1 > 0 && (p2 < 0 || p3 < 0))
+   * 0 < t2 < 1 if and only if (p3 > 0 && (p2 < 0 || p1 < 0))
+   *
+   * NOTE: These inequalities are incorrect if A < 0. For the case
+   * where A < 0, define:
+   *
+   *  q1 = (p3.x, -p3.y)
+   *  q2 = (p2.x, -p2.y)
+   *  q3 = (p1.x, -p1.y)
+   *
+   *  g(t) = [q1, q2, q3](t)
+   *
+   * then
+   *
+   *  g_x(t) =  f_x(1 - t)
+   *  g_y(t) = -f_y(1 - t)
+   *
+   * The curve g has the same impact on the winding
+   * number as the curve f for the line segment
+   * L = {(x, 0) | 0 <= x <= tr.reference_location}.
+   * Additionally, the quadratic coefficient on g_y(t)
+   * is positive. The last important property is that
+   *
+   *  g_y'(t) =  f_y'(1 - t)
+   *
+   * Let s1 and s2 with s1 < s2 be the solutions of
+   * g_y(s) = 0, then t1 = 1 - s2, t2 = 1 - s1 are
+   * the solutions of f_y(t) = 0 with t1 < t2.
+   *
+   * So, if the curve is quadratic and has a negative
+   * quadratic coefficient we replace p1, p2, p3 with
+   * q1, q2, q3.
+   *
+   */
+  A.y = curve.p1.y - 2.0 * curve.p2.y + curve.p3.y;
   if (curve.is_quadratic && A.y <= -quad_tol)
     {
-      signA = -1.0;
-      incr = -1;
-
-      q1 = -curve.p1.y;
-      q2 = -curve.p2.y;
-      q3 = -curve.p3.y;
+      A.y = -A.y;
+      q1 = vec2(curve.p3.x, -curve.p3.y);
+      q2 = vec2(curve.p2.x, -curve.p2.y);
+      q3 = vec2(curve.p1.x, -curve.p1.y);
+      sy = -1.0;
     }
   else
     {
-      signA = 1.0;
-      incr = 1;
-
-      q1 = curve.p1.y;
-      q2 = curve.p2.y;
-      q3 = curve.p3.y;
+      q1 = curve.p1;
+      q2 = curve.p2;
+      q3 = curve.p3;
+      sy = 1.0;
     }
 
-  a1 = (q1 > 0.0 && (q3 < 0.0 || q2 < 0.0));
-  a2 = (q3 > 0.0 && (q1 < 0.0 || q2 < 0.0));
+  A.x = q1.x - 2.0 * q2.x + q3.x;
+  B = q1 - q2;
+  C = q1;
 
-  if (curve.is_quadratic && abs(A.y) > quad_tol)
+  increment = (q1.y > 0.0 && (q3.y < 0.0 || q2.y < 0.0));
+  decrement = (q3.y > 0.0 && (q1.y < 0.0 || q2.y < 0.0));
+
+  if (curve.is_quadratic && A.y > quad_tol)
     {
-      float Ap, Bp, D, rA;
-
-      /* our inequalities for enforcing 0 <= t <= 1
-       * assmume that A > 0; When A < 0, we flip
-       * the parobola; this affects the ordering
-       * of the solutions and requires us to flip
-       * the winding contribution
-       */
-      Ap = abs(A.y);
-      Bp = signA * B.y;
+      float D, rA;
 
       D = B.y * B.y - A.y * C.y;
       if (D < 0.0)
@@ -362,15 +409,15 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
            * not contribute to the winding number.
            */
           t1 = t2 = 2.0;
-          a1 = a2 = false;
+          increment = decrement = false;
         }
       else
         {
-          rA = 1.0 / Ap;
+          rA = 1.0 / A.y;
           D = sqrt(D);
 
-          t1 = (Bp - D) * rA;
-          t2 = (Bp + D) * rA;
+          t1 = (B.y - D) * rA;
+          t2 = (B.y + D) * rA;
 
           /* We need to enfore the condition that
            * 0 <= t <= 1 in a numerically stable way;
@@ -400,32 +447,32 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
   x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-  if (a1)
+  if (increment)
     {
       if (x1 <= tr.reference_location && x1 >= 0.0)
         {
-          R += incr;
+          R += 1;
         }
 
-      fastuidraw_restricted_rays_update_distance(abs(x1), signA * x1 < 0.0, dst);
+      fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
     }
 
-  if (a2)
+  if (decrement)
     {
       if (x2 <= tr.reference_location && x2 >= 0.0)
         {
-          R -= incr;
+          R -= 1;
         }
 
-      fastuidraw_restricted_rays_update_distance(abs(x2), signA * x2 > 0.0, dst);
+      fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
     }
 
-    /* we do the x-solve just for the distance function,
-     * since we are just aiming for a distance, we can
-     * use the numerically unstable 0 <= t <= 1 instead
-     * of the nasty condition from the control points
-     * directly.
-     */
+  /* we do the x-solve just for the distance function,
+   * since we are just aiming for a distance, we can
+   * use the numerically unstable 0 <= t <= 1 instead
+   * of the nasty condition from the control points
+   * directly.
+   */
   if (curve.is_quadratic && abs(A.x) > quad_tol)
     {
       float D;
@@ -433,8 +480,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       D = B.x * B.x - A.x * C.x;
       if (D < 0.0)
         {
-          D = 0.0;
-          a1 = a2 = false;
+          use_t1 = use_t2 = false;
         }
       else
         {
@@ -444,26 +490,26 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
           t1 = (B.x - D) * rA;
           t2 = (B.x + D) * rA;
 
-          a1 = (t1 >= 0.0 && t1 <= 1.0);
-          a2 = (t2 >= 0.0 && t2 <= 1.0);
+          use_t1 = (t1 >= 0.0 && t1 <= 1.0);
+          use_t2 = (t2 >= 0.0 && t2 <= 1.0);
         }
     }
   else
     {
       t1 = t2 = 0.5 * C.x / B.x;
-      a1 = (curve.p1.x >= 0.0 && curve.p3.x < 0.0);
-      a2 = (curve.p1.x <= 0.0 && curve.p3.x > 0.0);
+      use_t1 = (q1.x > 0.0 && q3.x < 0.0);
+      use_t2 = (q1.x < 0.0 && q3.x > 0.0);
     }
 
   y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
   y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
 
-  if (a1)
+  if (use_t1)
     {
       fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
     }
 
-  if (a2)
+  if (use_t2)
     {
       fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
     }
