@@ -330,7 +330,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
 {
   vec2 A, B, C;
   int R = 0;
-  bool increment, decrement, use_t1, use_t2;
+  bool use_t1, use_t2;
   float t1, t2, x1, x2, y1, y2;
   const float quad_tol = 0.0001;
   vec2 q1, q2, q3;
@@ -415,8 +415,8 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   B = q1 - q2;
   C = q1;
 
-  increment = (q1.y > 0.0 && (q3.y < 0.0 || q2.y < 0.0));
-  decrement = (q3.y > 0.0 && (q1.y < 0.0 || q2.y < 0.0));
+  use_t1 = (q1.y > 0.0 && (q3.y < 0.0 || q2.y < 0.0));
+  use_t2 = (q3.y > 0.0 && (q1.y < 0.0 || q2.y < 0.0));
 
   if (curve.is_quadratic && A.y > quad_tol)
     {
@@ -429,7 +429,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
            * not contribute to the winding number.
            */
           t1 = t2 = 2.0;
-          increment = decrement = false;
+          use_t1 = use_t2 = false;
         }
       else
         {
@@ -445,11 +445,21 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       t1 = t2 = 0.5 * C.y / B.y;
     }
 
-  x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
-  x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
-
-  if (increment)
+  /* Question: should we deal with the end points of the curve?
+   *           Doing so means having a consistent rule of when
+   *           to allow an endpoint to affect the winding number.
+   *           Using the rules:
+   *             (a) use t1 = 0 if and only if f(0) = 0 && f'(0) < 0
+   *             (b) use t2 = 0 if and only if f(1) = 1 && f'(1) > 0
+   *
+   *           Now, by construction t1 < t2, thus the above is the
+   *           same as
+   *             (a) use t1 = 0 if and only if p1.y == 0 && p2.y < p1.y
+   *             (b) use t2 = 1 if and only if p3.y == 0 && p2.y < p3.y
+   */
+  if (use_t1)
     {
+      x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
       if (x1 <= tr.reference_location && x1 >= 0.0)
         {
           R += 1;
@@ -462,8 +472,9 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
     }
 
-  if (decrement)
+  if (use_t2)
     {
+      x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
       if (x2 <= tr.reference_location && x2 >= 0.0)
         {
           R -= 1;
@@ -510,9 +521,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       use_t2 = (q1.x < 0.0 && q3.x > 0.0);
     }
 
-  y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
-  y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
-
   /* The below is moderately amusing that we do NOT need to
    * track if A.x is positive or negative and still get the
    * impact on winding number from crossing. given the roots
@@ -522,26 +530,32 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    *  g_x'(t) = Ax * (t - t1) + Ax * (t - t2)
    *
    * then
-   *   if Ax < 0, then t1 > t2 and thus g_x'(t) < 0
-   *   if Ax > 0, then t1 < t2 and thus g_x'(t) < 0
+   *   if Ax < 0, then t1 > t2 and thus g_x'(t1) < 0 and g_x'(t2) > 0
+   *   if Ax > 0, then t1 < t2 and thus g_x'(t1) < 0 and g_x'(t2) > 0
    *
    * thus the sign of A.x has no effect on how the winding
    * number gets changed.
    */
   if (use_t1)
     {
+      y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
       fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
     }
 
   if (use_t2)
     {
+      y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
       fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
     }
 
   /* We are just computing a distance-like value to perform anti-aliasing;
    * as such we can skip computing the other critical points for the L1-distance
    * function f(t) = |x(t) - x| + |y(t) - y| which are the end points and the
-   * points p(t) = (x(t), y(t)) where |x'(t)| = |y'(t)|.
+   * points p(t) = (x(t), y(t)) where |x'(t)| = |y'(t)|. The points correspond
+   * to
+   *
+   *    t1 = (A.x - A.y) / (B.x - B.y)
+   *    t2 = (A.x + A.y) / (B.x + B.y)
    *
    * If we are to check the end-points, we would need to only check t = 0.
    * This is because if t = 1 is within the cell, then the curve that starts
@@ -555,7 +569,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    * the direction of the derivative in the 2nd argument, so -B is
    * sufficient and the curve at 0 is curve.p1.
    *
-   * TODO: decide if need the end point or not.
+   * TODO: decide if doing the proper L1-distance is necessary.
    */
   return R;
 }
