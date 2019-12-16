@@ -309,6 +309,8 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   vec2 A, B, C;
   int incr, R = 0;
   bool a1, a2;
+  float t1, t2, x1, x2, y1, y2, signA;
+  const float quad_tol = 0.0001;
 
   curve.p1 = fastuidraw_restricted_rays_apply_transformation(curve.p1, tr);
   curve.p2 = fastuidraw_restricted_rays_apply_transformation(curve.p2, tr);
@@ -318,100 +320,94 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   B = curve.p1 - curve.p2;
   C = curve.p1;
 
+  if (curve.is_quadratic && abs(A.y) > quad_tol)
     {
-      float t1, t2, x1, x2, signA;
-      const float quad_tol = 0.0001;
+      float q1, q2, q3, Ap, Bp, D, rA;
 
-      if (curve.is_quadratic && abs(A.y) > quad_tol)
+      /* our inequalities for enforcing 0 <= t <= 1
+       * assmume that A > 0; When A < 0, we flip
+       * the parobola; this affects the ordering
+       * of the solutions and requires us to flip
+       * the winding contribution
+       */
+      signA = sign(A.y);
+      incr = (A.y > 0.0) ? 1 : -1;
+      q1 = signA * curve.p1.y;
+      q2 = signA * curve.p2.y;
+      q3 = signA * curve.p3.y;
+      Ap = abs(A.y);
+      Bp = signA * B.y;
+
+      D = B.y * B.y - A.y * C.y;
+      if (D < 0.0)
         {
-          float q1, q2, q3, Ap, Bp, D, rA;
-
-          /* our inequalities for enforcing 0 <= t <= 1
-           * assmume that A > 0; When A < 0, we flip
-           * the parobola; this affects the ordering
-           * of the solutions and requires us to flip
-           * the winding contribution
+          /* the parobola does not go through y = 0, thus it does
+           * not contribute to the winding number.
            */
-          signA = sign(A.y);
-          incr = (A.y > 0.0) ? 1 : -1;
-          q1 = signA * curve.p1.y;
-          q2 = signA * curve.p2.y;
-          q3 = signA * curve.p3.y;
-          Ap = abs(A.y);
-          Bp = signA * B.y;
-
-          D = B.y * B.y - A.y * C.y;
-
-          if (D < 0.0)
-            {
-              /* the parobola does not go through y = 0, thus it does
-               * not contribute to the winding number.
-               */
-              t1 = t2 = 2.0;
-              a1 = a2 = false;
-            }
-          else
-            {
-              rA = 1.0 / Ap;
-              D = sqrt(D);
-
-              t1 = (Bp - D) * rA;
-              t2 = (Bp + D) * rA;
-
-              /* We need to enfore the condition that
-               * 0 <= t <= 1 in a numerically stable way;
-               * we do this with the a hammer of algebra:
-               *
-               * 0 <= (Bp - sqrt(BB - AC)) / Ap <= 1
-               *
-               * becomes
-               *
-               * Condition1 = (Bp >=0 && Cp >=0) && (Ap > Bp || Ap - 2Bp + Cp < 0)
-               *            = (q1 >= q2 && q1 >= 0) && (q3 > q2 || q3 < 0)
-               *
-               * 0 <= (Bp + sqrt(BB - AC)) / Ap <= 1
-               *
-               * becomes
-               *
-               * Condition2 = (Ap > Bp && Ap - 2Bp + Cp > 0) && (Bp >=0 || Cp <= 0)
-               *            = (q3 > q2 && q3 > 0) && (q1 >= q2 || q1 <= 0)
-               */
-
-              a1 = ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0));
-              a2 = ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0));
-            }
+          t1 = t2 = 2.0;
+          a1 = a2 = false;
         }
       else
         {
-          incr = 1;
-          signA = 1.0;
-          t1 = t2 = 0.5 * C.y / B.y;
-          a1 = (curve.p1.y >= 0.0 && curve.p3.y < 0.0);
-          a2 = (curve.p1.y <= 0.0 && curve.p3.y > 0.0);
+          rA = 1.0 / Ap;
+          D = sqrt(D);
+
+          t1 = (Bp - D) * rA;
+          t2 = (Bp + D) * rA;
+
+          /* We need to enfore the condition that
+           * 0 <= t <= 1 in a numerically stable way;
+           * we do this with the a hammer of algebra:
+           *
+           * 0 <= (Bp - sqrt(BB - AC)) / Ap <= 1
+           *
+           * becomes
+           *
+           * Condition1 = (Bp >=0 && Cp >=0) && (Ap > Bp || Ap - 2Bp + Cp < 0)
+           *            = (q1 >= q2 && q1 >= 0) && (q3 > q2 || q3 < 0)
+           *
+           * 0 <= (Bp + sqrt(BB - AC)) / Ap <= 1
+           *
+           * becomes
+           *
+           * Condition2 = (Ap > Bp && Ap - 2Bp + Cp > 0) && (Bp >=0 || Cp <= 0)
+           *            = (q3 > q2 && q3 > 0) && (q1 >= q2 || q1 <= 0)
+           */
+
+          a1 = ((q1 > q2 && q1 > 0.0) && (q3 > q2 || q3 < 0.0));
+          a2 = ((q3 > q2 && q3 > 0.0) && (q1 > q2 || q1 < 0.0));
         }
+    }
+  else
+    {
+      incr = 1;
+      signA = 1.0;
+      t1 = t2 = 0.5 * C.y / B.y;
+      a1 = (curve.p1.y > 0.0 && curve.p3.y < 0.0);
+      a2 = (curve.p1.y < 0.0 && curve.p3.y > 0.0);
+    }
 
-      x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
-      x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
+  x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
+  x2 = (A.x * t2 - B.x * 2.0) * t2 + C.x;
 
-      if (a1)
+  if (a1)
+    {
+      if (x1 <= tr.reference_location && x1 >= 0.0)
         {
-          if (x1 <= tr.reference_location && x1 >= 0.0)
-            {
-              R += incr;
-            }
-
-          fastuidraw_restricted_rays_update_distance(abs(x1), signA * x1 < 0.0, dst);
+          R += incr;
         }
 
-      if (a2)
+      fastuidraw_restricted_rays_update_distance(abs(x1), signA * x1 < 0.0, dst);
+    }
+
+  if (a2)
+    {
+      if (x2 <= tr.reference_location && x2 >= 0.0)
         {
-          if (x2 <= tr.reference_location && x2 >= 0.0)
-            {
-              R -= incr;
-            }
-
-          fastuidraw_restricted_rays_update_distance(abs(x2), signA * x2 > 0.0, dst);
+          R -= incr;
         }
+
+      fastuidraw_restricted_rays_update_distance(abs(x2), signA * x2 > 0.0, dst);
     }
 
     /* we do the x-solve just for the distance function,
@@ -420,52 +416,46 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
      * of the nasty condition from the control points
      * directly.
      */
+  if (curve.is_quadratic && abs(A.x) > quad_tol)
     {
-      float t1, t2, y1, y2;
-      const float quad_tol = 0.0001;
-      bool a1, a2;
+      float D;
 
-      if (curve.is_quadratic && abs(A.x) > quad_tol)
+      D = B.x * B.x - A.x * C.x;
+      if (D < 0.0)
         {
-          float D;
-
-          D = B.x * B.x - A.x * C.x;
-          if (D < 0.0)
-            {
-              D = 0.0;
-              a1 = a2 = false;
-            }
-          else
-            {
-              float rA = 1.0 / A.x;
-
-              D = sqrt(D);
-              t1 = (B.x - D) * rA;
-              t2 = (B.x + D) * rA;
-
-              a1 = (t1 >= 0.0 && t1 <= 1.0);
-              a2 = (t2 >= 0.0 && t2 <= 1.0);
-            }
+          D = 0.0;
+          a1 = a2 = false;
         }
       else
         {
-          t1 = t2 = 0.5 * C.x / B.x;
-          a1 = (curve.p1.x >= 0.0 && curve.p3.x < 0.0);
-          a2 = (curve.p1.x <= 0.0 && curve.p3.x > 0.0);
-        }
+          float rA = 1.0 / A.x;
 
-      y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
-      y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
+          D = sqrt(D);
+          t1 = (B.x - D) * rA;
+          t2 = (B.x + D) * rA;
 
-      if (a1)
-        {
-          fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
+          a1 = (t1 >= 0.0 && t1 <= 1.0);
+          a2 = (t2 >= 0.0 && t2 <= 1.0);
         }
+    }
+  else
+    {
+      t1 = t2 = 0.5 * C.x / B.x;
+      a1 = (curve.p1.x >= 0.0 && curve.p3.x < 0.0);
+      a2 = (curve.p1.x <= 0.0 && curve.p3.x > 0.0);
+    }
 
-      if (a2)
-        {
-          fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
-        }
+  y1 = (A.y * t1 - B.y * 2.0) * t1 + C.y;
+  y2 = (A.y * t2 - B.y * 2.0) * t2 + C.y;
+
+  if (a1)
+    {
+      fastuidraw_restricted_rays_update_distance(abs(y1), y1 > 0.0, dst);
+    }
+
+  if (a2)
+    {
+      fastuidraw_restricted_rays_update_distance(abs(y2), y2 < 0.0, dst);
     }
 
   /* We are just computing a distance-like value to perform anti-aliasing;
