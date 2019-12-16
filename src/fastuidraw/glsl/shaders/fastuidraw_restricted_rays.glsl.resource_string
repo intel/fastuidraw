@@ -320,12 +320,25 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   B = curve.p1 - curve.p2;
   C = curve.p1;
 
-  signA = sign(A.y);
-  q1 = signA * curve.p1.y;
-  q2 = signA * curve.p2.y;
-  q3 = signA * curve.p3.y;
+  if (curve.is_quadratic && A.y <= -quad_tol)
+    {
+      signA = -1.0;
+      incr = -1;
 
-  incr = (A.y > 0.0) ? 1 : -1;
+      q1 = -curve.p1.y;
+      q2 = -curve.p2.y;
+      q3 = -curve.p3.y;
+    }
+  else
+    {
+      signA = 1.0;
+      incr = 1;
+
+      q1 = curve.p1.y;
+      q2 = curve.p2.y;
+      q3 = curve.p3.y;
+    }
+
   a1 = (q1 > 0.0 && (q3 < 0.0 || q2 < 0.0));
   a2 = (q3 > 0.0 && (q1 < 0.0 || q2 < 0.0));
 
@@ -381,11 +394,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
     }
   else
     {
-      incr = 1;
-      signA = 1.0;
       t1 = t2 = 0.5 * C.y / B.y;
-      a1 = (curve.p1.y > 0.0 && curve.p3.y < 0.0);
-      a2 = (curve.p1.y < 0.0 && curve.p3.y > 0.0);
     }
 
   x1 = (A.x * t1 - B.x * 2.0) * t1 + C.x;
