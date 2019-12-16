@@ -196,17 +196,23 @@ unmap_vao_buffers(unsigned int attributes_written,
     }
   else if (m_buffer_streaming_type == PainterEngineGL::buffer_streaming_orphaning)
     {
-      fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, vao.m_attribute_bo);
-      fastuidraw_glBufferData(GL_ARRAY_BUFFER, attributes_written * sizeof(PainterAttribute), vao.attributes().c_ptr(), GL_STREAM_DRAW);
+      if (attributes_written > 0u && indices_written > 0u)
+	{
+	  fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, vao.m_attribute_bo);
+	  fastuidraw_glBufferData(GL_ARRAY_BUFFER, attributes_written * sizeof(PainterAttribute), vao.attributes().c_ptr(), GL_STREAM_DRAW);
 
-      fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, vao.m_header_bo);
-      fastuidraw_glBufferData(GL_ARRAY_BUFFER, attributes_written * sizeof(uint32_t), vao.header_attributes().c_ptr(), GL_STREAM_DRAW);
+	  fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, vao.m_header_bo);
+	  fastuidraw_glBufferData(GL_ARRAY_BUFFER, attributes_written * sizeof(uint32_t), vao.header_attributes().c_ptr(), GL_STREAM_DRAW);
 
-      fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vao.m_index_bo);
-      fastuidraw_glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_written * sizeof(PainterIndex), vao.indices().c_ptr(), GL_STREAM_DRAW);
+	  fastuidraw_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vao.m_index_bo);
+	  fastuidraw_glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_written * sizeof(PainterIndex), vao.indices().c_ptr(), GL_STREAM_DRAW);
+	}
 
-      fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, vao.m_data_bo);
-      fastuidraw_glBufferData(GL_ARRAY_BUFFER, data_store_written * sizeof(uvec4), vao.data().c_ptr(), GL_STREAM_DRAW);
+      if (data_store_written > 0u)
+	{
+	  fastuidraw_glBindBuffer(GL_ARRAY_BUFFER, vao.m_data_bo);
+	  fastuidraw_glBufferData(GL_ARRAY_BUFFER, data_store_written * sizeof(uvec4), vao.data().c_ptr(), GL_STREAM_DRAW);
+	}
     }
   else
     {
