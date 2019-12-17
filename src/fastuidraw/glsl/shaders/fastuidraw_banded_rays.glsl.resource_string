@@ -47,7 +47,7 @@ struct fastuidraw_banded_rays_band
 
 struct fastuidraw_banded_rays_curve
 {
-  vec2 p0, p1, p2;
+  vec2 p1, p2, p3;
 };
 
 struct fastuidraw_banded_rays_distance_type
@@ -109,9 +109,9 @@ fastuidraw_banded_rays_load_point(in uint loc)
 void
 fastuidraw_banded_rays_load_curve(in uint loc, out fastuidraw_banded_rays_curve curve)
 {
-  curve.p0 = fastuidraw_banded_rays_load_point(loc);
-  curve.p1 = fastuidraw_banded_rays_load_point(loc + 1u);
-  curve.p2 = fastuidraw_banded_rays_load_point(loc + 2u);
+  curve.p1 = fastuidraw_banded_rays_load_point(loc);
+  curve.p2 = fastuidraw_banded_rays_load_point(loc + 1u);
+  curve.p3 = fastuidraw_banded_rays_load_point(loc + 2u);
 }
 
 int
@@ -125,34 +125,26 @@ fastuidraw_banded_rays_compute_winding_contribution(in fastuidraw_banded_rays_cu
   bool use_t1, use_t2;
   float t1, t2, x1, x2, y1, y2;
   const float quad_tol = 0.0001;
-  vec2 q1, q2, q3;
 
   /* See fastuidraw_restricted_rays.glsl.resource_string
    * for an explanation of what is going on here.
    */
-  A.y = curve.p0.y - 2.0 * curve.p1.y + curve.p2.y;
+  A = curve.p1 - 2.0 * curve.p2 + curve.p3;
+  B = curve.p1 - curve.p2;
+  C = curve.p1;
+
   if (A.y <= -quad_tol)
     {
-      A.y = -A.y;
-      q1 = vec2(curve.p2.x, -curve.p2.y);
-      q2 = vec2(curve.p1.x, -curve.p1.y);
-      q3 = vec2(curve.p0.x, -curve.p0.y);
+      use_t1 = (curve.p3.y < 0.0 && (curve.p1.y > 0.0 || curve.p2.y > 0.0));
+      use_t2 = (curve.p1.y < 0.0 && (curve.p3.y > 0.0 || curve.p2.y > 0.0));
     }
   else
     {
-      q1 = curve.p0;
-      q2 = curve.p1;
-      q3 = curve.p2;
+      use_t1 = (curve.p1.y > 0.0 && (curve.p3.y < 0.0 || curve.p2.y < 0.0));
+      use_t2 = (curve.p3.y > 0.0 && (curve.p1.y < 0.0 || curve.p2.y < 0.0));
     }
 
-  A.x = q1.x - 2.0 * q2.x + q3.x;
-  B = q1 - q2;
-  C = q1;
-
-  use_t1 = (q1.y > 0.0 && (q3.y < 0.0 || q2.y < 0.0));
-  use_t2 = (q3.y > 0.0 && (q1.y < 0.0 || q2.y < 0.0));
-
-  if (A.y > quad_tol)
+  if (abs(A.y) > quad_tol)
     {
       float D, rA;
 
@@ -225,16 +217,16 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
       fastuidraw_banded_rays_load_curve(curve_src, curve);
 
       /* translate the curve so that glyph_coord is the origin */
-      curve.p0 -= glyph_coord;
       curve.p1 -= glyph_coord;
       curve.p2 -= glyph_coord;
+      curve.p3 -= glyph_coord;
 
       /* orient the curves in the direction of the ray */
-      curve.p0.x *= ray_direction;;
-      curve.p1.x *= ray_direction;
+      curve.p1.x *= ray_direction;;
       curve.p2.x *= ray_direction;
+      curve.p3.x *= ray_direction;
 
-      if (max(curve.p0.x, max(curve.p1.x, curve.p2.x)) * em < -0.5)
+      if (max(curve.p1.x, max(curve.p2.x, curve.p3.x)) * em < -0.5)
         break;
 
       winding += fastuidraw_banded_rays_compute_winding_contribution(curve, em, nv, coordinate_permutation_factor);
