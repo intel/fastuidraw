@@ -116,7 +116,6 @@ fastuidraw_banded_rays_load_curve(in uint loc, out fastuidraw_banded_rays_curve 
 
 int
 fastuidraw_banded_rays_compute_winding_contribution(in fastuidraw_banded_rays_curve curve,
-                                                    float em,
                                                     inout fastuidraw_banded_rays_distance_type dst,
                                                     in float winding_effect_multiplier)
 {
@@ -182,7 +181,7 @@ fastuidraw_banded_rays_compute_winding_contribution(in fastuidraw_banded_rays_cu
           R += 1;
         }
 
-      fastuidraw_banded_rays_update_distance(abs(em * x1), winding_effect_multiplier * x1 < 0.0, dst);
+      fastuidraw_banded_rays_update_distance(abs(x1), winding_effect_multiplier * x1 < 0.0, dst);
     }
 
   if (use_t2)
@@ -193,7 +192,7 @@ fastuidraw_banded_rays_compute_winding_contribution(in fastuidraw_banded_rays_cu
           R -= 1;
         }
 
-      fastuidraw_banded_rays_update_distance(abs(em * x2), winding_effect_multiplier * x2 > 0.0, dst);
+      fastuidraw_banded_rays_update_distance(abs(x2), winding_effect_multiplier * x2 > 0.0, dst);
     }
 
   return R;
@@ -216,6 +215,9 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
    * are swapped
    */
   coordinate_permutation_factor *= ray_direction;
+
+  /* collapse em into the ray direction to reduce the multiplies a little */
+  ray_direction *= em;
   for (uint c = 0u, curve_src = curve_offset; c < num_curves; curve_src += 3u, ++c)
     {
       fastuidraw_banded_rays_curve curve;
@@ -232,10 +234,10 @@ fastuidraw_banded_rays_compute_coverage_from_band(in uint curve_offset,
       curve.p2.x *= ray_direction;
       curve.p3.x *= ray_direction;
 
-      if (max(curve.p1.x, max(curve.p2.x, curve.p3.x)) * em < -0.5)
+      if (max(curve.p1.x, max(curve.p2.x, curve.p3.x)) < -0.5)
         break;
 
-      winding += fastuidraw_banded_rays_compute_winding_contribution(curve, em, nv, coordinate_permutation_factor);
+      winding += fastuidraw_banded_rays_compute_winding_contribution(curve, nv, coordinate_permutation_factor);
     }
 
   winding *= int(coordinate_permutation_factor);
