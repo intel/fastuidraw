@@ -338,12 +338,20 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   curve.p2 = fastuidraw_restricted_rays_apply_transformation(curve.p2, tr);
   curve.p3 = fastuidraw_restricted_rays_apply_transformation(curve.p3, tr);
 
-  /* Let
-   *   f(t) = [p1, p2, p3](t) = At^2 - 2Bt + C
+  A = curve.p1 - 2.0 * curve.p2 + curve.p3;
+  B = curve.p1 - curve.p2;
+  C = curve.p1;
+
+  /*
+   * Let
+   *
+   *  f(t) = [p1, p2, p3](t) = At^2 - 2Bt + C
+   *
    * where
-   *   A = p1 - 2p2 + p3
-   *   B = p1 - p2
-   *   C = p1
+   *
+   *  A = p1 - 2p2 + p3
+   *  B = p1 - p2
+   *  C = p1
    *
    * we wish to solve for t so that f_y(t) = 0 but enforce that
    * 0 < t < 1. Dropping the .y suffixes, the quadratic formula
@@ -352,47 +360,71 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    *  t1 = (B - sqrt(B^2 - AC)) / A
    *  t2 = (B + sqrt(B^2 - AC)) / A
    *
-   * using 0 <=t <= 1 directly is numerically unstable, instead
+   * using 0 < t < 1 directly is numerically unstable, instead
    * we will use algebra to enforce that condition from p1, p2, p3.
    * When A > 0, high school algebra yields
    *
-   * 0 < t1 < 1 if and only if (p1 > p2 && p1 > 0 && (p3 > p2 || p3 < 0))
-   * 0 < t2 < 1 if and only if (p3 > p2 && p3 > 0 && (p1 > p2 || p1 < 0))
+   *  0 < t1 < 1 if and only if (p1 > p2 && p1 > 0 && (p3 > p2 || p3 < 0))
+   *  0 < t2 < 1 if and only if (p3 > p2 && p3 > 0 && (p1 > p2 || p1 < 0))
    *
-   * which, again via high school algebra, becomes
+   * which, again via high school algebra (under the condition A > 0),
+   * becomes
    *
-   * 0 < t1 < 1 if and only if (p1 > 0 && (p2 < 0 || p3 < 0))
-   * 0 < t2 < 1 if and only if (p3 > 0 && (p2 < 0 || p1 < 0))
+   *  0 < t1 < 1 if and only if (p1 > 0 && (p2 < 0 || p3 < 0))
+   *  0 < t2 < 1 if and only if (p3 > 0 && (p2 < 0 || p1 < 0))
    *
    * These inequalities are incorrect if A < 0. For the case where
    * A < 0, the same high school algebra techniques give
    *
-   * 0 < t1 < 1 if and only if (p3 < 0 && (p2 > 0 || p1 > 0))
-   * 0 < t2 < 1 if and only if (p1 < 0 && (p2 > 0 || p3 > 0))
+   *  0 < t1 < 1 if and only if (p3 < 0 && (p2 > 0 || p1 > 0))
+   *  0 < t2 < 1 if and only if (p1 < 0 && (p2 > 0 || p3 > 0))
+   *
+   * Putting together gives
+   *
+   *  0 < t1 < 1 if and only if (p3 < 0 && (p2 > 0 || p1 > 0) && A < 0) || (p1 > 0 && (p2 < 0 || p3 < 0) && A > 0)
+   *  0 < t2 < 1 if and only if (p1 < 0 && (p2 > 0 || p3 > 0) && A < 0) || (p3 > 0 && (p2 < 0 || p1 < 0) && A > 0)
+   *
+   * We can still simplify more. Indeed, the value of
+   *
+   *  (p3 < 0 && (p2 > 0 || p1 > 0) && A < 0) | (p1 > 0 && (p2 < 0 || p3 < 0) && A > 0)
+   *
+   * is equivalent to via algebra (by examining the three cases (p1 <= 0),
+   * (p3 >= 0) and (p1 > 0 && p3 < 0) to:
+   *
+   *  (p3 < 0 && (p2 > 0 || p1 > 0)) || (p1 > 0 && (p2 < 0 || p3 < 0))
+   *
+   * Similair logic gives that
+   *
+   *  (p1 < 0 && (p2 > 0 || p3 > 0) && A < 0) || (p3 > 0 && (p2 < 0 || p1 < 0) && A > 0)
+   *
+   * is equivalent to
+   *
+   *  (p1 < 0 && (p2 > 0 || p3 > 0)) || (p3 > 0 && (p2 < 0 || p1 < 0))
+   *
+   * Which implies that instead of having a conditional branch on A < 0,
+   * we can just put a logical of them together. Let us examine
+   *
+   *  use_t1 = (p3 < 0 && (p2 > 0 || p1 > 0)) || (p1 > 0 && (p2 < 0 || p3 < 0))
+   *         = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 > 0 && p2 < 0) || (p1 > 0 && p3 < 0)
+   *         = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 > 0 && p2 < 0)
+   *
+   *  use_t2 = (p1 < 0 && (p2 > 0 || p3 > 0)) || (p3 > 0 && (p2 < 0 || p1 < 0))
+   *         = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p1 < 0) || (p3 > 0 && p2 < 0)
+   *         = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p2 < 0)
    *
    */
-  A = curve.p1 - 2.0 * curve.p2 + curve.p3;
-  B = curve.p1 - curve.p2;
-  C = curve.p1;
+  use_t1 = (curve.p3.y < 0.0 && curve.p1.y > 0.0)
+    || (curve.p3.y < 0.0 && curve.p2.y > 0.0)
+    || (curve.p1.y > 0.0 && curve.p2.y < 0.0);
 
-  if (A.y <= -quad_tol)
-    {
-      use_t1 = (curve.p3.y < 0.0 && (curve.p1.y > 0.0 || curve.p2.y > 0.0));
-      use_t2 = (curve.p1.y < 0.0 && (curve.p3.y > 0.0 || curve.p2.y > 0.0));
-    }
-  else
-    {
-      use_t1 = (curve.p1.y > 0.0 && (curve.p3.y < 0.0 || curve.p2.y < 0.0));
-      use_t2 = (curve.p3.y > 0.0 && (curve.p1.y < 0.0 || curve.p2.y < 0.0));
-    }
+  use_t2 = (curve.p1.y < 0 && curve.p2.y > 0.0)
+    || (curve.p1.y < 0.0 && curve.p3.y > 0.0)
+    || (curve.p3.y > 0.0 && curve.p2.y < 0.0);
 
-  /* Should we deal with the end points of the curve?
-   * Doing so means having a consistent rule of when
-   * to allow an endpoint to affect the winding number.
-   * Using the rules:
+  /* The rule for the end-points is
    *
    *     (a) use 0 if and only if f(0) = 0 && f'(0) < 0
-   *     (b) use 0 if and only if f(1) = 1 && f'(1) > 0
+   *     (b) use 1 if and only if f(1) = 1 && f'(1) > 0
    *
    * Which become
    *
@@ -404,7 +436,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    *     t1 = (B - |B|) / A
    *     t2 = (B + |B|) / A
    *
-   * If p2.y < p1.y, then B > 0 and thus t1 = 0, i.e. use_t1
+   * If p2.y < 0 = p1.y, then B > 0 and thus t1 = 0, i.e. use_t1
    * whenever (a) is true.
    *
    * If p3.y is zero, then algebra will give that
