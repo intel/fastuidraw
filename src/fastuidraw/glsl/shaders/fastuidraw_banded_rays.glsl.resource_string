@@ -144,6 +144,12 @@ fastuidraw_banded_rays_compute_winding_contribution(in fastuidraw_banded_rays_cu
       use_t2 = (curve.p3.y > 0.0 && (curve.p1.y < 0.0 || curve.p2.y < 0.0));
     }
 
+  /* as before, debatable to worry about the end-points
+   * and it has a cost
+   */
+  use_t1 = use_t1 || (sign(curve.p1.y) == 0.0 && curve.p2.y < 0.0);
+  use_t2 = use_t2 || (sign(curve.p3.y) == 0.0 && curve.p2.y < 0.0);
+
   if (abs(A.y) > quad_tol)
     {
       float D, rA;
