@@ -333,7 +333,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   bool use_t1, use_t2;
   float t1, t2, x1, x2, y1, y2;
   const float quad_tol = 0.0001;
-  vec2 q1, q2, q3;
 
   curve.p1 = fastuidraw_restricted_rays_apply_transformation(curve.p1, tr);
   curve.p2 = fastuidraw_restricted_rays_apply_transformation(curve.p2, tr);
@@ -360,65 +359,78 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    * 0 < t1 < 1 if and only if (p1 > p2 && p1 > 0 && (p3 > p2 || p3 < 0))
    * 0 < t2 < 1 if and only if (p3 > p2 && p3 > 0 && (p1 > p2 || p1 < 0))
    *
-   * which can, again via high school algebra, becomes
+   * which, again via high school algebra, becomes
    *
    * 0 < t1 < 1 if and only if (p1 > 0 && (p2 < 0 || p3 < 0))
    * 0 < t2 < 1 if and only if (p3 > 0 && (p2 < 0 || p1 < 0))
    *
-   * NOTE: These inequalities are incorrect if A < 0. For the case
-   * where A < 0, define:
+   * These inequalities are incorrect if A < 0. For the case where
+   * A < 0, the same high school algebra techniques give
    *
-   *  q1 = (p3.x, -p3.y)
-   *  q2 = (p2.x, -p2.y)
-   *  q3 = (p1.x, -p1.y)
-   *
-   *  g(t) = [q1, q2, q3](t)
-   *
-   * then
-   *
-   *  g_x(t) =  f_x(1 - t)
-   *  g_y(t) = -f_y(1 - t)
-   *
-   * The curve g has the same impact on the winding
-   * number as the curve f for the line segment
-   * L = {(x, 0) | 0 <= x <= tr.reference_location}.
-   * Additionally, the quadratic coefficient on g_y(t)
-   * is positive. The last important property is that
-   *
-   *  g_y'(t) =  f_y'(1 - t)
-   *
-   * Let s1 and s2 with s1 < s2 be the solutions of
-   * g_y(s) = 0, then t1 = 1 - s2, t2 = 1 - s1 are
-   * the solutions of f_y(t) = 0 with t1 < t2.
-   *
-   * So, if the curve is quadratic and has a negative
-   * quadratic coefficient we replace p1, p2, p3 with
-   * q1, q2, q3.
+   * 0 < t1 < 1 if and only if (p3 < 0 && (p2 > 0 || p1 > 0))
+   * 0 < t2 < 1 if and only if (p1 < 0 && (p2 > 0 || p3 > 0))
    *
    */
-  A.y = curve.p1.y - 2.0 * curve.p2.y + curve.p3.y;
-  if (curve.is_quadratic && A.y <= -quad_tol)
+  A = curve.p1 - 2.0 * curve.p2 + curve.p3;
+  B = curve.p1 - curve.p2;
+  C = curve.p1;
+
+  if (A.y <= -quad_tol)
     {
-      A.y = -A.y;
-      q1 = vec2(curve.p3.x, -curve.p3.y);
-      q2 = vec2(curve.p2.x, -curve.p2.y);
-      q3 = vec2(curve.p1.x, -curve.p1.y);
+      use_t1 = (curve.p3.y < 0.0 && (curve.p1.y > 0.0 || curve.p2.y > 0.0));
+      use_t2 = (curve.p1.y < 0.0 && (curve.p3.y > 0.0 || curve.p2.y > 0.0));
     }
   else
     {
-      q1 = curve.p1;
-      q2 = curve.p2;
-      q3 = curve.p3;
+      use_t1 = (curve.p1.y > 0.0 && (curve.p3.y < 0.0 || curve.p2.y < 0.0));
+      use_t2 = (curve.p3.y > 0.0 && (curve.p1.y < 0.0 || curve.p2.y < 0.0));
     }
 
-  A.x = q1.x - 2.0 * q2.x + q3.x;
-  B = q1 - q2;
-  C = q1;
+  /* Should we deal with the end points of the curve?
+   * Doing so means having a consistent rule of when
+   * to allow an endpoint to affect the winding number.
+   * Using the rules:
+   *
+   *     (a) use 0 if and only if f(0) = 0 && f'(0) < 0
+   *     (b) use 0 if and only if f(1) = 1 && f'(1) > 0
+   *
+   * Which become
+   *
+   *     (a) use 0 if and only if p1.y == 0 && p2.y < p1.y
+   *     (b) use 1 if and only if p3.y == 0 && p2.y < p3.y
+   *
+   * If p1.y is zero, then
+   *
+   *     t1 = (B - |B|) / A
+   *     t2 = (B + |B|) / A
+   *
+   * If p2.y < p1.y, then B > 0 and thus t1 = 0, i.e. use_t1
+   * whenever (a) is true.
+   *
+   * If p3.y is zero, then algebra will give that
+   *
+   *   t1 = ((p1 - p2) - |p2|) / (p1 - 2p2)
+   *   t2 = ((p1 - p2) + |p2|) / (p1 - 2p2)
+   *
+   * thus on condition (b) gives
+   *
+   *  t1 = p1 / (p1 - 2p2)
+   *  t2 = 1
+   *
+   * thus, condition (a) is always tacked onto use_t1
+   * and condition (b) is always tacked onto use_t2.
+   *
+   * It is quite debatable if this is really needed; I would
+   * also prefer to *somehow* absorb the conditions into
+   * the starting expression for use_t1 and use_t2 embodied
+   * as strict inequalities. It is also quite debatable if
+   * this is needed, the cost appears to be 1% additional
+   * cost in terms of ms needed to process.
+   */
+  use_t1 = use_t1 || (sign(curve.p1.y) == 0.0 && curve.p2.y < 0.0);
+  use_t2 = use_t2 || (sign(curve.p3.y) == 0.0 && curve.p2.y < 0.0);
 
-  use_t1 = (q1.y > 0.0 && (q3.y < 0.0 || q2.y < 0.0));
-  use_t2 = (q3.y > 0.0 && (q1.y < 0.0 || q2.y < 0.0));
-
-  if (curve.is_quadratic && A.y > quad_tol)
+  if (curve.is_quadratic && abs(A.y) > quad_tol)
     {
       float D, rA;
 
@@ -445,17 +457,15 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
       t1 = t2 = 0.5 * C.y / B.y;
     }
 
-  /* Question: should we deal with the end points of the curve?
-   *           Doing so means having a consistent rule of when
-   *           to allow an endpoint to affect the winding number.
-   *           Using the rules:
-   *             (a) use t1 = 0 if and only if f(0) = 0 && f'(0) < 0
-   *             (b) use t2 = 0 if and only if f(1) = 1 && f'(1) > 0
+  /* We know that t1 always increments and t2 always decerements
+   * the winding number via
    *
-   *           Now, by construction t1 < t2, thus the above is the
-   *           same as
-   *             (a) use t1 = 0 if and only if p1.y == 0 && p2.y < p1.y
-   *             (b) use t2 = 1 if and only if p3.y == 0 && p2.y < p3.y
+   * f_y(t)  = Ay * (t - t1) * (t - t2)
+   * f_y'(t) = Ay * (t - t1) + Ay * (t - t2)
+   *
+   * then
+   *   if Ay < 0, then t1 > t2 and thus f_y'(t1) < 0 and f_y'(t2) > 0
+   *   if Ay > 0, then t1 < t2 and thus f_y'(t1) < 0 and f_y'(t2) > 0
    */
   if (use_t1)
     {
@@ -464,11 +474,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
         {
           R += 1;
         }
-
-      /* We know that the root t1 if used always -increments- the winding
-       * number, this is why we only need to look at if the curve intersects
-       * y = 0 before or after the origin
-       */
       fastuidraw_restricted_rays_update_distance(abs(x1), x1 < 0.0, dst);
     }
 
@@ -479,11 +484,6 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
         {
           R -= 1;
         }
-
-      /* We know that the root t2 if used always -decrements- the winding
-       * number, this is why we only need to look at if the curve intersects
-       * y = 0 before or after the origin
-       */
       fastuidraw_restricted_rays_update_distance(abs(x2), x2 > 0.0, dst);
     }
 
@@ -517,24 +517,14 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
   else
     {
       t1 = t2 = 0.5 * C.x / B.x;
-      use_t1 = (q1.x > 0.0 && q3.x < 0.0);
-      use_t2 = (q1.x < 0.0 && q3.x > 0.0);
+      use_t1 = (curve.p1.x > 0.0 && curve.p3.x < 0.0);
+      use_t2 = (curve.p1.x < 0.0 && curve.p3.x > 0.0);
     }
 
-  /* The below is moderately amusing that we do NOT need to
-   * track if A.x is positive or negative and still get the
-   * impact on winding number from crossing. given the roots
-   * t1, t2, we then have that
-   *
-   *  g_x(t) = Ax * (t - t1) * (t - t2)
-   *  g_x'(t) = Ax * (t - t1) + Ax * (t - t2)
-   *
-   * then
-   *   if Ax < 0, then t1 > t2 and thus g_x'(t1) < 0 and g_x'(t2) > 0
-   *   if Ax > 0, then t1 < t2 and thus g_x'(t1) < 0 and g_x'(t2) > 0
-   *
-   * thus the sign of A.x has no effect on how the winding
-   * number gets changed.
+  /* For the same resason that t1 always increments the winding
+   * and t2 always decrements the winding, we know that only
+   * the sign of y1 and y2 effect which distance they should
+   * update.
    */
   if (use_t1)
     {
