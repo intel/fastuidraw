@@ -402,42 +402,34 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    *  (p1 < 0 && (p2 > 0 || p3 > 0)) || (p3 > 0 && (p2 < 0 || p1 < 0))
    *
    * Which implies that instead of having a conditional branch on A < 0,
-   * we can just put a logical of them together. Let us examine
+   * we can just put a logical of them together. Therefore,
    *
-   *  use_t1 = (p3 < 0 && (p2 > 0 || p1 > 0)) || (p1 > 0 && (p2 < 0 || p3 < 0))
-   *         = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 > 0 && p2 < 0) || (p1 > 0 && p3 < 0)
-   *         = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 > 0 && p2 < 0)
+   *  T1 = (p3 < 0 && (p2 > 0 || p1 > 0)) || (p1 > 0 && (p2 < 0 || p3 < 0))
+   *     = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 > 0 && p2 < 0) || (p1 > 0 && p3 < 0)
+   *     = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 > 0 && p2 < 0)
    *
-   *  use_t2 = (p1 < 0 && (p2 > 0 || p3 > 0)) || (p3 > 0 && (p2 < 0 || p1 < 0))
-   *         = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p1 < 0) || (p3 > 0 && p2 < 0)
-   *         = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p2 < 0)
+   *  T2 = (p1 < 0 && (p2 > 0 || p3 > 0)) || (p3 > 0 && (p2 < 0 || p1 < 0))
+   *     = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p1 < 0) || (p3 > 0 && p2 < 0)
+   *     = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p2 < 0)
    *
-   */
-  use_t1 = (curve.p3.y < 0.0 && curve.p1.y > 0.0)
-    || (curve.p3.y < 0.0 && curve.p2.y > 0.0)
-    || (curve.p1.y > 0.0 && curve.p2.y < 0.0);
-
-  use_t2 = (curve.p1.y < 0 && curve.p2.y > 0.0)
-    || (curve.p1.y < 0.0 && curve.p3.y > 0.0)
-    || (curve.p3.y > 0.0 && curve.p2.y < 0.0);
-
-  /* The rule for the end-points is
+   * The last issue is to handle the end-points of the curve correctly.
+   * We use the rules:
    *
-   *     (a) use 0 if and only if f(0) = 0 && f'(0) < 0
-   *     (b) use 1 if and only if f(1) = 1 && f'(1) > 0
+   *  (a) use 0 if and only if f(0) = 0 && f'(0) < 0
+   *  (b) use 1 if and only if f(1) = 1 && f'(1) > 0
    *
    * Which become
    *
-   *     (a) use 0 if and only if p1.y == 0 && p2.y < p1.y
-   *     (b) use 1 if and only if p3.y == 0 && p2.y < p3.y
+   *  (a) use 0 if and only if p1 == 0 && p2 < p1
+   *  (b) use 1 if and only if p3 == 0 && p2 < p3
    *
    * If p1.y is zero, then
    *
    *     t1 = (B - |B|) / A
    *     t2 = (B + |B|) / A
    *
-   * If p2.y < 0 = p1.y, then B > 0 and thus t1 = 0, i.e. use_t1
-   * whenever (a) is true.
+   * If p2 < 0 = p1, then B > 0 and thus t1 = 0, i.e.
+   * use t1 whenever (a) is true.
    *
    * If p3.y is zero, then algebra will give that
    *
@@ -449,18 +441,23 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    *  t1 = p1 / (p1 - 2p2)
    *  t2 = 1
    *
-   * thus, condition (a) is always tacked onto use_t1
-   * and condition (b) is always tacked onto use_t2.
+   * which means use t2 when (b) is true.
    *
-   * It is quite debatable if this is really needed; I would
-   * also prefer to *somehow* absorb the conditions into
-   * the starting expression for use_t1 and use_t2 embodied
-   * as strict inequalities. It is also quite debatable if
-   * this is needed, the cost appears to be 1% additional
-   * cost in terms of ms needed to process.
+   * Thus,
+   *
+   *   use_t1 = T1 || (p1 == 0 && p2 < 0)
+   *          = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 >= 0 && p2 < 0)
+   *
+   *   use_t2 = T2 || (p3 == 0 && p2 < 0)
+   *          = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 >= 0 && p2 < 0)
    */
-  use_t1 = use_t1 || (sign(curve.p1.y) == 0.0 && curve.p2.y < 0.0);
-  use_t2 = use_t2 || (sign(curve.p3.y) == 0.0 && curve.p2.y < 0.0);
+  use_t1 = (curve.p3.y < 0.0 && curve.p1.y > 0.0)
+    || (curve.p3.y < 0.0 && curve.p2.y > 0.0)
+    || (curve.p1.y >= 0.0 && curve.p2.y < 0.0);
+
+  use_t2 = (curve.p1.y < 0 && curve.p2.y > 0.0)
+    || (curve.p1.y < 0.0 && curve.p3.y > 0.0)
+    || (curve.p3.y >= 0.0 && curve.p2.y < 0.0);
 
   if (curve.is_quadratic && abs(A.y) > quad_tol)
     {
