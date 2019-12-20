@@ -1,5 +1,5 @@
 float
-fastuidraw_fp16_from_fp32(uint u)
+fastuidraw_unpack_fp16(uint u)
 {
   uint sign = (u & 0x8000u) << 16u;
   uint exponent = (u & 0x7C00u) >> 10u;
@@ -42,7 +42,7 @@ fastuidraw_fp16_from_fp32(uint u)
   {
     uint y = (u >> 16u);
     uint x = (u & 0xFFFFu);
-    return vec2(fastuidraw_fp16_from_fp32(x),
-                fastuidraw_fp16_from_fp32(y));
+    return vec2(fastuidraw_unpack_fp16(x),
+                fastuidraw_unpack_fp16(y));
   }
 #endif
