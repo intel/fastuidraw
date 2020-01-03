@@ -1,11 +1,11 @@
-<map id="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/colorstop.hpp" name="/media/kevin/P4/github/fastuidraw/inc/fastuidraw/colorstop.hpp">
-<area shape="rect" id="node2" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="565,295,715,322"/>
-<area shape="rect" id="node5" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="5,206,168,233"/>
-<area shape="rect" id="node9" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="273,117,447,143"/>
-<area shape="rect" id="node10" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="471,109,633,151"/>
-<area shape="rect" id="node6" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="6,295,167,322"/>
-<area shape="rect" id="node11" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="193,199,359,240"/>
-<area shape="rect" id="node15" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="435,199,597,240"/>
-<area shape="rect" id="node16" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="621,199,803,240"/>
-<area shape="rect" id="node13" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="302,288,469,329"/>
+<map id="/home/kevin/fastuidraw.krogueintel/inc/fastuidraw/colorstop.hpp" name="/home/kevin/fastuidraw.krogueintel/inc/fastuidraw/colorstop.hpp">
+<area shape="rect" id="node2" href="$d0/d3f/util_8hpp.html" title="file util.hpp " alt="" coords="565,281,715,307"/>
+<area shape="rect" id="node5" href="$d0/d19/vec_n_8hpp.html" title="file vecN.hpp " alt="" coords="5,191,168,218"/>
+<area shape="rect" id="node9" href="$db/d2d/c__array_8hpp.html" title="file c_array.hpp " alt="" coords="273,102,447,129"/>
+<area shape="rect" id="node10" href="$d3/dd6/reference__counted_8hpp.html" title="file reference_counted.hpp " alt="" coords="471,95,633,136"/>
+<area shape="rect" id="node6" href="$d4/d78/math_8hpp.html" title="file math.hpp " alt="" coords="6,281,167,307"/>
+<area shape="rect" id="node11" href="$da/d7d/fastuidraw__memory_8hpp.html" title="file fastuidraw_memory.hpp " alt="" coords="193,184,359,225"/>
+<area shape="rect" id="node15" href="$dc/dbe/reference__count__atomic_8hpp.html" title="file reference_count_atomic.hpp " alt="" coords="435,184,597,225"/>
+<area shape="rect" id="node16" href="$d0/dea/reference__count__non__concurrent_8hpp.html" title="file reference_count_non_concurrent.hpp " alt="" coords="621,184,803,225"/>
+<area shape="rect" id="node13" href="$dd/d99/fastuidraw__memory__private_8hpp.html" title="file fastuidraw_memory_private.hpp " alt="" coords="302,273,469,315"/>
 </map>

@@ -49,5 +49,8 @@ var searchData=
   ['brush_5fadjust_5flocation_5foffset',['brush_adjust_location_offset',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a72ef87c9612a0e8061bed78c1c30c745',1,'fastuidraw::PainterHeader']]],
   ['brush_5fshader_5fdata_5flocation_5foffset',['brush_shader_data_location_offset',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a24fd4bbf3efa36f2d496fa520b997b4f',1,'fastuidraw::PainterHeader']]],
   ['brush_5fshader_5foffset',['brush_shader_offset',['../d9/d8f/classfastuidraw_1_1_painter_header.html#a2c2e68f9932001a1a9a66a0908448f63a243bb0b402009353ff344d3105afe1aa',1,'fastuidraw::PainterHeader']]],
-  ['buffer_5fmasks',['buffer_masks',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba370d9877d491e4a1a1e9f5a17bde0a9b',1,'fastuidraw::gpu_dirty_state']]]
+  ['buffer_5fmasks',['buffer_masks',['../d7/dbd/classfastuidraw_1_1gpu__dirty__state.html#a916e0a277644fde95f0675b417fd424ba370d9877d491e4a1a1e9f5a17bde0a9b',1,'fastuidraw::gpu_dirty_state']]],
+  ['buffer_5fstreaming_5fbuffer_5fsubdata',['buffer_streaming_buffer_subdata',['../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3dae7fddce3decfd83e8f4c65c2b3b5a198',1,'fastuidraw::gl::PainterEngineGL']]],
+  ['buffer_5fstreaming_5forphaning',['buffer_streaming_orphaning',['../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3dae938abb1d8b9bf0f4c214df4d589d512',1,'fastuidraw::gl::PainterEngineGL']]],
+  ['buffer_5fstreaming_5fuse_5fmapping',['buffer_streaming_use_mapping',['../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3da412400489002501a5e9a73ce728217aa',1,'fastuidraw::gl::PainterEngineGL']]]
 ];

@@ -106,6 +106,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
+<tr class="memitem:a8b2930d82b0b59e9c994b6003801dd3d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3d">buffer_streaming_type_t</a> { <a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3da412400489002501a5e9a73ce728217aa">buffer_streaming_use_mapping</a>, 
+<a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3dae938abb1d8b9bf0f4c214df4d589d512">buffer_streaming_orphaning</a>, 
+<a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3dae7fddce3decfd83e8f4c65c2b3b5a198">buffer_streaming_buffer_subdata</a>
+ }<tr class="memdesc:a8b2930d82b0b59e9c994b6003801dd3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies how to stream buffers into GL.  <a href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3d">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:a8b2930d82b0b59e9c994b6003801dd3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38e4013d8be57642c0a1c66159c53dfe"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a38e4013d8be57642c0a1c66159c53dfe">program_type_t</a> { <a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a38e4013d8be57642c0a1c66159c53dfea9d0f4fdb35f1d61cce97d6566b63e934">program_all</a>, 
 <a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a38e4013d8be57642c0a1c66159c53dfea174f262e6b1a4e0616eb38a146cb44be">program_without_discard</a>, 
 <a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a38e4013d8be57642c0a1c66159c53dfea4fb009de8345fa8d63d001c47e85cfcd">program_with_discard</a>, 
@@ -228,8 +234,35 @@ Additional Inherited Members</h2></td></tr>
 <li>Custom brush shaders must be realized as <a class="el" href="../../d8/d41/classfastuidraw_1_1glsl_1_1_painter_brush_shader_g_l_s_l.html">glsl::PainterBrushShaderGLSL</a> objects or objects derived from <a class="el" href="../../d8/d41/classfastuidraw_1_1glsl_1_1_painter_brush_shader_g_l_s_l.html">glsl::PainterBrushShaderGLSL</a> </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html#l00054">54</a> of file <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html">painter_engine_gl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html#l00055">55</a> of file <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html">painter_engine_gl.hpp</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="a8b2930d82b0b59e9c994b6003801dd3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b2930d82b0b59e9c994b6003801dd3d">&#9670;&nbsp;</a></span>buffer_streaming_type_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="../../d5/ddf/classfastuidraw_1_1gl_1_1_painter_engine_g_l.html#a8b2930d82b0b59e9c994b6003801dd3d">fastuidraw::gl::PainterEngineGL::buffer_streaming_type_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Specifies how to stream buffers into GL. </p>
+<p>! </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8b2930d82b0b59e9c994b6003801dd3da412400489002501a5e9a73ce728217aa"></a>buffer_streaming_use_mapping&#160;</td><td class="fielddoc"><p>Reuse GL buffer objects and stream the data via glMapBufferRange </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8b2930d82b0b59e9c994b6003801dd3dae938abb1d8b9bf0f4c214df4d589d512"></a>buffer_streaming_orphaning&#160;</td><td class="fielddoc"><p>Reuse the same GL buffer NAMES, but use glBufferData() to orphan the GL buffer objects to replace the data. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a8b2930d82b0b59e9c994b6003801dd3dae7fddce3decfd83e8f4c65c2b3b5a198"></a>buffer_streaming_buffer_subdata&#160;</td><td class="fielddoc"><p>Reuse the GL buffer objects and stream the data via glBufferSubData </p>
+</td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html#l00093">93</a> of file <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html">painter_engine_gl.hpp</a>.</p>
+
+</div>
+</div>
 <a id="a38e4013d8be57642c0a1c66159c53dfe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a38e4013d8be57642c0a1c66159c53dfe">&#9670;&nbsp;</a></span>program_type_t</h2>
 
@@ -252,7 +285,7 @@ Additional Inherited Members</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html#l00064">64</a> of file <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html">painter_engine_gl.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html#l00065">65</a> of file <a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html">painter_engine_gl.hpp</a>.</p>
 
 </div>
 </div>
@@ -573,7 +606,7 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/gl_backend/<a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html">painter_engine_gl.hpp</a></li>
+<li>/home/kevin/fastuidraw.krogueintel/inc/fastuidraw/gl_backend/<a class="el" href="../../d3/d61/painter__engine__gl_8hpp_source.html">painter_engine_gl.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
