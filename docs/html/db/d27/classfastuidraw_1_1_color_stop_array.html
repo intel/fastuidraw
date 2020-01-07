@@ -103,7 +103,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>A <a class="el" href="../../db/d27/classfastuidraw_1_1_color_stop_array.html" title="A ColorStopArray is a sequence of ColorStop values used to define the color stops of a gradient...">ColorStopArray</a> is a sequence of <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html" title="A ColorStop is a pair consisting of an RGBA value and a place. The value of the place is a floating p...">ColorStop</a> values used to define the color stops of a gradient. </p>
 <p>The values are sorted by <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html#a6d698f2c3a50a16422fc6be7ddb525d3">ColorStop::m_place</a> and each <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html" title="A ColorStop is a pair consisting of an RGBA value and a place. The value of the place is a floating p...">ColorStop</a> value of a <a class="el" href="../../db/d27/classfastuidraw_1_1_color_stop_array.html" title="A ColorStopArray is a sequence of ColorStop values used to define the color stops of a gradient...">ColorStopArray</a> must have a unique value for <a class="el" href="../../dd/d78/classfastuidraw_1_1_color_stop.html#a6d698f2c3a50a16422fc6be7ddb525d3">ColorStop::m_place</a>. A color is computed (in drawing) from a <a class="el" href="../../db/d27/classfastuidraw_1_1_color_stop_array.html" title="A ColorStopArray is a sequence of ColorStop values used to define the color stops of a gradient...">ColorStopArray</a> at a point q as follows. First the color stops S and T are found so that q is in the range [S.m_place, T.m_place]. The color value is then given by the value (1-t) * S.m_color + t * S.m_color where t is given by (q-S.m_place) / (T.m_place - S.m_place). </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html#l00099">99</a> of file <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html">colorstop.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html#l00100">100</a> of file <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html">colorstop.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a260a15ee6f8c17bde3d76f017922be26"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a260a15ee6f8c17bde3d76f017922be26">&#9670;&nbsp;</a></span>ColorStopArray() <span class="overload">[1/2]</span></h2>
@@ -230,7 +230,7 @@ template&lt;typename iterator &gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html#l00133">133</a> of file <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html">colorstop.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html#l00134">134</a> of file <a class="el" href="../../d6/dd7/colorstop_8hpp_source.html">colorstop.hpp</a>.</p>
 
 </div>
 </div>
@@ -273,7 +273,7 @@ template&lt;typename iterator &gt; </div>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/media/kevin/P4/github/fastuidraw/inc/fastuidraw/<a class="el" href="../../d6/dd7/colorstop_8hpp_source.html">colorstop.hpp</a></li>
+<li>/home/kevin/fastuidraw.krogueintel/inc/fastuidraw/<a class="el" href="../../d6/dd7/colorstop_8hpp_source.html">colorstop.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

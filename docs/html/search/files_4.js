@@ -11,7 +11,6 @@ var searchData=
   ['fastuidraw_5fcompute_5flocal_5fdistance_5ffrom_5fpixel_5fdistance_2eglsl_2ehpp',['fastuidraw_compute_local_distance_from_pixel_distance.glsl.hpp',['../d4/db4/fastuidraw__compute__local__distance__from__pixel__distance_8glsl_8hpp.html',1,'']]],
   ['fastuidraw_5fmemory_2ehpp',['fastuidraw_memory.hpp',['../da/d7d/fastuidraw__memory_8hpp.html',1,'']]],
   ['fastuidraw_5fmemory_5fprivate_2ehpp',['fastuidraw_memory_private.hpp',['../dd/d99/fastuidraw__memory__private_8hpp.html',1,'']]],
-  ['fastuidraw_5fpainter_5fcontext_5ftexture_2eglsl_2ehpp',['fastuidraw_painter_context_texture.glsl.hpp',['../db/d8b/fastuidraw__painter__context__texture_8glsl_8hpp.html',1,'']]],
   ['fastuidraw_5fpainter_5fglobals_2evert_2eglsl_2ehpp',['fastuidraw_painter_globals.vert.glsl.hpp',['../dd/d2b/fastuidraw__painter__globals_8vert_8glsl_8hpp.html',1,'']]],
   ['fastuidraw_5fpainter_5ftypes_2eglsl_2ehpp',['fastuidraw_painter_types.glsl.hpp',['../d9/d5d/fastuidraw__painter__types_8glsl_8hpp.html',1,'']]],
   ['fastuidraw_5fpainter_5funiforms_2eglsl_2ehpp',['fastuidraw_painter_uniforms.glsl.hpp',['../d2/df6/fastuidraw__painter__uniforms_8glsl_8hpp.html',1,'']]],
