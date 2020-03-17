@@ -455,7 +455,7 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
     || (curve.p3.y < 0.0 && curve.p2.y > 0.0)
     || (curve.p1.y >= 0.0 && curve.p2.y < 0.0);
 
-  use_t2 = (curve.p1.y < 0 && curve.p2.y > 0.0)
+  use_t2 = (curve.p1.y < 0.0 && curve.p2.y > 0.0)
     || (curve.p1.y < 0.0 && curve.p3.y > 0.0)
     || (curve.p3.y >= 0.0 && curve.p2.y < 0.0);
 
