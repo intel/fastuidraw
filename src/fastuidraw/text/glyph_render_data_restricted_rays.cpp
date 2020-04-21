@@ -1077,85 +1077,66 @@ compute_winding_contribution_impl(int coord,
 {
   using namespace fastuidraw;
 
-  int iA, incr1, incr2;
+  int iA;
   float t1, t2, x1, x2;
+  bool use_t1, use_t2;
 
   iA = m_start[coord] - 2 * m_control[coord] + m_end[coord];
 
+  use_t1 = (p3[coord] < 0.0f && p1[coord] > 0.0f)
+    || (p3[coord] < 0.0f && p2[coord] > 0.0f)
+    || (p1[coord] >= 0.0f && p2[coord] < 0.0f);
+
+  use_t2 = (p1[coord] < 0.0f && p2[coord] > 0.0f)
+    || (p1[coord] < 0.0f && p3[coord] > 0.0f)
+    || (p3[coord] >= 0.0f && p2[coord] < 0.0f);
+
   if (m_has_control && iA != 0)
     {
-      float D, rA, Ap, Bp, q1, q2, q3, sA;
-      int incr_base;
-
-      sA = (iA > 0) ? 1.0 : -1.0;
-      incr_base = (iA > 0) ? 1 : -1;
-      Ap = sA * A[coord];
-      Bp = sA * B[coord];
-      q1 = sA * p1[coord];
-      q2 = sA * p2[coord];
-      q3 = sA * p3[coord];
+      float D, rA;
 
       D = B[coord] * B[coord] - A[coord] * C[coord];
       if (D > 0.0)
         {
-          rA = 1.0f / Ap;
+          rA = 1.0f / A[coord];
 
           D = sqrt(D);
-          t1 = (Bp - D) * rA;
-          t2 = (Bp + D) * rA;
-          if ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0))
-            {
-              incr1 = incr_base;
-            }
-          else
-            {
-              incr1 = 0;
-            }
-
-          if ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0))
-            {
-              incr2 = -incr_base;
-            }
-          else
-            {
-              incr2 = 0;
-            }
+          t1 = (B[coord] - D) * rA;
+          t2 = (B[coord] + D) * rA;
         }
       else
         {
-          incr1 = incr2 = 0;
+          use_t1 = use_t2 = false;
           t1 = t2 = 0.0f;
         }
     }
   else
     {
       t1 = t2 = 0.5f * C[coord] / B[coord];
-      incr1 = (p1[coord] >= 0.0 && p3[coord] < 0.0) ? +1 : 0;
-      incr2 = (p1[coord] <= 0.0 && p3[coord] > 0.0) ? -1 : 0;
     }
 
   x1 = (A[1 - coord] * t1 - B[1 - coord] * 2.0f) * t1 + C[1 - coord];
   x2 = (A[1 - coord] * t2 - B[1 - coord] * 2.0f) * t2 + C[1 - coord];
 
-  if (t1 <= 1.0 && t1 >= 0.0f && incr1 != 0)
+  if (t1 <= 1.0 && t1 >= 0.0f && use_t1)
     {
       *dist = t_min(*dist, t_abs(x1));
     }
 
-  if (t2 <= 1.0 && t2 >= 0.0f && incr2 != 0)
+  if (t2 <= 1.0 && t2 >= 0.0f && use_t2)
     {
       *dist = t_min(*dist, t_abs(x2));
     }
 
   int r(0);
-  if (incr1 != 0 && x1 > 0.0f)
+  if (use_t1 && x1 > 0.0f)
     {
-      r += incr1;
+      ++r;
     }
 
-  if (incr2 != 0 && x2 > 0.0f)
+  if (use_t2 && x2 > 0.0f)
     {
-      r += incr2;
+      --r;
     }
 
   return r;
