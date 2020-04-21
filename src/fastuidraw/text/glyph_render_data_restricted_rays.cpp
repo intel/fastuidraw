@@ -1086,17 +1086,16 @@ compute_winding_contribution_impl(int coord,
   float t1, t2, x1, x2;
   bool use_t1, use_t2;
 
-  /* TODO: if the reference value rv is an integer
-   *       and if it is the same as one of v1 or
-   *       or v3, this is not quite correct
+  /* For the derivation, see the shader file
+   * fastuidraw_restricted_rays.glsl.resource_string
    */
-  use_t1 = (v3 < rv && v1 >= rv)
-    || (v3 < rv && v2 >= rv)
-    || (v1 >= rv && v2 < rv);
+  use_t1 = (v3 <= rv && v1 > rv)
+    || (v3 <= rv && v2 > rv)
+    || (v1 > rv && v2 < rv);
 
-  use_t2 = (v1 < rv && v2 >= rv)
-    || (v1 < rv && v3 >= rv)
-    || (v3 >= rv && v2 < rv);
+  use_t2 = (v1 <= rv && v2 > rv)
+    || (v1 <= rv && v3 > rv)
+    || (v3 > rv && v2 < rv);
 
   iA = m_start[coord] - 2 * m_control[coord] + m_end[coord];
   if (m_has_control && iA != 0)
