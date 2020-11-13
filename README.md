@@ -85,7 +85,7 @@ Running Demos
   need to be in the library path. For Unix platforms, this is done by
   appending the path where the libraries are located to LD_LIBRARY_PATH.
   A simple quick hack is to do `export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH`.
-  All demos have options which can be see by passing `--help` as the one
+  All demos have options which can be seen by passing `--help` as the one
   and only command line option to the demo.
 
 Installing
