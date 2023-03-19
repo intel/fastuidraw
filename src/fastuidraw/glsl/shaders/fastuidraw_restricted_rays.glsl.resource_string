@@ -412,52 +412,68 @@ fastuidraw_restricted_rays_compute_winding_contribution(in fastuidraw_restricted
    *     = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p1 < 0) || (p3 > 0 && p2 < 0)
    *     = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 > 0 && p2 < 0)
    *
-   * The last issue is to handle the end-points of the curve correctly.
+   * The last issue is to handle the end-points of the curve correctly
+   *
    * We use the rules:
    *
-   *  (a) use 0 if and only if f(0) = 0 && f'(0) < 0
-   *  (b) use 1 if and only if f(1) = 1 && f'(1) > 0
+   *  (a) use 0 if and only if f(0) = 0 && f'(0) > 0
+   *  (b) use 1 if and only if f(1) = 1 && f'(1) < 0
    *
-   * Which become
+   * For the case where p1.y = 0, one gets
    *
-   *  (a) use 0 if and only if p1 == 0 && p2 < p1
-   *  (b) use 1 if and only if p3 == 0 && p2 < p3
+   *   A = p3.y - 2 * p2.y
+   *   B = -p2.y
+   *   C =  0
    *
-   * If p1.y is zero, then
+   * thus,
    *
-   *     t1 = (B - |B|) / A
-   *     t2 = (B + |B|) / A
+   *   B * B - A * C = p2.y * p2.y
    *
-   * If p2 < 0 = p1, then B > 0 and thus t1 = 0, i.e.
-   * use t1 whenever (a) is true.
+   * which gives
    *
-   * If p3.y is zero, then algebra will give that
+   *    t2 = (-p2.y + |p2.y|) / (p3.y - 2 * p2.y)
    *
-   *   t1 = ((p1 - p2) - |p2|) / (p1 - 2p2)
-   *   t2 = ((p1 - p2) + |p2|) / (p1 - 2p2)
+   * for p2.y > 0, then t2 = 0 which corresponds to (a)
+   * and for p2.y < 0, t2 = -2 * p2.y / (p3.y - 2 * p2.y)
+   * which is 0 < t2 < 1 when p3.y > 0. So if p1.y is zero,
+   * use t2 if one of p3.y or p2.y is strictly positive.
    *
-   * thus on condition (b) gives
+   * For the case where p3.y = 0, one gets
    *
-   *  t1 = p1 / (p1 - 2p2)
-   *  t2 = 1
+   *      A =  p1.y - 2 * p2.y
+   *      B =  p1.y - p2.y
+   *      C =  p1.y
    *
-   * which means use t2 when (b) is true.
+   * thus,
+   *
+   *      B * B - A * C = p2.y * p2.y
+   *
+   * which gives
+   *
+   *   t1 = (p1.y - p2.y - |p2.y|) / (p1.y - 2 * p2.y)
+   *
+   * for p2.y > 0, t1 = 1 and this correponds to (b)
+   * and for p2.y < 0, t1 = (p1.y) / (p1.y - 2 * p2.y)
+   * which is 0 < t1 < 1 if p1.y > 0. So if p3.y is zero,
+   * use t1 if one of p1.y or p2.y is strcitly positive.
    *
    * Thus,
    *
-   *   use_t1 = T1 || (p1 == 0 && p2 < 0)
-   *          = (p3 < 0 && p1 > 0) || (p3 < 0 && p2 > 0) || (p1 >= 0 && p2 < 0)
+   *   use_t1 = T1 || (p3 == 0 && p2 > 0) || (p3 == 0 && p1 > 0)
+   *          = (p3 <= 0 && p1 > 0) || (p3 <= 0 && p2 > 0) || (p1 > 0 && p2 < 0)
+   *          = (p3 <= 0 && max(p1, p2) > 0) || (p1 > 0 && p2 < 0)
    *
-   *   use_t2 = T2 || (p3 == 0 && p2 < 0)
-   *          = (p1 < 0 && p2 > 0) || (p1 < 0 && p3 > 0) || (p3 >= 0 && p2 < 0)
+   *   use_t2 = T2 || (p1 == 0 && p2 > 0) || (p1 == 0 && p3 > 0)
+   *          = (p1 <= 0 && p2 > 0) || (p1 <= 0 && p3 > 0) || (p3 > 0 && p2 < 0)
+   *          = (p1 <= 0 && max(p2, p3) > 0) || (p3 > 0 && p2 < 0)
    */
-  use_t1 = (curve.p3.y < 0.0 && curve.p1.y > 0.0)
-    || (curve.p3.y < 0.0 && curve.p2.y > 0.0)
-    || (curve.p1.y >= 0.0 && curve.p2.y < 0.0);
+  use_t1 = (curve.p3.y <= 0.0 && curve.p1.y > 0.0)
+    || (curve.p3.y <= 0.0 && curve.p2.y > 0.0)
+    || (curve.p1.y > 0.0 && curve.p2.y < 0.0);
 
-  use_t2 = (curve.p1.y < 0 && curve.p2.y > 0.0)
-    || (curve.p1.y < 0.0 && curve.p3.y > 0.0)
-    || (curve.p3.y >= 0.0 && curve.p2.y < 0.0);
+  use_t2 = (curve.p1.y <= 0.0 && curve.p2.y > 0.0)
+    || (curve.p1.y <= 0.0 && curve.p3.y > 0.0)
+    || (curve.p3.y > 0.0 && curve.p2.y < 0.0);
 
   if (curve.is_quadratic && abs(A.y) > quad_tol)
     {

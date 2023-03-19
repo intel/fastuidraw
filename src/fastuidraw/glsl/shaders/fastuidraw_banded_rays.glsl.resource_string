@@ -132,13 +132,13 @@ fastuidraw_banded_rays_compute_winding_contribution(in fastuidraw_banded_rays_cu
   B = curve.p1 - curve.p2;
   C = curve.p1;
 
-  use_t1 = (curve.p3.y < 0.0 && curve.p1.y > 0.0)
-    || (curve.p3.y < 0.0 && curve.p2.y > 0.0)
-    || (curve.p1.y >= 0.0 && curve.p2.y < 0.0);
+  use_t1 = (curve.p3.y <= 0.0 && curve.p1.y > 0.0)
+    || (curve.p3.y <= 0.0 && curve.p2.y > 0.0)
+    || (curve.p1.y > 0.0 && curve.p2.y < 0.0);
 
-  use_t2 = (curve.p1.y < 0 && curve.p2.y > 0.0)
-    || (curve.p1.y < 0.0 && curve.p3.y > 0.0)
-    || (curve.p3.y >= 0.0 && curve.p2.y < 0.0);
+  use_t2 = (curve.p1.y <= 0.0 && curve.p2.y > 0.0)
+    || (curve.p1.y <= 0.0 && curve.p3.y > 0.0)
+    || (curve.p3.y > 0.0 && curve.p2.y < 0.0);
 
   if (abs(A.y) > quad_tol)
     {

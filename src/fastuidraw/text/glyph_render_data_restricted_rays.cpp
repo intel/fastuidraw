@@ -270,9 +270,7 @@ namespace
                                       fastuidraw::vec2 A,
                                       fastuidraw::vec2 B,
                                       fastuidraw::vec2 C,
-                                      fastuidraw::vec2 p1,
-                                      fastuidraw::vec2 p2,
-                                      fastuidraw::vec2 p3,
+                                      float r, int v1, int v2, int v3,
                                       float *dist) const;
 
     float
@@ -566,7 +564,8 @@ namespace
       m_child(nullptr, nullptr),
       m_offset(-1),
       m_splitting_coordinate(3),
-      m_generation(0)
+      m_generation(0),
+      m_mismatches(0)
     {
       m_curves.init(p,
                     fastuidraw::vec2(min_pt),
@@ -604,13 +603,20 @@ namespace
     float
     compute_average_node_cost(void) const;
 
+    int
+    mismatches(void) const
+    {
+      return m_mismatches;
+    }
+
   private:
     explicit
     CurveListHierarchy(unsigned int parent_gen):
       m_child(nullptr, nullptr),
       m_offset(-1),
       m_splitting_coordinate(3),
-      m_generation(parent_gen + 1)
+      m_generation(parent_gen + 1),
+      m_mismatches(0)
     {}
 
     void
@@ -638,7 +644,7 @@ namespace
     unsigned int m_offset, m_splitting_coordinate, m_generation;
     CurveList m_curves;
 
-    int m_winding;
+    int m_winding, m_mismatches;
     fastuidraw::ivec2 m_delta;
   };
 
@@ -700,7 +706,7 @@ namespace
     GlyphPath(void);
 
     int
-    compute_winding_number(fastuidraw::vec2 xy, float *dist) const;
+    compute_winding_number(fastuidraw::vec2 xy, float *dist, int *mismatch_found) const;
 
     void
     move_to(const fastuidraw::vec2 &pt)
@@ -824,6 +830,7 @@ namespace
       node_average_cost,
       curve_average_cost,
       total_number_curves,
+      mismatches_found_const,
 
       num_costs
     };
@@ -1048,8 +1055,8 @@ compute_winding_contribution(fastuidraw::vec2 p, float *dist) const
       *dist = t_min(*dist, q.L1norm());
     }
 
-  R.x() = -compute_winding_contribution_impl(0, A, B, C, p1, p2, p3, dist);
-  R.y() = compute_winding_contribution_impl(1, A, B, C, p1, p2, p3, dist);
+  R.x() = -compute_winding_contribution_impl(0, A, B, C, p.x(), m_start.x(), m_control.x(), m_end.x(), dist);
+  R.y() = compute_winding_contribution_impl(1, A, B, C, p.y(), m_start.y(), m_control.y(), m_end.y(), dist);
 
   if (m_has_control)
     {
@@ -1070,92 +1077,71 @@ compute_winding_contribution_impl(int coord,
                                   fastuidraw::vec2 A,
                                   fastuidraw::vec2 B,
                                   fastuidraw::vec2 C,
-                                  fastuidraw::vec2 p1,
-                                  fastuidraw::vec2 p2,
-                                  fastuidraw::vec2 p3,
+                                  float rv, int v1, int v2, int v3,
                                   float *dist) const
 {
   using namespace fastuidraw;
 
-  int iA, incr1, incr2;
+  int iA;
   float t1, t2, x1, x2;
+  bool use_t1, use_t2;
+
+  /* For the derivation, see the shader file
+   * fastuidraw_restricted_rays.glsl.resource_string
+   */
+  use_t1 = (v3 <= rv && v1 > rv)
+    || (v3 <= rv && v2 > rv)
+    || (v1 > rv && v2 < rv);
+
+  use_t2 = (v1 <= rv && v2 > rv)
+    || (v1 <= rv && v3 > rv)
+    || (v3 > rv && v2 < rv);
 
   iA = m_start[coord] - 2 * m_control[coord] + m_end[coord];
-
   if (m_has_control && iA != 0)
     {
-      float D, rA, Ap, Bp, q1, q2, q3, sA;
-      int incr_base;
-
-      sA = (iA > 0) ? 1.0 : -1.0;
-      incr_base = (iA > 0) ? 1 : -1;
-      Ap = sA * A[coord];
-      Bp = sA * B[coord];
-      q1 = sA * p1[coord];
-      q2 = sA * p2[coord];
-      q3 = sA * p3[coord];
+      float D, rA = 1.0f / A[coord];
 
       D = B[coord] * B[coord] - A[coord] * C[coord];
-      if (D > 0.0)
+      if (D >= 0.0f)
         {
-          rA = 1.0f / Ap;
-
-          D = sqrt(D);
-          t1 = (Bp - D) * rA;
-          t2 = (Bp + D) * rA;
-          if ((q1 >= q2 && q1 >= 0.0) && (q3 > q2 || q3 < 0.0))
-            {
-              incr1 = incr_base;
-            }
-          else
-            {
-              incr1 = 0;
-            }
-
-          if ((q3 > q2 && q3 > 0.0) && (q1 >= q2 || q1 <= 0.0))
-            {
-              incr2 = -incr_base;
-            }
-          else
-            {
-              incr2 = 0;
-            }
+          D = t_sqrt(D);
+          t1 = (B[coord] - D) * rA;
+          t2 = (B[coord] + D) * rA;
         }
       else
         {
-          incr1 = incr2 = 0;
-          t1 = t2 = 0.0f;
+          use_t1 = use_t2 = false;
+          t1 = t2 = -1.0f;
         }
     }
   else
     {
       t1 = t2 = 0.5f * C[coord] / B[coord];
-      incr1 = (p1[coord] >= 0.0 && p3[coord] < 0.0) ? +1 : 0;
-      incr2 = (p1[coord] <= 0.0 && p3[coord] > 0.0) ? -1 : 0;
     }
 
   x1 = (A[1 - coord] * t1 - B[1 - coord] * 2.0f) * t1 + C[1 - coord];
   x2 = (A[1 - coord] * t2 - B[1 - coord] * 2.0f) * t2 + C[1 - coord];
 
-  if (t1 <= 1.0 && t1 >= 0.0f && incr1 != 0)
+  if (t1 <= 1.0 && t1 >= 0.0f && use_t1)
     {
       *dist = t_min(*dist, t_abs(x1));
     }
 
-  if (t2 <= 1.0 && t2 >= 0.0f && incr2 != 0)
+  if (t2 <= 1.0 && t2 >= 0.0f && use_t2)
     {
       *dist = t_min(*dist, t_abs(x2));
     }
 
   int r(0);
-  if (incr1 != 0 && x1 > 0.0f)
+  if (use_t1 && x1 > 0.0f)
     {
-      r += incr1;
+      ++r;
     }
 
-  if (incr2 != 0 && x2 > 0.0f)
+  if (use_t2 && x2 > 0.0f)
     {
-      r += incr2;
+      --r;
     }
 
   return r;
@@ -1735,26 +1721,31 @@ subdivide(unsigned int max_recursion, unsigned int split_thresh,
       thresh = t_sqrt(box_size.x() * box_size.y()) * 0.01f;
       m_delta = ivec2(128, 128);
       m_winding = m_curves.glyph_path().compute_winding_number(pt + vec2(m_delta) * factor,
-                                                               &best_dist);
+                                                               &best_dist, &m_mismatches);
       for (int i = 0; i < MAX_TRIES && best_dist < thresh; ++i)
         {
           ivec2 idelta;
           vec2 delta;
           float dist;
-          int winding;
+          int winding, v;
 
           idelta.x() = std::rand() % GlyphRenderDataRestrictedRays::delta_div_factor;
           idelta.y() = std::rand() % GlyphRenderDataRestrictedRays::delta_div_factor;
           delta = vec2(idelta) * factor;
 
-          winding = m_curves.glyph_path().compute_winding_number(delta + pt, &dist);
+          winding = m_curves.glyph_path().compute_winding_number(delta + pt, &dist, &v);
           if (dist > best_dist)
             {
               m_delta = idelta;
               m_winding = winding;
               best_dist = dist;
+              m_mismatches = v;
             }
         }
+    }
+  else
+    {
+      m_mismatches = m_child[0]->m_mismatches + m_child[1]->m_mismatches;
     }
 }
 
@@ -2127,7 +2118,7 @@ pack_data(fastuidraw::c_array<uint32_t> dst,
 
 int
 GlyphPath::
-compute_winding_number(fastuidraw::vec2 xy, float *dist) const
+compute_winding_number(fastuidraw::vec2 xy, float *dist, int *mismatch_found) const
 {
   fastuidraw::ivec2 w(0, 0);
 
@@ -2140,6 +2131,18 @@ compute_winding_number(fastuidraw::vec2 xy, float *dist) const
         }
     }
 
+  if (w.y() != w.x())
+    {
+      *mismatch_found = 1;
+      // favor not covered over covered
+      w.y() = (fastuidraw::t_abs(w.y()) < fastuidraw::t_abs(w.x())) ?
+        w.y() : w.x();
+    }
+  else
+    {
+      *mismatch_found = 0;
+    }
+
   /* NOTE: if the point is on the curve, then the
    * winding value can be different in x and y.
    */
@@ -2149,7 +2152,8 @@ compute_winding_number(fastuidraw::vec2 xy, float *dist) const
 ////////////////////////////////////////////////
 // GlyphRenderDataRestrictedRaysPrivate methods
 GlyphRenderDataRestrictedRaysPrivate::
-GlyphRenderDataRestrictedRaysPrivate(void)
+GlyphRenderDataRestrictedRaysPrivate(void):
+  m_costs(0.0f)
 {
   m_glyph = FASTUIDRAWnew GlyphPath();
 }
@@ -2343,6 +2347,7 @@ finalize(enum PainterEnums::fill_rule_t f,
   d->m_costs[node_average_cost] = hierarchy.compute_average_node_cost();
   d->m_costs[curve_average_cost] = hierarchy.compute_average_curve_cost();
   d->m_costs[total_number_curves] = d->m_glyph->number_curves();
+  d->m_costs[mismatches_found_const] = hierarchy.mismatches();
 
   FASTUIDRAWdelete(d->m_glyph);
   d->m_glyph = nullptr;
@@ -2390,6 +2395,7 @@ render_info_labels(void) const
       [node_average_cost] = "AverageNodeCount",
       [curve_average_cost] = "AverageCurveCount",
       [total_number_curves] = "TotalNumberOfCurves",
+      [mismatches_found_const] = "MismatchesFound"
     };
   return c_array<const c_string>(s, num_costs);
 }
